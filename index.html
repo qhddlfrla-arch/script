@@ -41,17 +41,18 @@
             <section class="api-key-section">
                 <div class="api-key-header">
                     <span class="api-key-icon">🔑</span>
-                    <span class="api-key-title">OpenAI API Key</span>
+                    <span class="api-key-title">Google Gemini API Key</span>
                     <span class="api-key-status" id="api-key-status">미설정</span>
                 </div>
                 <div class="api-key-form">
                     <input type="password" id="api-key-input" class="api-key-input"
-                        placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx">
+                        placeholder="AI Studio에서 발급받은 키를 입력하세요">
                     <button id="toggle-key-visibility" class="btn-icon" title="키 표시/숨김">👁️</button>
                     <button id="save-api-key-btn" class="btn-save-key">저장</button>
                     <button id="clear-api-key-btn" class="btn-clear-key" title="키 삭제">✖️</button>
                 </div>
-                <p class="api-key-hint">💡 API 키가 없으면 시뮬레이션 모드로 작동합니다</p>
+                <p class="api-key-hint">💡 API 키가 없으면 시뮬레이션 모드로 작동합니다 | <a href="https://aistudio.google.com/app/apikey"
+                        target="_blank" style="color: var(--accent-secondary);">API Key 발급받기 →</a></p>
             </section>
 
             <!-- 입력 섹션 -->
@@ -118,7 +119,7 @@
 
     <script src="scripts/storage.js"></script>
     <script src="scripts/simulator.js"></script>
-    <script src="scripts/openai-service.js"></script>
+    <script src="scripts/gemini-service.js"></script>
     <script src="scripts/app.js"></script>
 </body>
 

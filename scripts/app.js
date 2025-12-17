@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateModeIndicator() {
         const badge = elements.modeIndicator.querySelector('.mode-badge');
         if (StorageManager.hasApiKey()) {
-            badge.textContent = 'OpenAI API 모드';
+            badge.textContent = 'Gemini API 모드';
             badge.classList.remove('simulation');
             badge.classList.add('api');
         } else {
@@ -143,8 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!OpenAIService.isValidKeyFormat(apiKey)) {
-            showToast('올바른 API Key 형식이 아닙니다. (sk-로 시작)', 'error');
+        if (!GeminiService.isValidKeyFormat(apiKey)) {
+            showToast('올바른 API Key 형식이 아닙니다.', 'error');
             return;
         }
 
@@ -215,10 +215,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let result;
 
             if (hasApiKey) {
-                // OpenAI API 모드
+                // Gemini API 모드
                 const apiKey = StorageManager.getApiKey();
-                result = await OpenAIService.generate(originalScript, apiKey);
-                showToast('AI가 새 대본을 생성했습니다! ✨', 'success');
+                result = await GeminiService.generate(originalScript, apiKey);
+                showToast('Gemini가 새 대본을 생성했습니다! ✨', 'success');
             } else {
                 // 시뮬레이션 모드
                 showToast('API 키가 없어 시뮬레이션 모드로 실행됩니다.', 'warning');
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('대본 생성 오류:', error);
 
-            if (error.message.includes('API')) {
+            if (error.message.includes('API') || error.message.includes('key')) {
                 showToast(`API 오류: ${error.message}`, 'error');
             } else {
                 showToast('대본 생성 중 오류가 발생했습니다.', 'error');

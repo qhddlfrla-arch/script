@@ -1,16 +1,22 @@
 /**
- * openai-service.js
- * OpenAI API를 통한 실제 대본 생성 모듈
+ * gemini-service.js
+ * Google Gemini API를 통한 실제 대본 생성 모듈
  */
 
-const OpenAIService = {
-    API_URL: 'https://api.openai.com/v1/chat/completions',
-    MODEL: 'gpt-4o-mini', // 또는 'gpt-3.5-turbo'
+const GeminiService = {
+    MODEL: 'gemini-1.5-flash',
 
     /**
-     * 시스템 프롬프트 생성
+     * API 엔드포인트 생성
      */
-    getSystemPrompt() {
+    getEndpoint(apiKey) {
+        return `https://generativelanguage.googleapis.com/v1beta/models/${this.MODEL}:generateContent?key=${apiKey}`;
+    },
+
+    /**
+     * 프롬프트 생성
+     */
+    getPrompt(originalScript) {
         return `당신은 유튜브 대본 전문가입니다. 사용자가 입력한 대본을 분석해서 새로운 주제를 추천하고, 유튜브 대본 포맷으로 재작성합니다.
 
 ## 출력 규칙
@@ -50,14 +56,11 @@ const OpenAIService = {
 ## 참고사항
 - 내용이 길거나 복잡한 경우, 주제 3, 주제 4, 주제 5까지 추가할 수 있습니다.
 - 각 주제 사이에는 브릿지 문장을 넣어 자연스럽게 연결합니다.
-- 실제 유튜브 영상에서 바로 읽을 수 있도록 자연스러운 구어체로 작성합니다.`;
-    },
+- 실제 유튜브 영상에서 바로 읽을 수 있도록 자연스러운 구어체로 작성합니다.
 
-    /**
-     * 사용자 프롬프트 생성
-     */
-    getUserPrompt(originalScript) {
-        return `다음은 기존 유튜브 대본입니다. 이 대본을 분석하여 새로운 주제를 추천하고, 위의 형식에 맞춰 새로운 대본을 작성해주세요.
+---
+
+다음은 기존 유튜브 대본입니다. 이 대본을 분석하여 새로운 주제를 추천하고, 위의 형식에 맞춰 새로운 대본을 작성해주세요.
 
 [기존 대본]
 ${originalScript}
@@ -68,30 +71,21 @@ ${originalScript}
     },
 
     /**
-     * OpenAI API 호출
+     * Google Gemini API 호출
      */
     async generate(originalScript, apiKey) {
         try {
-            const response = await fetch(this.API_URL, {
+            const response = await fetch(this.getEndpoint(apiKey), {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: this.MODEL,
-                    messages: [
-                        {
-                            role: 'system',
-                            content: this.getSystemPrompt()
-                        },
-                        {
-                            role: 'user',
-                            content: this.getUserPrompt(originalScript)
-                        }
-                    ],
-                    temperature: 0.8,
-                    max_tokens: 4000
+                    contents: [{
+                        parts: [{
+                            text: this.getPrompt(originalScript)
+                        }]
+                    }]
                 })
             });
 
@@ -101,9 +95,11 @@ ${originalScript}
             }
 
             const data = await response.json();
-            const generatedText = data.choices[0].message.content;
 
-            // 응답에서 주제 추출 (첫 번째 줄 또는 특정 패턴)
+            // Gemini API 응답 경로: data.candidates[0].content.parts[0].text
+            const generatedText = data.candidates[0].content.parts[0].text;
+
+            // 응답에서 주제 추출
             const topic = this.extractTopic(generatedText, originalScript);
 
             return {
@@ -112,7 +108,7 @@ ${originalScript}
             };
 
         } catch (error) {
-            console.error('OpenAI API 오류:', error);
+            console.error('Gemini API 오류:', error);
             throw error;
         }
     },
@@ -121,9 +117,6 @@ ${originalScript}
      * 생성된 텍스트에서 주제 추출
      */
     extractTopic(generatedText, originalScript) {
-        // "1. 이야기꾼:" 이전의 텍스트가 있다면 그것을 주제로
-        // 또는 원본 대본에서 키워드 추출하여 주제 생성
-
         // 간단한 키워드 추출
         const words = originalScript.split(/\s+/).filter(word => word.length > 2);
         const commonWords = ['안녕하세요', '여러분', '오늘', '영상', '구독', '좋아요', '감사', '이번'];
@@ -149,6 +142,7 @@ ${originalScript}
      * API 키 유효성 간단 검사
      */
     isValidKeyFormat(apiKey) {
-        return apiKey && apiKey.startsWith('sk-') && apiKey.length > 20;
+        // Gemini API key는 보통 'AIza'로 시작하고 39자
+        return apiKey && apiKey.length > 20;
     }
 };
