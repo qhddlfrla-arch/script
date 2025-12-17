@@ -170,3 +170,8 @@ const StorageManager = {
         return key && key.length > 0;
     }
 };
+
+// ES Module export for script-generator.js
+export function getGeminiAPIKey() {
+    return StorageManager.getApiKey();
+}
