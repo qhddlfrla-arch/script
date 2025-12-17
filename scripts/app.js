@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 입력
         originalScript: document.getElementById('original-script'),
+        previousStory: document.getElementById('previous-story'),
+        toneButtons: document.getElementById('tone-buttons'),
         durationSelect: document.getElementById('duration-select'),
         generateBtn: document.getElementById('generate-btn'),
 
@@ -24,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultSection: document.getElementById('result-section'),
         resultTopic: document.getElementById('result-topic'),
         resultScript: document.getElementById('result-script'),
+        ttsBtn: document.getElementById('tts-btn'),
 
         // 히스토리
         historyList: document.getElementById('history-list'),
@@ -43,7 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentState = {
         isLoading: false,
         selectedHistoryId: null,
-        isKeyVisible: false
+        isKeyVisible: false,
+        isTTSPlaying: false,
+        selectedTone: 'warm'
     };
 
     /**
@@ -68,6 +73,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // 생성 버튼 클릭
         elements.generateBtn.addEventListener('click', handleGenerate);
 
+        // TTS 버튼 클릭
+        if (elements.ttsBtn) {
+            elements.ttsBtn.addEventListener('click', handleTTS);
+        }
+
+        // 순수 본문 복사 버튼 클릭
+        const copyPureBtn = document.getElementById('copy-pure-btn');
+        if (copyPureBtn) {
+            copyPureBtn.addEventListener('click', handleCopyPure);
+        }
+
+        // 감성(Tone) 버튼 클릭
+        if (elements.toneButtons) {
+            elements.toneButtons.querySelectorAll('.tone-btn').forEach(btn => {
+                btn.addEventListener('click', () => handleToneSelect(btn));
+            });
+        }
+
         // 전체 삭제 버튼
         elements.clearHistoryBtn.addEventListener('click', handleClearHistory);
 
@@ -88,12 +111,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =====================================================
+    // 감성(Tone) 선택 관련 함수
+    // =====================================================
+
+    function handleToneSelect(selectedBtn) {
+        // 모든 버튼에서 active 제거
+        elements.toneButtons.querySelectorAll('.tone-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // 선택된 버튼에 active 추가
+        selectedBtn.classList.add('active');
+        currentState.selectedTone = selectedBtn.dataset.tone;
+    }
+
+    function getSelectedTone() {
+        return currentState.selectedTone;
+    }
+
+    // =====================================================
     // API Key 관련 함수
     // =====================================================
 
-    /**
-     * 저장된 API Key 로드
-     */
     function loadApiKey() {
         const apiKey = StorageManager.getApiKey();
         if (apiKey) {
@@ -104,9 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * API Key 상태 업데이트
-     */
     function updateApiKeyStatus(hasKey) {
         if (hasKey) {
             elements.apiKeyStatus.textContent = '설정됨';
@@ -117,9 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * 모드 인디케이터 업데이트
-     */
     function updateModeIndicator() {
         const badge = elements.modeIndicator.querySelector('.mode-badge');
         if (StorageManager.hasApiKey()) {
@@ -133,9 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * API Key 저장 핸들러
-     */
     function handleSaveApiKey() {
         const apiKey = elements.apiKeyInput.value.trim();
 
@@ -155,9 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('API Key가 저장되었습니다! 🔑', 'success');
     }
 
-    /**
-     * API Key 삭제 핸들러
-     */
     function handleClearApiKey() {
         if (!StorageManager.hasApiKey()) {
             showToast('삭제할 API Key가 없습니다.', 'error');
@@ -175,9 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('API Key가 삭제되었습니다.', 'success');
     }
 
-    /**
-     * API Key 표시/숨김 토글
-     */
     function handleToggleKeyVisibility() {
         currentState.isKeyVisible = !currentState.isKeyVisible;
         elements.apiKeyInput.type = currentState.isKeyVisible ? 'text' : 'password';
@@ -188,32 +212,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // 대본 생성 관련 함수
     // =====================================================
 
-    /**
-     * 대본 생성 핸들러
-     */
     async function handleGenerate() {
-        const originalScript = elements.originalScript.value.trim();
+        const topic = elements.originalScript.value.trim();
+        const previousStory = elements.previousStory ? elements.previousStory.value.trim() : '';
+        const tone = getSelectedTone();
         const durationMinutes = parseInt(elements.durationSelect.value, 10);
 
-        // 입력 검증
-        if (!originalScript) {
-            showToast('대본을 입력해주세요.', 'error');
+        if (!topic) {
+            showToast('주제 또는 키워드를 입력해주세요.', 'error');
             elements.originalScript.focus();
             return;
         }
 
-        if (originalScript.length < 10) {
-            showToast('대본이 너무 짧습니다. 더 많은 내용을 입력해주세요.', 'error');
+        if (topic.length < 2) {
+            showToast('주제가 너무 짧습니다. 더 구체적으로 입력해주세요.', 'error');
             return;
         }
 
-        // 로딩 상태 시작
         setLoadingState(true);
         hideDetailSection();
+        stopTTS();
 
         const hasApiKey = StorageManager.hasApiKey();
 
-        // 긴 영상 선택 시 안내 메시지
         if (hasApiKey && durationMinutes >= 30) {
             showToast(`${durationMinutes}분 대본 생성 중... 시간이 다소 걸릴 수 있습니다.`, 'info');
         }
@@ -222,27 +243,22 @@ document.addEventListener('DOMContentLoaded', () => {
             let result;
 
             if (hasApiKey) {
-                // Gemini API 모드 - 영상 길이 전달
                 const apiKey = StorageManager.getApiKey();
-                result = await GeminiService.generate(originalScript, apiKey, durationMinutes);
-                showToast('Gemini가 새 대본을 생성했습니다! ✨', 'success');
+                result = await GeminiService.generate(topic, apiKey, durationMinutes, tone, previousStory);
+                showToast('대본이 생성되었습니다! ✨', 'success');
             } else {
-                // 시뮬레이션 모드
                 showToast('API 키가 없어 시뮬레이션 모드로 실행됩니다.', 'warning');
-                result = await ScriptSimulator.generate(originalScript);
+                result = await ScriptSimulator.generate(topic);
             }
 
-            // 결과 표시
             displayResult(result);
 
-            // LocalStorage에 저장
             StorageManager.save({
                 topic: result.topic,
                 script: result.script,
-                originalScript: originalScript
+                originalScript: topic
             });
 
-            // 히스토리 리스트 갱신
             renderHistoryList();
 
         } catch (error) {
@@ -260,31 +276,95 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * 결과 표시
-     */
     function displayResult(result) {
         elements.resultTopic.textContent = result.topic;
         elements.resultScript.textContent = result.script;
         elements.resultSection.classList.add('visible');
     }
 
-    /**
-     * 로딩 상태 설정
-     */
     function setLoadingState(isLoading) {
         currentState.isLoading = isLoading;
         elements.generateBtn.disabled = isLoading;
         elements.generateBtn.classList.toggle('loading', isLoading);
     }
 
-    /**
-     * 히스토리 리스트 렌더링
-     */
+    // =====================================================
+    // TTS (Text-to-Speech) 관련 함수
+    // =====================================================
+
+    function handleTTS() {
+        if (currentState.isTTSPlaying) {
+            stopTTS();
+        } else {
+            startTTS();
+        }
+    }
+
+    function startTTS() {
+        const text = elements.resultScript.textContent;
+
+        if (!text || text.trim() === '') {
+            showToast('읽을 대본이 없습니다.', 'error');
+            return;
+        }
+
+        if (!('speechSynthesis' in window)) {
+            showToast('이 브라우저는 TTS를 지원하지 않습니다.', 'error');
+            return;
+        }
+
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        const voices = window.speechSynthesis.getVoices();
+        const koreanVoice = voices.find(voice => voice.lang.includes('ko'));
+        if (koreanVoice) {
+            utterance.voice = koreanVoice;
+        }
+
+        utterance.lang = 'ko-KR';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+
+        utterance.onstart = () => {
+            currentState.isTTSPlaying = true;
+            elements.ttsBtn.classList.add('playing');
+            showToast('🔊 미리 듣기를 시작합니다...', 'info');
+        };
+
+        utterance.onend = () => {
+            currentState.isTTSPlaying = false;
+            elements.ttsBtn.classList.remove('playing');
+        };
+
+        utterance.onerror = (e) => {
+            console.error('TTS 오류:', e);
+            currentState.isTTSPlaying = false;
+            elements.ttsBtn.classList.remove('playing');
+            showToast('TTS 재생 중 오류가 발생했습니다.', 'error');
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function stopTTS() {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        currentState.isTTSPlaying = false;
+        if (elements.ttsBtn) {
+            elements.ttsBtn.classList.remove('playing');
+        }
+    }
+
+    // =====================================================
+    // 히스토리 관련 함수
+    // =====================================================
+
     function renderHistoryList() {
         const history = StorageManager.getAll();
 
-        // 빈 상태 표시
         if (history.length === 0) {
             elements.historyList.innerHTML = '';
             elements.historyEmpty.style.display = 'flex';
@@ -293,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.historyEmpty.style.display = 'none';
 
-        // 히스토리 항목 렌더링
         elements.historyList.innerHTML = history.map(item => `
             <li class="history-item ${item.id === currentState.selectedHistoryId ? 'active' : ''}" 
                 data-id="${item.id}">
@@ -305,10 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </li>
         `).join('');
 
-        // 히스토리 항목 클릭 이벤트
         elements.historyList.querySelectorAll('.history-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                // 삭제 버튼 클릭 제외
                 if (e.target.classList.contains('btn-delete')) {
                     return;
                 }
@@ -316,7 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // 삭제 버튼 클릭 이벤트
         elements.historyList.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -325,9 +401,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /**
-     * 히스토리 항목 클릭 핸들러
-     */
     function handleHistoryItemClick(id) {
         const item = StorageManager.getById(id);
 
@@ -337,18 +410,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         currentState.selectedHistoryId = id;
-
-        // 결과 섹션 숨기고 상세 보기 표시
         elements.resultSection.classList.remove('visible');
         showDetailSection(item);
-
-        // 활성 상태 업데이트
         renderHistoryList();
     }
 
-    /**
-     * 상세 보기 표시
-     */
     function showDetailSection(item) {
         elements.detailDate.textContent = `생성일: ${StorageManager.formatDate(item.date)}`;
         elements.detailTopic.textContent = item.topic;
@@ -357,25 +423,16 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.detailSection.classList.add('visible');
     }
 
-    /**
-     * 상세 보기 숨기기
-     */
     function hideDetailSection() {
         elements.detailSection.classList.remove('visible');
         currentState.selectedHistoryId = null;
         renderHistoryList();
     }
 
-    /**
-     * 상세 보기 닫기 핸들러
-     */
     function handleCloseDetail() {
         hideDetailSection();
     }
 
-    /**
-     * 항목 삭제 핸들러
-     */
     function handleDeleteItem(id) {
         if (!confirm('이 대본을 삭제하시겠습니까?')) {
             return;
@@ -384,11 +441,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const success = StorageManager.delete(id);
 
         if (success) {
-            // 현재 보고 있던 항목이면 상세 보기 닫기
             if (currentState.selectedHistoryId === id) {
                 hideDetailSection();
             }
-
             renderHistoryList();
             showToast('대본이 삭제되었습니다.', 'success');
         } else {
@@ -396,9 +451,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * 전체 삭제 핸들러
-     */
     function handleClearHistory() {
         const history = StorageManager.getAll();
 
@@ -418,9 +470,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('모든 대본이 삭제되었습니다.', 'success');
     }
 
-    /**
-     * 복사 핸들러
-     */
+    // =====================================================
+    // 유틸리티 함수
+    // =====================================================
+
     async function handleCopy(e) {
         const targetId = e.currentTarget.dataset.target;
         const targetElement = document.getElementById(targetId);
@@ -437,36 +490,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * 토스트 알림 표시
+     * 순수 본문만 복사 (유튜브 패키지 제외)
      */
+    async function handleCopyPure() {
+        const fullText = elements.resultScript.textContent;
+
+        if (!fullText || fullText.trim() === '') {
+            showToast('복사할 대본이 없습니다.', 'error');
+            return;
+        }
+
+        // "---" 구분선 이전의 본문만 추출
+        let pureText = fullText;
+        const separatorIndex = fullText.indexOf('---');
+
+        if (separatorIndex !== -1) {
+            pureText = fullText.substring(0, separatorIndex).trim();
+        }
+
+        try {
+            await navigator.clipboard.writeText(pureText);
+            showToast('순수 본문만 복사되었습니다! 📜 (TTS용)', 'success');
+        } catch (error) {
+            console.error('복사 오류:', error);
+            showToast('복사에 실패했습니다.', 'error');
+        }
+    }
+
     function showToast(message, type = 'info') {
-        // 기존 토스트 제거
         const existingToast = document.querySelector('.toast');
         if (existingToast) {
             existingToast.remove();
         }
 
-        // 새 토스트 생성
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.textContent = message;
         document.body.appendChild(toast);
 
-        // 표시 애니메이션
         requestAnimationFrame(() => {
             toast.classList.add('visible');
         });
 
-        // 자동 숨김
         setTimeout(() => {
             toast.classList.remove('visible');
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
 
-    /**
-     * HTML 이스케이프
-     */
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;

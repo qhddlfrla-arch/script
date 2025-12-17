@@ -58,17 +58,32 @@
             <!-- 입력 섹션 -->
             <section class="input-section">
                 <div class="input-group">
-                    <label for="original-script">📝 기존 대본 입력</label>
-                    <textarea id="original-script" placeholder="여기에 기존 유튜브 대본을 붙여넣거나 입력하세요..." rows="10"></textarea>
+                    <label for="original-script">📝 주제 또는 키워드 입력</label>
+                    <textarea id="original-script" placeholder="예: 노후에 친구가 줄어드는 이유, 자녀와의 관계 회복, 인생 후반전의 지혜..."
+                        rows="4"></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="previous-story">📖 지난 이야기 (선택사항)</label>
+                    <textarea id="previous-story" placeholder="시리즈 영상인 경우, 이전 회차의 내용을 간략히 적어주세요. AI가 자연스럽게 연결해 드립니다..."
+                        rows="3"></textarea>
+                </div>
+                <div class="input-group">
+                    <label>💫 감성(Tone) 선택</label>
+                    <div class="tone-buttons" id="tone-buttons">
+                        <button type="button" class="tone-btn active" data-tone="warm">🤗 따뜻한</button>
+                        <button type="button" class="tone-btn" data-tone="calm">🧘 차분한</button>
+                        <button type="button" class="tone-btn" data-tone="hopeful">🌅 희망적</button>
+                        <button type="button" class="tone-btn" data-tone="nostalgic">🍂 향수적</button>
+                        <button type="button" class="tone-btn" data-tone="wise">📚 지혜로운</button>
+                    </div>
                 </div>
                 <div class="input-group">
                     <label for="duration-select">⏱️ 영상 길이 선택</label>
                     <select id="duration-select" class="duration-select">
-                        <option value="10">10분 (약 2,000자 / A4 3장)</option>
-                        <option value="20">20분 (약 4,000자 / A4 6장)</option>
-                        <option value="30">30분 (심층 분석)</option>
-                        <option value="60">1시간 (강의/다큐멘터리급)</option>
-                        <option value="90">1시간 30분 (풀 버전)</option>
+                        <option value="10">10분 (가볍게 듣기 좋음)</option>
+                        <option value="15" selected>15분 (가장 추천하는 오디오북 길이)</option>
+                        <option value="30">30분 (깊이 있는 이야기)</option>
+                        <option value="60">1시간 (수면용/장편 낭독)</option>
                     </select>
                 </div>
                 <button id="generate-btn" class="btn-primary">
@@ -94,7 +109,14 @@
                 <div class="result-card">
                     <div class="result-header">
                         <h3>📄 새 대본</h3>
-                        <button class="btn-copy" data-target="result-script" title="복사">📋</button>
+                        <div class="result-actions">
+                            <button id="tts-btn" class="btn-tts" title="미리 듣기">
+                                <span class="tts-play">🔊 미리 듣기</span>
+                                <span class="tts-stop">⏹️ 정지</span>
+                            </button>
+                            <button id="copy-pure-btn" class="btn-copy-pure" title="순수 본문만 복사 (TTS용)">📜 본문만</button>
+                            <button class="btn-copy" data-target="result-script" title="전체 복사">📋 전체</button>
+                        </div>
                     </div>
                     <div class="result-content result-script" id="result-script">
                         <!-- 새 대본이 여기에 표시됨 -->
