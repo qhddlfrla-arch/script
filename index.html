@@ -61,6 +61,16 @@
                     <label for="original-script">📝 기존 대본 입력</label>
                     <textarea id="original-script" placeholder="여기에 기존 유튜브 대본을 붙여넣거나 입력하세요..." rows="10"></textarea>
                 </div>
+                <div class="input-group">
+                    <label for="duration-select">⏱️ 영상 길이 선택</label>
+                    <select id="duration-select" class="duration-select">
+                        <option value="10">10분 (약 2,000자 / A4 3장)</option>
+                        <option value="20">20분 (약 4,000자 / A4 6장)</option>
+                        <option value="30">30분 (심층 분석)</option>
+                        <option value="60">1시간 (강의/다큐멘터리급)</option>
+                        <option value="90">1시간 30분 (풀 버전)</option>
+                    </select>
+                </div>
                 <button id="generate-btn" class="btn-primary">
                     <span class="btn-text">🚀 새 주제 및 대본 생성</span>
                     <span class="btn-loading">⏳ 생성 중...</span>

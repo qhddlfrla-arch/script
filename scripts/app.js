@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 입력
         originalScript: document.getElementById('original-script'),
+        durationSelect: document.getElementById('duration-select'),
         generateBtn: document.getElementById('generate-btn'),
 
         // 결과
@@ -192,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function handleGenerate() {
         const originalScript = elements.originalScript.value.trim();
+        const durationMinutes = parseInt(elements.durationSelect.value, 10);
 
         // 입력 검증
         if (!originalScript) {
@@ -211,13 +213,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const hasApiKey = StorageManager.hasApiKey();
 
+        // 긴 영상 선택 시 안내 메시지
+        if (hasApiKey && durationMinutes >= 30) {
+            showToast(`${durationMinutes}분 대본 생성 중... 시간이 다소 걸릴 수 있습니다.`, 'info');
+        }
+
         try {
             let result;
 
             if (hasApiKey) {
-                // Gemini API 모드
+                // Gemini API 모드 - 영상 길이 전달
                 const apiKey = StorageManager.getApiKey();
-                result = await GeminiService.generate(originalScript, apiKey);
+                result = await GeminiService.generate(originalScript, apiKey, durationMinutes);
                 showToast('Gemini가 새 대본을 생성했습니다! ✨', 'success');
             } else {
                 // 시뮬레이션 모드
@@ -241,7 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('대본 생성 오류:', error);
 
-            if (error.message.includes('API') || error.message.includes('key')) {
+            if (error.message.includes('시간') || error.message.includes('timeout')) {
+                showToast('요청 시간이 초과되었습니다. 다시 시도해주세요.', 'error');
+            } else if (error.message.includes('API') || error.message.includes('key')) {
                 showToast(`API 오류: ${error.message}`, 'error');
             } else {
                 showToast('대본 생성 중 오류가 발생했습니다.', 'error');
