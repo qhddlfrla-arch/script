@@ -11,22 +11,22 @@
     --bg-card: rgba(30, 30, 50, 0.8);
     --bg-card-hover: rgba(40, 40, 70, 0.9);
     --bg-glass: rgba(255, 255, 255, 0.05);
-    
+
     --text-primary: #ffffff;
     --text-secondary: #a0a0b0;
     --text-muted: #606070;
-    
+
     --accent-primary: #6c5ce7;
     --accent-secondary: #a29bfe;
     --accent-gradient: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    
+
     --success: #00b894;
     --warning: #fdcb6e;
     --danger: #ff6b6b;
-    
+
     --border-color: rgba(255, 255, 255, 0.1);
     --shadow-color: rgba(0, 0, 0, 0.3);
-    
+
     /* Spacing */
     --spacing-xs: 0.5rem;
     --spacing-sm: 0.75rem;
@@ -34,24 +34,26 @@
     --spacing-lg: 1.5rem;
     --spacing-xl: 2rem;
     --spacing-2xl: 3rem;
-    
+
     /* Border Radius */
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 24px;
-    
+
     /* Transitions */
     --transition-fast: 0.15s ease;
     --transition-normal: 0.3s ease;
     --transition-slow: 0.5s ease;
-    
+
     /* Sidebar */
     --sidebar-width: 320px;
 }
 
 /* Reset & Base */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -79,7 +81,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background: 
+    background:
         radial-gradient(circle at 20% 80%, rgba(108, 92, 231, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(162, 155, 254, 0.1) 0%, transparent 50%);
     pointer-events: none;
@@ -485,6 +487,7 @@ textarea::placeholder {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -492,9 +495,12 @@ textarea::placeholder {
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.5;
     }
@@ -532,7 +538,7 @@ textarea::placeholder {
     :root {
         --sidebar-width: 280px;
     }
-    
+
     .main-content {
         padding: var(--spacing-lg);
     }
@@ -542,7 +548,7 @@ textarea::placeholder {
     .app-container {
         flex-direction: column;
     }
-    
+
     .sidebar {
         position: relative;
         width: 100%;
@@ -551,7 +557,7 @@ textarea::placeholder {
         border-right: none;
         border-bottom: 1px solid var(--border-color);
     }
-    
+
     .history-list {
         display: flex;
         gap: var(--spacing-sm);
@@ -559,18 +565,18 @@ textarea::placeholder {
         overflow-x: auto;
         overflow-y: hidden;
     }
-    
+
     .history-item {
         min-width: 200px;
         flex-shrink: 0;
         margin-bottom: 0;
     }
-    
+
     .main-content {
         margin-left: 0;
         padding: var(--spacing-md);
     }
-    
+
     .main-header h1 {
         font-size: 1.8rem;
     }
@@ -606,4 +612,145 @@ textarea::placeholder {
 
 .toast.error {
     border-color: var(--danger);
+}
+
+/* =====================================================
+   API Key Section
+   ===================================================== */
+.api-key-section {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.api-key-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.api-key-icon {
+    font-size: 1.2rem;
+}
+
+.api-key-title {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.api-key-status {
+    margin-left: auto;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.api-key-status.active {
+    background: rgba(0, 184, 148, 0.2);
+    color: var(--success);
+}
+
+.api-key-status:not(.active) {
+    background: rgba(253, 203, 110, 0.2);
+    color: var(--warning);
+}
+
+.api-key-form {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+.api-key-input {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-primary);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    transition: border-color var(--transition-normal);
+}
+
+.api-key-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.api-key-input::placeholder {
+    color: var(--text-muted);
+}
+
+.btn-save-key {
+    background: var(--success);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: white;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-save-key:hover {
+    background: #00a884;
+    transform: translateY(-1px);
+}
+
+.btn-clear-key {
+    background: transparent;
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm);
+    color: var(--danger);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: 0.9rem;
+}
+
+.btn-clear-key:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.api-key-hint {
+    margin-top: var(--spacing-sm);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* =====================================================
+   Mode Indicator
+   ===================================================== */
+.mode-indicator {
+    margin-top: var(--spacing-md);
+    text-align: center;
+}
+
+.mode-badge {
+    display: inline-block;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-xl);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.mode-badge.simulation {
+    background: rgba(253, 203, 110, 0.2);
+    color: var(--warning);
+    border: 1px solid var(--warning);
+}
+
+.mode-badge.api {
+    background: rgba(0, 184, 148, 0.2);
+    color: var(--success);
+    border: 1px solid var(--success);
 }

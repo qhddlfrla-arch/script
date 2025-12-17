@@ -1,10 +1,11 @@
 /**
  * storage.js
- * LocalStorage를 사용한 대본 히스토리 관리
+ * LocalStorage를 사용한 대본 히스토리 및 API Key 관리
  */
 
 const StorageManager = {
     STORAGE_KEY: 'youtube_script_history',
+    API_KEY_STORAGE_KEY: 'openai_api_key',
 
     /**
      * 모든 히스토리 데이터 가져오기
@@ -114,5 +115,58 @@ const StorageManager = {
         const minutes = String(date.getMinutes()).padStart(2, '0');
 
         return `${year}.${month}.${day} ${hours}:${minutes}`;
+    },
+
+    // =====================================================
+    // API Key 관리
+    // =====================================================
+
+    /**
+     * API Key 저장
+     * @param {string} apiKey - OpenAI API Key
+     */
+    saveApiKey(apiKey) {
+        try {
+            localStorage.setItem(this.API_KEY_STORAGE_KEY, apiKey);
+            return true;
+        } catch (error) {
+            console.error('API Key 저장 오류:', error);
+            return false;
+        }
+    },
+
+    /**
+     * API Key 가져오기
+     * @returns {string|null} 저장된 API Key
+     */
+    getApiKey() {
+        try {
+            return localStorage.getItem(this.API_KEY_STORAGE_KEY);
+        } catch (error) {
+            console.error('API Key 로드 오류:', error);
+            return null;
+        }
+    },
+
+    /**
+     * API Key 삭제
+     */
+    clearApiKey() {
+        try {
+            localStorage.removeItem(this.API_KEY_STORAGE_KEY);
+            return true;
+        } catch (error) {
+            console.error('API Key 삭제 오류:', error);
+            return false;
+        }
+    },
+
+    /**
+     * API Key 존재 여부 확인
+     * @returns {boolean}
+     */
+    hasApiKey() {
+        const key = this.getApiKey();
+        return key && key.length > 0;
     }
 };

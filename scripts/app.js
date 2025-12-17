@@ -7,6 +7,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     // DOM 요소 참조
     const elements = {
+        // API Key
+        apiKeyInput: document.getElementById('api-key-input'),
+        apiKeyStatus: document.getElementById('api-key-status'),
+        saveApiKeyBtn: document.getElementById('save-api-key-btn'),
+        clearApiKeyBtn: document.getElementById('clear-api-key-btn'),
+        toggleKeyVisibility: document.getElementById('toggle-key-visibility'),
+        modeIndicator: document.getElementById('mode-indicator'),
+
         // 입력
         originalScript: document.getElementById('original-script'),
         generateBtn: document.getElementById('generate-btn'),
@@ -33,13 +41,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // 현재 상태
     let currentState = {
         isLoading: false,
-        selectedHistoryId: null
+        selectedHistoryId: null,
+        isKeyVisible: false
     };
 
     /**
      * 초기화
      */
     function init() {
+        loadApiKey();
+        updateModeIndicator();
         renderHistoryList();
         setupEventListeners();
     }
@@ -48,6 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
      * 이벤트 리스너 설정
      */
     function setupEventListeners() {
+        // API Key 관련
+        elements.saveApiKeyBtn.addEventListener('click', handleSaveApiKey);
+        elements.clearApiKeyBtn.addEventListener('click', handleClearApiKey);
+        elements.toggleKeyVisibility.addEventListener('click', handleToggleKeyVisibility);
+
         // 생성 버튼 클릭
         elements.generateBtn.addEventListener('click', handleGenerate);
 
@@ -69,6 +85,107 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // =====================================================
+    // API Key 관련 함수
+    // =====================================================
+
+    /**
+     * 저장된 API Key 로드
+     */
+    function loadApiKey() {
+        const apiKey = StorageManager.getApiKey();
+        if (apiKey) {
+            elements.apiKeyInput.value = apiKey;
+            updateApiKeyStatus(true);
+        } else {
+            updateApiKeyStatus(false);
+        }
+    }
+
+    /**
+     * API Key 상태 업데이트
+     */
+    function updateApiKeyStatus(hasKey) {
+        if (hasKey) {
+            elements.apiKeyStatus.textContent = '설정됨';
+            elements.apiKeyStatus.classList.add('active');
+        } else {
+            elements.apiKeyStatus.textContent = '미설정';
+            elements.apiKeyStatus.classList.remove('active');
+        }
+    }
+
+    /**
+     * 모드 인디케이터 업데이트
+     */
+    function updateModeIndicator() {
+        const badge = elements.modeIndicator.querySelector('.mode-badge');
+        if (StorageManager.hasApiKey()) {
+            badge.textContent = 'OpenAI API 모드';
+            badge.classList.remove('simulation');
+            badge.classList.add('api');
+        } else {
+            badge.textContent = '시뮬레이션 모드';
+            badge.classList.remove('api');
+            badge.classList.add('simulation');
+        }
+    }
+
+    /**
+     * API Key 저장 핸들러
+     */
+    function handleSaveApiKey() {
+        const apiKey = elements.apiKeyInput.value.trim();
+
+        if (!apiKey) {
+            showToast('API Key를 입력해주세요.', 'error');
+            return;
+        }
+
+        if (!OpenAIService.isValidKeyFormat(apiKey)) {
+            showToast('올바른 API Key 형식이 아닙니다. (sk-로 시작)', 'error');
+            return;
+        }
+
+        StorageManager.saveApiKey(apiKey);
+        updateApiKeyStatus(true);
+        updateModeIndicator();
+        showToast('API Key가 저장되었습니다! 🔑', 'success');
+    }
+
+    /**
+     * API Key 삭제 핸들러
+     */
+    function handleClearApiKey() {
+        if (!StorageManager.hasApiKey()) {
+            showToast('삭제할 API Key가 없습니다.', 'error');
+            return;
+        }
+
+        if (!confirm('API Key를 삭제하시겠습니까?')) {
+            return;
+        }
+
+        StorageManager.clearApiKey();
+        elements.apiKeyInput.value = '';
+        updateApiKeyStatus(false);
+        updateModeIndicator();
+        showToast('API Key가 삭제되었습니다.', 'success');
+    }
+
+    /**
+     * API Key 표시/숨김 토글
+     */
+    function handleToggleKeyVisibility() {
+        currentState.isKeyVisible = !currentState.isKeyVisible;
+        elements.apiKeyInput.type = currentState.isKeyVisible ? 'text' : 'password';
+        elements.toggleKeyVisibility.textContent = currentState.isKeyVisible ? '🙈' : '👁️';
+    }
+
+    // =====================================================
+    // 대본 생성 관련 함수
+    // =====================================================
 
     /**
      * 대본 생성 핸들러
@@ -92,15 +209,27 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoadingState(true);
         hideDetailSection();
 
+        const hasApiKey = StorageManager.hasApiKey();
+
         try {
-            // 대본 생성 (시뮬레이션)
-            const result = await ScriptSimulator.generate(originalScript);
+            let result;
+
+            if (hasApiKey) {
+                // OpenAI API 모드
+                const apiKey = StorageManager.getApiKey();
+                result = await OpenAIService.generate(originalScript, apiKey);
+                showToast('AI가 새 대본을 생성했습니다! ✨', 'success');
+            } else {
+                // 시뮬레이션 모드
+                showToast('API 키가 없어 시뮬레이션 모드로 실행됩니다.', 'warning');
+                result = await ScriptSimulator.generate(originalScript);
+            }
 
             // 결과 표시
             displayResult(result);
 
             // LocalStorage에 저장
-            const savedItem = StorageManager.save({
+            StorageManager.save({
                 topic: result.topic,
                 script: result.script,
                 originalScript: originalScript
@@ -109,11 +238,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // 히스토리 리스트 갱신
             renderHistoryList();
 
-            showToast('새 대본이 생성되었습니다! ✨', 'success');
-
         } catch (error) {
             console.error('대본 생성 오류:', error);
-            showToast('대본 생성 중 오류가 발생했습니다.', 'error');
+
+            if (error.message.includes('API')) {
+                showToast(`API 오류: ${error.message}`, 'error');
+            } else {
+                showToast('대본 생성 중 오류가 발생했습니다.', 'error');
+            }
         } finally {
             setLoadingState(false);
         }
