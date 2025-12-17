@@ -102,6 +102,12 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', handleCopy);
         });
 
+        // 초기화 버튼 클릭
+        const resetBtn = document.getElementById('reset-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', handleReset);
+        }
+
         // 키보드 단축키 (Ctrl + Enter로 생성)
         elements.originalScript.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'Enter') {
@@ -515,6 +521,49 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('복사 오류:', error);
             showToast('복사에 실패했습니다.', 'error');
         }
+    }
+
+    /**
+     * 초기화 핸들러 - 모든 입력과 결과를 비움
+     */
+    function handleReset() {
+        if (!confirm('정말 모든 내용을 지우고 새로 시작하시겠습니까?')) {
+            return;
+        }
+
+        // 주제 입력창 비우기
+        elements.originalScript.value = '';
+
+        // 지난 이야기 입력창 비우기
+        if (elements.previousStory) {
+            elements.previousStory.value = '';
+        }
+
+        // 결과 출력창 비우기
+        elements.resultTopic.textContent = '';
+        elements.resultScript.textContent = '';
+        elements.resultSection.classList.remove('visible');
+
+        // 상세 보기 닫기
+        hideDetailSection();
+
+        // TTS 중지
+        stopTTS();
+
+        // 감성 버튼 초기화 (따뜻한으로)
+        if (elements.toneButtons) {
+            elements.toneButtons.querySelectorAll('.tone-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const warmBtn = elements.toneButtons.querySelector('[data-tone="warm"]');
+            if (warmBtn) warmBtn.classList.add('active');
+            currentState.selectedTone = 'warm';
+        }
+
+        // 커서를 주제 입력창으로 이동
+        elements.originalScript.focus();
+
+        showToast('초기화되었습니다. 새로운 대본을 작성해보세요! 🔄', 'success');
     }
 
     function showToast(message, type = 'info') {
