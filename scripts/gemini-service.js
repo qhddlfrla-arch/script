@@ -4,7 +4,7 @@
  */
 
 const GeminiService = {
-    MODEL: 'gemini-1.5-flash',
+    MODEL: 'gemini-2.0-flash-lite',
 
     /**
      * API 엔드포인트 생성
