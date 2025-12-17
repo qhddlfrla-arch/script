@@ -5,550 +5,140 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>시니어 오디오북 & 삽화 생성기</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
-        rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
-            background: linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 50%, #16213e 100%);
+            background-color: #121212;
             color: #e0e0e0;
-            font-family: 'Noto Sans KR', sans-serif;
-            min-height: 100vh;
+            font-family: 'Pretendard', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
         }
 
-        .wrapper {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        /* API 키 설정 섹션 */
-        .api-section {
-            background: linear-gradient(145deg, #1e1e2e 0%, #252542 100%);
-            padding: 20px 25px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 183, 77, 0.2);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .api-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .api-header span:first-child {
-            font-size: 1.5em;
-        }
-
-        .api-title {
-            font-weight: 600;
-            color: #ffb74d;
-        }
-
-        .api-status {
-            margin-left: auto;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            background: #3d3d3d;
-            color: #888;
-        }
-
-        .api-status.connected {
-            background: rgba(76, 175, 80, 0.2);
-            color: #81c784;
-        }
-
-        .api-form {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .api-input {
-            flex: 1;
-            padding: 12px 16px;
-            border-radius: 10px;
-            border: 1px solid #444;
-            background: #2c2c3c;
-            color: white;
-            font-size: 0.95em;
-        }
-
-        .api-input:focus {
-            outline: none;
-            border-color: #ffb74d;
-            box-shadow: 0 0 0 3px rgba(255, 183, 77, 0.15);
-        }
-
-        .btn-api {
-            padding: 12px 20px;
-            border-radius: 10px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-save {
-            background: linear-gradient(135deg, #ffb74d, #ff9800);
-            color: #1a1a1a;
-        }
-
-        .btn-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
-        }
-
-        .btn-clear {
-            background: #3d3d3d;
-            color: #aaa;
-            padding: 12px 14px;
-        }
-
-        .btn-clear:hover {
-            background: #4d4d4d;
-        }
-
-        .api-hint {
-            margin-top: 12px;
-            font-size: 0.85em;
-            color: #888;
-        }
-
-        .api-hint a {
-            color: #4da3ff;
-            text-decoration: none;
-        }
-
-        .api-hint a:hover {
-            text-decoration: underline;
-        }
-
-        /* 컨테이너 스타일 */
         .container {
-            background: linear-gradient(145deg, #1e1e2e 0%, #252542 100%);
-            padding: 35px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #ff9800, #ffb74d, #ffc107);
-        }
-
-        h1 {
-            text-align: center;
-            color: #ffb74d;
-            font-size: 2em;
-            margin-bottom: 30px;
-            text-shadow: 0 2px 10px rgba(255, 183, 77, 0.3);
-        }
-
-        h2 {
-            color: #4da3ff;
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* 입력 요소 스타일 */
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #b0b0b0;
-            font-weight: 500;
         }
 
         input,
         select,
-        textarea {
+        textarea,
+        button {
             width: 100%;
-            padding: 14px 18px;
-            margin-bottom: 18px;
-            border-radius: 12px;
-            border: 1px solid #444;
-            background: linear-gradient(145deg, #2a2a3a, #323248);
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background-color: #2c2c2c;
             color: white;
-            font-size: 1em;
-            font-family: inherit;
-            transition: all 0.3s ease;
+            box-sizing: border-box;
         }
 
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #ffb74d;
-            box-shadow: 0 0 0 3px rgba(255, 183, 77, 0.15);
-        }
-
-        input::placeholder,
-        textarea::placeholder {
-            color: #666;
-        }
-
-        /* 버튼 스타일 */
         button {
             cursor: pointer;
-            font-weight: 600;
-            font-family: inherit;
-            transition: all 0.3s ease;
-            border: none;
+            font-weight: bold;
+            transition: 0.2s;
         }
 
         button:hover {
-            transform: translateY(-2px);
+            opacity: 0.9;
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
-        #generateBtn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-            color: #1a1a1a;
-            font-size: 1.2em;
-            border-radius: 14px;
-            box-shadow: 0 4px 20px rgba(255, 152, 0, 0.4);
-        }
-
-        #generateBtn:hover {
-            box-shadow: 0 6px 30px rgba(255, 152, 0, 0.6);
-        }
-
-        #generateBtn:disabled {
-            background: #555;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
-        /* 결과 영역 */
+        /* 대본 결과창 스타일 */
         #result {
             white-space: pre-wrap;
-            line-height: 1.9;
-            background: linear-gradient(145deg, #1a1a2a, #222235);
-            padding: 25px;
-            border-radius: 14px;
-            margin-top: 25px;
-            border: 1px solid #3a3a4a;
-            min-height: 100px;
-            font-size: 1.05em;
-        }
-
-        #result:empty::before {
-            content: '생성된 대본이 여기에 표시됩니다...';
-            color: #555;
-            font-style: italic;
-        }
-
-        /* 연결 섹션 */
-        #bridgeSection {
-            text-align: center;
-            margin-top: 35px;
-            padding-top: 25px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        #bridgeSection p {
-            color: #aaa;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
-
-        #sendToImageBtn {
-            background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
-            color: white;
-            padding: 14px 35px;
-            border-radius: 12px;
-            font-size: 1.1em;
-            box-shadow: 0 4px 20px rgba(255, 87, 34, 0.4);
-        }
-
-        #sendToImageBtn:hover {
-            box-shadow: 0 6px 30px rgba(255, 87, 34, 0.6);
-        }
-
-        /* 이미지 섹션 */
-        #imageSection {
-            transition: all 0.5s ease;
-        }
-
-        #imageSection.disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        #imageSection::before {
-            background: linear-gradient(90deg, #4da3ff, #2196f3, #1976d2);
-        }
-
-        .controls-row {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .controls-row select {
-            flex: 1;
-            min-width: 200px;
-            margin-bottom: 0;
-        }
-
-        #startImageBtn {
-            flex: 0 0 auto;
-            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-            color: white;
-            padding: 14px 30px;
-            border-radius: 12px;
-            font-size: 1em;
-            box-shadow: 0 4px 20px rgba(33, 150, 243, 0.4);
-        }
-
-        #startImageBtn:hover {
-            box-shadow: 0 6px 30px rgba(33, 150, 243, 0.6);
-        }
-
-        .progress-area {
-            text-align: center;
+            line-height: 1.8;
+            background-color: #252525;
+            padding: 20px;
+            border-radius: 10px;
             margin-top: 20px;
+            border: 1px solid #444;
+            min-height: 100px;
+            /* 결과가 없어도 공간 확보 */
         }
 
-        #nextImageBtn {
-            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-        }
-
-        #nextImageBtn:hover {
-            box-shadow: 0 6px 25px rgba(76, 175, 80, 0.6);
-        }
-
-        #progressText {
-            margin-left: 15px;
-            color: #ffc107;
-            font-weight: 500;
-        }
-
-        /* 이미지 갤러리 */
-        #imageGallery {
-            margin-top: 25px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-        }
-
-        .image-card {
-            background: linear-gradient(145deg, #1a1a2a, #222235);
-            padding: 15px;
-            border-radius: 14px;
-            border: 1px solid #3a3a4a;
-            transition: all 0.3s ease;
-        }
-
-        .image-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            border-color: #4da3ff;
-        }
-
-        .image-card p {
-            font-size: 0.85em;
-            color: #888;
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-
-        .image-card img {
-            width: 100%;
-            border-radius: 10px;
-            display: block;
-        }
-
-        .image-card a {
-            display: block;
+        /* 섹션 제목 스타일 */
+        h1,
+        h2 {
             text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #ffb74d;
+        }
+
+        h2 {
             color: #4da3ff;
-            margin-top: 12px;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 8px;
-            background: rgba(77, 163, 255, 0.1);
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .image-card a:hover {
-            background: rgba(77, 163, 255, 0.2);
-        }
-
-        /* 초기화 버튼 */
-        .reset-area {
-            display: flex;
-            justify-content: flex-end;
-            padding-bottom: 50px;
-        }
-
-        #resetBtn {
-            background: linear-gradient(135deg, #555 0%, #444 100%);
-            color: #ccc;
-            padding: 12px 25px;
-            border-radius: 10px;
-            font-size: 0.95em;
-        }
-
-        #resetBtn:hover {
-            background: linear-gradient(135deg, #666 0%, #555 100%);
-        }
-
-        /* 로딩 애니메이션 */
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        .loading {
-            animation: pulse 1.5s infinite;
-        }
-
-        /* 반응형 */
-        @media (max-width: 600px) {
-            .container {
-                padding: 25px 20px;
-            }
-
-            h1 {
-                font-size: 1.6em;
-            }
-
-            .controls-row {
-                flex-direction: column;
-            }
-
-            .controls-row select,
-            #startImageBtn {
-                width: 100%;
-            }
-
-            .api-form {
-                flex-wrap: wrap;
-            }
-
-            .api-input {
-                width: 100%;
-            }
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
         }
     </style>
 </head>
 
 <body>
-    <div class="wrapper">
 
-        <!-- API 키 설정 섹션 -->
-        <section class="api-section">
-            <div class="api-header">
-                <span>🔑</span>
-                <span class="api-title">Google Gemini API Key</span>
-                <span class="api-status" id="apiStatus">미설정</span>
-            </div>
-            <div class="api-form">
-                <input type="password" id="apiKeyInput" class="api-input" placeholder="AI Studio에서 발급받은 키를 입력하세요">
-                <button id="toggleKeyBtn" class="btn-api btn-clear" title="키 표시/숨김">👁️</button>
-                <button id="saveKeyBtn" class="btn-api btn-save">저장</button>
-                <button id="clearKeyBtn" class="btn-api btn-clear" title="키 삭제">✖️</button>
-            </div>
-            <p class="api-hint">💡 API 키가 없으면 생성 기능을 사용할 수 없습니다 | <a href="https://aistudio.google.com/app/apikey"
-                    target="_blank">API Key 발급받기 →</a></p>
-        </section>
+    <div class="container" id="scriptSection">
+        <h1>🎙️ 시니어 오디오북 작가</h1>
 
-        <!-- 대본 생성 섹션 -->
-        <div class="container" id="scriptSection">
-            <h1>🎙️ 시니어 오디오북 작가</h1>
+        <label>주제 또는 키워드 입력:</label>
+        <input type="text" id="topicInput" placeholder="예: 노년의 친구, 재혼, 낡은 사진첩, 어머니의 재봉틀">
 
-            <label for="topicInput">주제 또는 키워드 입력:</label>
-            <input type="text" id="topicInput" placeholder="예: 노년의 친구, 재혼, 낡은 사진첩, 어머니의 재봉틀">
+        <label>영상 길이 선택:</label>
+        <select id="durationSelect">
+            <option value="10min">10분 (가볍게 듣기 좋음)</option>
+            <option value="15min" selected>15분 (가장 추천하는 오디오북 길이)</option>
+            <option value="30min">30분 (깊이 있는 이야기)</option>
+            <option value="60min">1시간 (수면용/장편 낭독)</option>
+        </select>
 
-            <label for="durationSelect">영상 길이 선택:</label>
-            <select id="durationSelect">
-                <option value="10min">10분 (가볍게 듣기 좋음)</option>
-                <option value="15min" selected>15분 (가장 추천하는 오디오북 길이)</option>
-                <option value="30min">30분 (깊이 있는 이야기)</option>
-                <option value="60min">1시간 (수면용/장편 낭독)</option>
+        <button id="generateBtn" style="background-color: #ff9800; color: black; font-size: 1.1em;">✨ 대본 생성하기</button>
+
+        <div id="result">여기에 생성된 대본이 표시됩니다...</div>
+
+        <div id="bridgeSection"
+            style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #444;">
+            <p>👇 대본이 마음에 드시나요?</p>
+            <button id="sendToImageBtn" style="background-color: #ff5722; width: auto; padding: 10px 30px;">
+                🎨 이 대본으로 아래쪽 삽화 만들기 (복사)
+            </button>
+        </div>
+    </div>
+
+    <div class="container" id="imageSection">
+        <h2>🖼️ 무료 삽화 생성기</h2>
+        <p style="font-size: 0.9em; color: #aaa;">30분 대본도 OK! 10장씩 끊어서 만들어 드립니다.</p>
+
+        <textarea id="imageScriptInput" placeholder="위에서 [이 대본으로 삽화 만들기] 버튼을 누르면 내용이 자동으로 들어옵니다."
+            style="height: 150px;"></textarea>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <select id="imageStyle" style="flex: 1;">
+                <option value="cinematic lighting, hyperrealistic, 8k">🎬 영화 같은 실사</option>
+                <option value="oil painting, van gogh style, warm colors">🎨 유화 (따뜻한 감성)</option>
+                <option value="watercolor style, soft, dreamy">🖌️ 수채화 (몽환적)</option>
+                <option value="pencil sketch, vintage, black and white">✏️ 연필 스케치 (추억)</option>
             </select>
-
-            <button id="generateBtn">✨ 대본 생성하기</button>
-
-            <div id="result"></div>
-
-            <div id="bridgeSection" style="display: none;">
-                <p>👇 대본이 완성되었습니다! 이제 그림을 그려볼까요?</p>
-                <button id="sendToImageBtn">🎨 이 대본으로 삽화 그리기 (이동)</button>
-            </div>
+            <button id="startImageBtn" style="flex: 0 0 auto; width: auto; background-color: #007bff;">🚀 이미지 생성
+                시작</button>
         </div>
 
-        <!-- 이미지 생성 섹션 -->
-        <div class="container disabled" id="imageSection">
-            <h2>🖼️ 무료 삽화 생성기</h2>
-            <p style="font-size: 0.9em; color: #aaa; margin-bottom: 20px;">30분 대본도 OK! 10장씩 끊어서 만들어 드립니다.</p>
-
-            <label for="imageScriptInput">대본 내용:</label>
-            <textarea id="imageScriptInput" placeholder="위에서 버튼을 누르면 대본이 자동으로 들어옵니다." style="height: 150px;"></textarea>
-
-            <div class="controls-row">
-                <select id="imageStyle">
-                    <option value="cinematic lighting, hyperrealistic, 8k">🎬 영화 같은 실사</option>
-                    <option value="oil painting, van gogh style, warm colors">🎨 유화 (따뜻한 감성)</option>
-                    <option value="watercolor style, soft, dreamy">🖌️ 수채화 (몽환적)</option>
-                    <option value="pencil sketch, vintage, black and white">✏️ 연필 스케치 (추억)</option>
-                </select>
-                <button id="startImageBtn">🚀 생성 시작</button>
-            </div>
-
-            <div class="progress-area">
-                <button id="nextImageBtn" style="display: none;">⬇️ 다음 10장 더 만들기</button>
-                <span id="progressText"></span>
-            </div>
-
-            <div id="imageGallery"></div>
+        <div style="text-align: center; margin-top: 20px;">
+            <span id="progressText" style="color: #ffc107; font-weight: bold; margin-right: 10px;"></span>
+            <button id="nextImageBtn" style="display: none; background-color: #28a745; width: auto;">⬇️ 다음 10장 더
+                만들기</button>
         </div>
 
-        <!-- 초기화 버튼 -->
-        <div class="reset-area">
-            <button id="resetBtn">🔄 전체 초기화</button>
+        <div id="imageGallery"
+            style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
         </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; padding-bottom: 50px;">
+        <button id="resetBtn" style="width: auto; background-color: #555; font-size: 0.9em;">🔄 전체 초기화</button>
     </div>
 
     <script type="module" src="scripts/script-generator.js"></script>
