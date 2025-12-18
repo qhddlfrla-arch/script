@@ -116,7 +116,14 @@ if (generateBtn) {
                 throw new Error("⚠️ AI가 답변을 생성하지 못했습니다. (빈 응답)");
             }
 
-            const text = data.candidates[0].content.parts[0].text;
+            // ★ content가 없는 경우 (안전 필터 차단) 체크
+            const candidate = data.candidates[0];
+            if (!candidate.content || !candidate.content.parts || !candidate.content.parts[0]) {
+                const reason = candidate.finishReason || "알 수 없음";
+                throw new Error(`⚠️ AI가 응답을 거부했습니다. (사유: ${reason})\n다른 주제로 시도해보세요.`);
+            }
+
+            const text = candidate.content.parts[0].text;
             resultDiv.innerText = text;
 
             const bridge = document.getElementById('bridgeSection');
