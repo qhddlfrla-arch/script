@@ -35,19 +35,12 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* 입력창 라벨 */
         label {
             display: block;
             margin-top: 20px;
             margin-bottom: 8px;
             font-weight: bold;
             color: #d1d1d1;
-            font-size: 0.95rem;
-        }
-
-        /* 아이콘과 텍스트 같이 쓰기 */
-        .label-icon {
-            margin-right: 5px;
         }
 
         input,
@@ -63,15 +56,6 @@
             box-sizing: border-box;
         }
 
-        input:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            border-color: #a18cd1;
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        /* 감성 선택 버튼 그룹 */
         .tone-group {
             display: flex;
             gap: 10px;
@@ -86,24 +70,15 @@
             border-radius: 8px;
             color: #ccc;
             cursor: pointer;
-            transition: 0.3s;
             text-align: center;
-            font-size: 0.9rem;
-        }
-
-        .tone-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
         }
 
         .tone-btn.active {
-            background: #6a11cb;
             background: linear-gradient(to right, #6a11cb, #2575fc);
             color: white;
-            border-color: transparent;
             font-weight: bold;
         }
 
-        /* 생성 버튼 */
         #generateBtn {
             width: 100%;
             padding: 16px;
@@ -117,7 +92,6 @@
             cursor: pointer;
         }
 
-        /* API 키 박스 */
         .api-box {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid #a18cd1;
@@ -139,7 +113,6 @@
             cursor: pointer;
         }
 
-        /* 결과창 및 기타 */
         #result {
             margin-top: 30px;
             padding: 20px;
@@ -151,7 +124,28 @@
             min-height: 100px;
         }
 
-        /* 하단 이미지 생성기 스타일 */
+        /* ★ 안전성 리포트 박스 스타일 (신규) ★ */
+        #safetyReportBox {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .safe-green {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #81c784;
+        }
+
+        .safe-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            color: #ffca28;
+        }
+
+        /* 이미지 생성기 스타일 */
         h2 {
             color: #a18cd1;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -169,14 +163,35 @@
             font-size: 1rem;
         }
 
+        .image-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
         #startImageBtn {
-            width: auto;
+            flex: 1;
             padding: 12px 20px;
             background: #007bff;
             border: none;
             border-radius: 8px;
             color: white;
             cursor: pointer;
+        }
+
+        #openImageFxBtn {
+            flex: 1;
+            padding: 12px 20px;
+            background: linear-gradient(to right, #34a853, #4285f4);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #openImageFxBtn:hover {
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -185,23 +200,25 @@
 
     <div class="container" id="scriptSection">
         <h1>Youtube Script Remixer</h1>
-        <p style="text-align: center; color: #aaa; margin-bottom: 20px;">기존 대본을 입력하면, AI가 새로운 주제와 대본을 만들어 드립니다</p>
-
         <div class="api-box">
-            <span>🔑</span>
-            <input type="password" id="apiKeyInput" placeholder="Google Gemini API Key 입력">
-            <button id="saveKeyBtn">저장</button>
+            <span>🔑</span> <input type="password" id="apiKeyInput" placeholder="API Key 입력"> <button
+                id="saveKeyBtn">저장</button>
         </div>
-        <div id="keyStatusText"
-            style="text-align: right; color: #aaa; font-size: 0.8rem; margin-top: -15px; margin-bottom: 20px;"></div>
+        <div id="keyStatusText" style="text-align: right; color: #aaa; font-size: 0.8rem; margin-bottom: 20px;"></div>
 
-        <label>📄 주제 또는 키워드 입력</label>
-        <textarea id="topicInput" rows="3" placeholder="예: 노후에 친구가 줄어드는 이유, 자녀와의 관계 회복..."></textarea>
+        <label>✍️ 작가 모드</label>
+        <select id="modeSelect">
+            <option value="essay">📝 감성 에세이 (인생 이야기)</option>
+            <option value="tutor">💻 디지털 튜터 (IT 강의)</option>
+        </select>
+
+        <label>📄 주제 또는 키워드</label>
+        <textarea id="topicInput" rows="3" placeholder="예: 노후의 친구 관계, 황혼 육아..."></textarea>
 
         <label>📖 지난 이야기 (선택사항)</label>
-        <textarea id="prevStoryInput" rows="2" placeholder="시리즈 영상인 경우, 이전 회차 내용을 적어주세요. 자연스럽게 연결해 드립니다..."></textarea>
+        <textarea id="prevStoryInput" rows="2" placeholder="이전 영상 내용이 있다면 적어주세요."></textarea>
 
-        <label>💫 감성(Tone) 선택</label>
+        <label>💫 감성(Tone)</label>
         <div class="tone-group" id="toneGroup">
             <button class="tone-btn active" data-value="따뜻한">🤗 따뜻한</button>
             <button class="tone-btn" data-value="차분한">🧘 차분한</button>
@@ -210,50 +227,61 @@
             <button class="tone-btn" data-value="지혜로운">📚 지혜로운</button>
         </div>
 
-        <label>⏱️ 영상 길이 선택</label>
+        <label>⏱️ 영상 길이</label>
         <select id="durationSelect">
-            <option value="10min">10분 (가볍게 듣기 좋음)</option>
-            <option value="15min" selected>15분 (가장 추천하는 오디오북 길이)</option>
-            <option value="30min">30분 (깊이 있는 이야기)</option>
-            <option value="60min">1시간 (수면용/장편 낭독)</option>
+            <option value="10min">10분</option>
+            <option value="15min" selected>15분 (추천)</option>
+            <option value="30min">30분</option>
         </select>
 
-        <button id="generateBtn">🚀 새 주제 및 대본 생성</button>
+        <button id="generateBtn">🚀 안전 대본 생성</button>
 
-        <div id="result">여기에 생성된 대본이 표시됩니다...</div>
+        <div id="result">여기에 대본이 나옵니다...</div>
+
+        <div id="safetyReportBox"></div>
 
         <div id="bridgeSection" style="text-align: center; margin-top: 30px; display: none;">
             <p>👇 대본이 완성되었습니다!</p>
-            <button id="sendToImageBtn">🎨 이 대본으로 삽화 만들기 (복사)</button>
+            <button id="sendToImageBtn">🎨 삽화 프롬프트 추출하기</button>
         </div>
     </div>
 
     <div class="container" id="imageSection">
-        <h2>🖼️ 무료 삽화 생성기</h2>
-        <textarea id="imageScriptInput" rows="4" placeholder="위에서 버튼을 누르면 대본이 여기로 복사됩니다."></textarea>
+        <h2>🖼️ AI 아트 디렉터 (삽화 생성)</h2>
+        <p style="font-size: 0.9rem; color: #aaa;">아래에 추출된 '영어 프롬프트'를 사용해서 그림을 그립니다.</p>
+        <textarea id="imageScriptInput" rows="4" placeholder="위 버튼을 누르면 영어 프롬프트가 복사됩니다."></textarea>
 
         <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
             <select id="imageStyle" style="flex: 1;">
-                <option value="cinematic lighting, hyperrealistic, 8k">🎬 영화 같은 실사</option>
-                <option value="oil painting, van gogh style">🎨 유화 스타일</option>
-                <option value="watercolor style, soft">🖌️ 수채화</option>
-                <option value="pencil sketch">✏️ 연필 스케치</option>
+                <option value="cinematic photo, soft warm lighting, 35mm film, nostalgic">📷 영화 같은 실사</option>
+                <option value="watercolor painting, storybook style, soft colors">🖌️ 수채화</option>
+                <option value="oil painting, warm tones, textured brushstrokes">🎨 유화</option>
+                <option value="vintage photography, sepia tone, grainy">📜 빈티지</option>
             </select>
-            <button id="startImageBtn">이미지 생성 시작</button>
+        </div>
+
+        <div class="image-btn-group">
+            <button id="startImageBtn">⚡ 여기서 바로 생성 (무료/빠름)</button>
+            <button id="openImageFxBtn">💎 구글 ImageFX로 생성 (고화질)</button>
         </div>
 
         <div style="text-align: center; margin-top: 15px;">
             <span id="progressText" style="color: #fbc2eb; font-weight: bold;"></span>
             <button id="nextImageBtn"
-                style="display: none; background: #28a745; width: auto; padding: 8px 15px; border: none; border-radius: 5px; color: white; cursor: pointer; margin-left: 10px;">⬇️
+                style="display: none; background: #28a745; width: auto; padding: 8px 15px; border: none; border-radius: 5px; color: white;">⬇️
                 더 만들기</button>
         </div>
         <div id="imageGallery"
             style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
         </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button id="resetBtn"
+                style="background: #dc3545; border: none; border-radius: 8px; padding: 10px 20px; color: white; cursor: pointer;">🔄
+                초기화</button>
+        </div>
     </div>
 
-    <script type="module" src="script-generator.js"></script>
+    <script type="module" src="scripts/script-generator.js"></script>
 </body>
 
 </html>

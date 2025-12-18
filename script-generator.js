@@ -18,13 +18,13 @@ const SYSTEM_PROMPT = `
    - [썸네일 묘사]
 `;
 
-// 2. 감성(Tone) 버튼 클릭 로직 (추가됨!)
+// 2. 감성(Tone) 버튼 클릭 로직 (수정됨 - toneGroup 내부만 선택)
 let selectedTone = "따뜻한"; // 기본값
-const toneButtons = document.querySelectorAll('.tone-btn');
+const toneButtons = document.querySelectorAll('#toneGroup .tone-btn');
 
 toneButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        // 모든 버튼에서 active 끄기
+        // toneGroup 내 버튼에서만 active 끄기
         toneButtons.forEach(b => b.classList.remove('active'));
         // 클릭한 버튼만 active 켜기
         btn.classList.add('active');
@@ -84,14 +84,35 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
     `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
         });
 
         const data = await response.json();
-        const text = data.candidates[0].content.parts[0].text;
+
+        // ★ 에러 핸들링 추가
+        if (!response.ok) {
+            throw new Error(`통신 오류 (${response.status}): ${data.error?.message || "알 수 없는 오류"}`);
+        }
+
+        if (data.promptFeedback && data.promptFeedback.blockReason) {
+            throw new Error(`⚠️ 안전 필터 작동: 주제가 AI 정책에 의해 차단되었습니다. (${data.promptFeedback.blockReason})`);
+        }
+
+        if (!data.candidates || data.candidates.length === 0) {
+            throw new Error("⚠️ AI가 답변을 생성하지 못했습니다. (빈 응답)");
+        }
+
+        // ★ content가 없는 경우 (안전 필터 차단) 체크
+        const candidate = data.candidates[0];
+        if (!candidate.content || !candidate.content.parts || !candidate.content.parts[0]) {
+            const reason = candidate.finishReason || "알 수 없음";
+            throw new Error(`⚠️ AI가 응답을 거부했습니다. (사유: ${reason})\n다른 주제로 시도해보세요.`);
+        }
+
+        const text = candidate.content.parts[0].text;
 
         resultDiv.innerText = text;
 
@@ -99,7 +120,7 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
         document.getElementById('bridgeSection').style.display = 'block';
 
     } catch (error) {
-        resultDiv.innerText = "오류 발생: " + error.message;
+        resultDiv.innerText = "❌ 오류 발생: " + error.message;
     }
 });
 
@@ -110,9 +131,47 @@ document.getElementById('sendToImageBtn').addEventListener('click', function () 
     document.getElementById('imageSection').scrollIntoView({ behavior: 'smooth' });
 });
 
-// 6. 이미지 생성 로직 (기존과 동일)
+// 6. 이미지 스타일 선택 로직 (★ 새로운 버튼 그룹)
+let selectedCharStyle = "cinematic photo, hyperrealistic, 8k";
+let selectedBgStyle = "modern, contemporary, sleek";
+
+// 인물 스타일 버튼 처리
+const charStyleBtns = document.querySelectorAll('#charStyleGroup .tone-btn');
+charStyleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        charStyleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedCharStyle = btn.getAttribute('data-value');
+        document.getElementById('customCharStyle').value = ''; // 직접 입력 초기화
+    });
+});
+
+// 배경 스타일 버튼 처리
+const bgStyleBtns = document.querySelectorAll('#bgStyleGroup .tone-btn');
+bgStyleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        bgStyleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedBgStyle = btn.getAttribute('data-value');
+        document.getElementById('customBgStyle').value = ''; // 직접 입력 초기화
+    });
+});
+
+// 스타일 가져오기 함수
+function getImageStyle() {
+    const customChar = document.getElementById('customCharStyle').value.trim();
+    const customBg = document.getElementById('customBgStyle').value.trim();
+
+    const charStyle = customChar || selectedCharStyle;
+    const bgStyle = customBg || selectedBgStyle;
+
+    return `${charStyle}, ${bgStyle}`;
+}
+
+// 7. 이미지 생성 로직 (일괄 다운로드 기능 추가)
 let currentIndex = 0;
 let globalParagraphs = [];
+let currentBatchImages = []; // ★ 현재 배치의 이미지 URL과 텍스트 저장
 const BATCH_SIZE = 10;
 
 document.getElementById('startImageBtn').addEventListener('click', () => {
@@ -123,15 +182,17 @@ document.getElementById('startImageBtn').addEventListener('click', () => {
     if (globalParagraphs.length === 0) return alert("내용이 부족합니다.");
 
     currentIndex = 0;
+    currentBatchImages = [];
     document.getElementById('imageGallery').innerHTML = '';
     document.getElementById('nextImageBtn').style.display = 'inline-block';
+    document.getElementById('downloadAllBtn').style.display = 'inline-block';
     generateNextBatch();
 });
 
 document.getElementById('nextImageBtn').addEventListener('click', generateNextBatch);
 
 function generateNextBatch() {
-    const style = document.getElementById('imageStyle').value;
+    const style = getImageStyle(); // ★ 새로운 스타일 가져오기
     const gallery = document.getElementById('imageGallery');
     const progress = document.getElementById('progressText');
     const nextBtn = document.getElementById('nextImageBtn');
@@ -141,6 +202,9 @@ function generateNextBatch() {
         progress.innerText = "✅ 완료";
         return;
     }
+
+    // 새 배치 시작 시 이전 배치 초기화
+    currentBatchImages = [];
 
     const endIndex = Math.min(currentIndex + BATCH_SIZE, globalParagraphs.length);
     const batch = globalParagraphs.slice(currentIndex, endIndex);
@@ -156,8 +220,12 @@ function generateNextBatch() {
         const img = document.createElement('img');
         const seed = Math.floor(Math.random() * 9999);
         const prompt = encodeURIComponent(text.substring(0, 100) + ", " + style);
-        img.src = `https://image.pollinations.ai/prompt/${prompt}?width=1024&height=576&nologo=true&seed=${seed}`;
+        const imgUrl = `https://image.pollinations.ai/prompt/${prompt}?width=1024&height=576&nologo=true&seed=${seed}`;
+        img.src = imgUrl;
         img.style.width = '100%'; img.style.borderRadius = '5px'; img.loading = 'lazy';
+
+        // ★ 현재 배치에 이미지 정보 저장
+        currentBatchImages.push({ url: imgUrl, text: text, index: currentIndex + i + 1 });
 
         const a = document.createElement('a');
         a.href = img.src; a.innerText = "💾 저장"; a.target = "_blank"; a.style.display = "block"; a.style.textAlign = "center"; a.style.marginTop = "5px"; a.style.color = "#4da3ff";
@@ -167,3 +235,57 @@ function generateNextBatch() {
     });
     currentIndex = endIndex;
 }
+
+// ★ 7. 일괄 다운로드 기능
+document.getElementById('downloadAllBtn').addEventListener('click', async () => {
+    const downloadBtn = document.getElementById('downloadAllBtn');
+
+    if (currentBatchImages.length === 0) {
+        alert("다운로드할 이미지가 없습니다. 먼저 이미지를 생성해주세요!");
+        return;
+    }
+
+    downloadBtn.innerText = "⏳ 다운로드 준비 중...";
+    downloadBtn.disabled = true;
+
+    // 1. 대본 텍스트 파일 다운로드
+    const scriptContent = currentBatchImages.map(item =>
+        `[이미지 ${item.index}]\n${item.text}\n`
+    ).join('\n---\n\n');
+
+    const scriptBlob = new Blob([scriptContent], { type: 'text/plain;charset=utf-8' });
+    const scriptUrl = URL.createObjectURL(scriptBlob);
+    const scriptLink = document.createElement('a');
+    scriptLink.href = scriptUrl;
+    scriptLink.download = `대본_${new Date().toLocaleDateString('ko-KR').replace(/\./g, '-')}.txt`;
+    scriptLink.click();
+    URL.revokeObjectURL(scriptUrl);
+
+    // 2. 이미지 순차 다운로드 (3초 간격)
+    for (let i = 0; i < currentBatchImages.length; i++) {
+        const item = currentBatchImages[i];
+        downloadBtn.innerText = `📥 이미지 ${i + 1}/${currentBatchImages.length} 다운로드 중...`;
+
+        try {
+            const response = await fetch(item.url);
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `이미지_${item.index}.jpg`;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            // 다음 다운로드 전 잠시 대기 (브라우저 제한 방지)
+            await new Promise(resolve => setTimeout(resolve, 800));
+        } catch (error) {
+            console.error(`이미지 ${item.index} 다운로드 실패:`, error);
+        }
+    }
+
+    downloadBtn.innerText = "✅ 다운로드 완료!";
+    setTimeout(() => {
+        downloadBtn.innerText = "📦 이미지 + 대본 일괄 다운로드";
+        downloadBtn.disabled = false;
+    }, 2000);
+});
