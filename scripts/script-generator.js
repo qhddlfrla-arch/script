@@ -56,10 +56,13 @@ const COMMON_RULES = `
 1. 대본 전체를 먼저 완성하세요.
 2. 대본이 끝나면 '[IMAGE_PROMPTS]' 제목을 쓰고, 그 아래에 모든 이미지 프롬프트를 정리해서 작성하세요.
 3. 대본의 흐름에 맞게 적절한 개수의 프롬프트를 작성하세요. (문단 전환, 새로운 장면마다)
-3. 스타일: 
+4. **중요: 모든 인물은 반드시 "Korean"으로 명시하세요.**
+5. 스타일: 
    - 에세이: Photorealistic, cinematic lighting, 8k, emotional.
    - 튜터(모아): Close-up of senior's hands holding smartphone, clear screen interface, warm indoor lighting, friendly atmosphere.
-4. 번호 없이 한 줄에 하나씩 영어로 작성.
+6. **형식**: 번호를 붙이고, 영어 프롬프트 뒤에 괄호로 한글 설명을 추가하세요.
+   예: 1. A Korean elderly woman sipping tea in a cozy living room (거실에서 차를 마시는 할머니)
+   예: 2. Close-up of hands holding smartphone (스마트폰을 들고 있는 손)
 
 [안전성 검사 리포트]
 1. 맨 마지막에 '[SAFETY_LOG]' 제목 작성.
@@ -202,7 +205,7 @@ if (downloadScriptBtn) {
 const sendToImageBtn = document.getElementById('sendToImageBtn');
 sendToImageBtn.addEventListener('click', () => {
     const fullText = document.getElementById('result').innerText;
-    const promptListView = document.getElementById('promptListView');
+    const promptList = document.getElementById('promptList');
     const imageInput = document.getElementById('imageScriptInput');
 
     const parts = fullText.split('[IMAGE_PROMPTS]');
@@ -217,37 +220,41 @@ sendToImageBtn.addEventListener('click', () => {
         return;
     }
 
-    promptListView.innerHTML = "";
+    promptList.innerHTML = "";
 
     promptsArray.forEach((text, index) => {
         const cleanText = text.replace(/^\d+\.\s*/, '').replace(/- /g, '').trim();
 
         const row = document.createElement('div');
-        row.className = 'prompt-item';
+        row.style.cssText = 'display:flex; gap:10px; align-items:center; padding:8px; margin-bottom:5px; background:rgba(0,0,0,0.3); border-radius:8px;';
+
+        const numBadge = document.createElement('span');
+        numBadge.innerText = index === 0 ? '🎬1' : (index + 1);
+        numBadge.style.cssText = index === 0 ? 'background:linear-gradient(to right,#f12711,#f5af19); padding:5px 10px; border-radius:5px; font-weight:bold; color:white;' : 'background:#444; padding:5px 10px; border-radius:5px; color:#aaa;';
 
         const textSpan = document.createElement('span');
-        textSpan.className = 'prompt-text';
-        textSpan.innerText = `${index + 1}. ${cleanText}`;
+        textSpan.style.cssText = 'flex:1; color:#ccc; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+        textSpan.innerText = cleanText.substring(0, 50) + '...';
 
         const copyBtn = document.createElement('button');
-        copyBtn.className = 'copy-btn-small';
-        copyBtn.innerText = "복사";
+        copyBtn.innerText = '📋 복사';
+        copyBtn.style.cssText = 'background:#4da3ff; border:none; border-radius:5px; padding:5px 12px; color:white; cursor:pointer; font-size:12px;';
 
         copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(cleanText).then(() => {
-                copyBtn.innerText = "완료!";
-                copyBtn.classList.add('copied');
-                setTimeout(() => {
-                    copyBtn.innerText = "복사";
-                    copyBtn.classList.remove('copied');
-                }, 1500);
+            const antiCollage = ", single image only, one scene, centered composition, no collage, no grid, no split screen";
+            navigator.clipboard.writeText(cleanText + antiCollage).then(() => {
+                copyBtn.innerText = '✅ 완료';
+                setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
             });
         });
 
+        row.appendChild(numBadge);
         row.appendChild(textSpan);
         row.appendChild(copyBtn);
-        promptListView.appendChild(row);
+        promptList.appendChild(row);
     });
+
+    promptList.style.display = 'block';
 
     alert(`✅ 총 ${promptsArray.length}개의 장면이 추출되었습니다.\n목록에서 [복사] 버튼을 눌러 ImageFX에 사용하세요.`);
     document.getElementById('imageSection').scrollIntoView({ behavior: 'smooth' });
