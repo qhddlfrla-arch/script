@@ -31,8 +31,8 @@ const toneButtons = document.querySelectorAll('.tone-btn');
 if (toneButtons) {
     toneButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            toneButtons.forEach(b => b.classList.remove('active')); // 기존 선택 해제
-            btn.classList.add('active'); // 클릭한 것 선택
+            toneButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             selectedTone = btn.getAttribute('data-value');
         });
     });
@@ -56,7 +56,7 @@ function checkKeyStatus() {
         }
     }
 }
-checkKeyStatus(); // 시작 시 자동 체크
+checkKeyStatus();
 
 if (saveKeyBtn) {
     saveKeyBtn.addEventListener('click', () => {
@@ -68,12 +68,11 @@ if (saveKeyBtn) {
     });
 }
 
-// 2-3. 대본 생성 로직
+// 2-3. 대본 생성 로직 (★ 에러 수정된 부분)
 const generateBtn = document.getElementById('generateBtn');
 if (generateBtn) {
     generateBtn.addEventListener('click', async () => {
         const topic = document.getElementById('topicInput').value;
-        // 지난 이야기가 없으면 빈칸 처리
         const prevStoryElement = document.getElementById('prevStoryInput');
         const prevStory = prevStoryElement ? prevStoryElement.value : "";
         const duration = document.getElementById('durationSelect').value;
@@ -105,21 +104,33 @@ if (generateBtn) {
 
             const data = await response.json();
 
-            if (data.error) throw new Error(data.error.message);
+            // ★ 에러 상세 확인을 위한 로그 (F12 콘솔에서 확인 가능)
+            console.log("AI 응답 데이터:", data);
 
-            if (data.candidates && data.candidates[0].content) {
-                const text = data.candidates[0].content.parts[0].text;
-                resultDiv.innerText = text;
-
-                // 연결 버튼 보이기
-                const bridge = document.getElementById('bridgeSection');
-                if (bridge) bridge.style.display = 'block';
-            } else {
-                throw new Error("AI 응답을 가져올 수 없습니다.");
+            // 1. 명시적인 에러 메시지가 온 경우
+            if (data.error) {
+                throw new Error(`AI 오류: ${data.error.message}`);
             }
 
+            // 2. 답변(candidates)이 아예 없는 경우 (안전 필터 등)
+            if (!data.candidates || data.candidates.length === 0) {
+                if (data.promptFeedback) {
+                    throw new Error("⚠️ 입력하신 내용이 AI 안전 필터에 걸려 답변을 생성하지 못했습니다. 주제를 조금 더 부드럽게 바꿔보세요.");
+                } else {
+                    throw new Error("⚠️ AI가 답변을 생성하지 못했습니다. (원인 불명)");
+                }
+            }
+
+            // 3. 정상적인 경우
+            const text = data.candidates[0].content.parts[0].text;
+            resultDiv.innerText = text;
+
+            const bridge = document.getElementById('bridgeSection');
+            if (bridge) bridge.style.display = 'block';
+
         } catch (error) {
-            resultDiv.innerText = "오류 발생: " + error.message;
+            console.error(error); // 콘솔에 자세한 에러 출력
+            resultDiv.innerText = "❌ 오류 발생:\n" + error.message;
         }
     });
 }
