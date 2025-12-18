@@ -326,3 +326,23 @@ function generateNextBatch() {
     currentIndex = endIndex;
     if (currentIndex >= globalParagraphs.length) nextImageBtn.style.display = 'none';
 }
+
+// 7. 초기화 버튼 기능
+const resetBtn = document.getElementById('resetBtn');
+if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+        if (!confirm("모든 이미지와 프롬프트를 초기화할까요?")) return;
+
+        document.getElementById('imageGallery').innerHTML = '';
+        document.getElementById('imageScriptInput').value = '';
+        document.getElementById('progressText').innerText = '';
+        document.getElementById('promptList').innerHTML = '';
+        document.getElementById('promptList').style.display = 'none';
+        nextImageBtn.style.display = 'none';
+
+        currentIndex = 0;
+        globalParagraphs = [];
+
+        alert("✅ 초기화 완료!");
+    });
+}
