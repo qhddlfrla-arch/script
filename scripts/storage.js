@@ -175,3 +175,5 @@ const StorageManager = {
 export function getGeminiAPIKey() {
     return StorageManager.getApiKey();
 }
+
+export { StorageManager };

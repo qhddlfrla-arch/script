@@ -4,74 +4,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>시니어 오디오북 & 삽화 생성기</title>
+    <title>Youtube Script Remixer</title>
     <style>
+        /* 보라색 테마 스타일 */
         body {
-            background-color: #121212;
-            color: #e0e0e0;
+            background-color: #0f0c29;
+            background: linear-gradient(to right, #24243e, #302b63, #0f0c29);
+            color: #fff;
             font-family: 'Pretendard', sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 0;
+            padding: 40px 20px;
         }
 
         .container {
-            background-color: #1e1e1e;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 30px;
         }
 
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #a18cd1, #fbc2eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 입력창 라벨 */
+        label {
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #d1d1d1;
+            font-size: 0.95rem;
+        }
+
+        /* 아이콘과 텍스트 같이 쓰기 */
+        .label-icon {
+            margin-right: 5px;
+        }
+
         input,
-        select,
         textarea,
-        button {
+        select {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background-color: #2c2c2c;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
             color: white;
+            font-size: 1rem;
             box-sizing: border-box;
         }
 
-        button {
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #a18cd1;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* 감성 선택 버튼 그룹 */
+        .tone-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tone-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #ccc;
             cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        #result {
-            white-space: pre-wrap;
-            line-height: 1.8;
-            background-color: #252525;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            border: 1px solid #444;
-            min-height: 100px;
-        }
-
-        h1,
-        h2 {
+            transition: 0.3s;
             text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .tone-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tone-btn.active {
+            background: #6a11cb;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border-color: transparent;
+            font-weight: bold;
+        }
+
+        /* 생성 버튼 */
+        #generateBtn {
+            width: 100%;
+            padding: 16px;
+            margin-top: 30px;
+            background: linear-gradient(to right, #8e2de2, #4a00e0);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* API 키 박스 */
+        .api-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #a18cd1;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
             margin-bottom: 20px;
         }
 
-        h1 {
-            color: #ffb74d;
+        #saveKeyBtn {
+            width: auto;
+            padding: 10px 20px;
+            background: #28a745;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
         }
 
+        /* 결과창 및 기타 */
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: pre-wrap;
+            line-height: 1.8;
+            min-height: 100px;
+        }
+
+        /* 하단 이미지 생성기 스타일 */
         h2 {
-            color: #4da3ff;
-            border-bottom: 1px solid #333;
+            color: #a18cd1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: 10px;
+        }
+
+        #sendToImageBtn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(to right, #ff512f, #dd2476);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #startImageBtn {
+            width: auto;
+            padding: 12px 20px;
+            background: #007bff;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -79,12 +184,33 @@
 <body>
 
     <div class="container" id="scriptSection">
-        <h1>🎙️ 시니어 오디오북 작가</h1>
+        <h1>Youtube Script Remixer</h1>
+        <p style="text-align: center; color: #aaa; margin-bottom: 20px;">기존 대본을 입력하면, AI가 새로운 주제와 대본을 만들어 드립니다</p>
 
-        <label>주제 또는 키워드 입력:</label>
-        <input type="text" id="topicInput" placeholder="예: 노년의 친구, 재혼, 낡은 사진첩, 어머니의 재봉틀">
+        <div class="api-box">
+            <span>🔑</span>
+            <input type="password" id="apiKeyInput" placeholder="Google Gemini API Key 입력">
+            <button id="saveKeyBtn">저장</button>
+        </div>
+        <div id="keyStatusText"
+            style="text-align: right; color: #aaa; font-size: 0.8rem; margin-top: -15px; margin-bottom: 20px;"></div>
 
-        <label>영상 길이 선택:</label>
+        <label>📄 주제 또는 키워드 입력</label>
+        <textarea id="topicInput" rows="3" placeholder="예: 노후에 친구가 줄어드는 이유, 자녀와의 관계 회복..."></textarea>
+
+        <label>📖 지난 이야기 (선택사항)</label>
+        <textarea id="prevStoryInput" rows="2" placeholder="시리즈 영상인 경우, 이전 회차 내용을 적어주세요. 자연스럽게 연결해 드립니다..."></textarea>
+
+        <label>💫 감성(Tone) 선택</label>
+        <div class="tone-group" id="toneGroup">
+            <button class="tone-btn active" data-value="따뜻한">🤗 따뜻한</button>
+            <button class="tone-btn" data-value="차분한">🧘 차분한</button>
+            <button class="tone-btn" data-value="희망적">🌅 희망적</button>
+            <button class="tone-btn" data-value="향수적">🍂 향수적</button>
+            <button class="tone-btn" data-value="지혜로운">📚 지혜로운</button>
+        </div>
+
+        <label>⏱️ 영상 길이 선택</label>
         <select id="durationSelect">
             <option value="10min">10분 (가볍게 듣기 좋음)</option>
             <option value="15min" selected>15분 (가장 추천하는 오디오북 길이)</option>
@@ -92,50 +218,39 @@
             <option value="60min">1시간 (수면용/장편 낭독)</option>
         </select>
 
-        <button id="generateBtn" style="background-color: #ff9800; color: black; font-size: 1.1em;">✨ 대본 생성하기</button>
+        <button id="generateBtn">🚀 새 주제 및 대본 생성</button>
 
         <div id="result">여기에 생성된 대본이 표시됩니다...</div>
 
-        <div id="bridgeSection"
-            style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #444;">
-            <p>👇 대본이 마음에 드시나요?</p>
-            <button id="sendToImageBtn" style="background-color: #ff5722; width: auto; padding: 10px 30px;">
-                🎨 이 대본으로 아래쪽 삽화 만들기 (복사)
-            </button>
+        <div id="bridgeSection" style="text-align: center; margin-top: 30px; display: none;">
+            <p>👇 대본이 완성되었습니다!</p>
+            <button id="sendToImageBtn">🎨 이 대본으로 삽화 만들기 (복사)</button>
         </div>
     </div>
 
     <div class="container" id="imageSection">
         <h2>🖼️ 무료 삽화 생성기</h2>
-        <p style="font-size: 0.9em; color: #aaa;">30분 대본도 OK! 10장씩 끊어서 만들어 드립니다.</p>
+        <textarea id="imageScriptInput" rows="4" placeholder="위에서 버튼을 누르면 대본이 여기로 복사됩니다."></textarea>
 
-        <textarea id="imageScriptInput" placeholder="위에서 [이 대본으로 삽화 만들기] 버튼을 누르면 내용이 자동으로 들어옵니다."
-            style="height: 150px;"></textarea>
-
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
             <select id="imageStyle" style="flex: 1;">
                 <option value="cinematic lighting, hyperrealistic, 8k">🎬 영화 같은 실사</option>
-                <option value="oil painting, van gogh style, warm colors">🎨 유화 (따뜻한 감성)</option>
-                <option value="watercolor style, soft, dreamy">🖌️ 수채화 (몽환적)</option>
-                <option value="pencil sketch, vintage, black and white">✏️ 연필 스케치 (추억)</option>
+                <option value="oil painting, van gogh style">🎨 유화 스타일</option>
+                <option value="watercolor style, soft">🖌️ 수채화</option>
+                <option value="pencil sketch">✏️ 연필 스케치</option>
             </select>
-            <button id="startImageBtn" style="flex: 0 0 auto; width: auto; background-color: #007bff;">🚀 이미지 생성
-                시작</button>
+            <button id="startImageBtn">이미지 생성 시작</button>
         </div>
 
-        <div style="text-align: center; margin-top: 20px;">
-            <span id="progressText" style="color: #ffc107; font-weight: bold; margin-right: 10px;"></span>
-            <button id="nextImageBtn" style="display: none; background-color: #28a745; width: auto;">⬇️ 다음 10장 더
-                만들기</button>
+        <div style="text-align: center; margin-top: 15px;">
+            <span id="progressText" style="color: #fbc2eb; font-weight: bold;"></span>
+            <button id="nextImageBtn"
+                style="display: none; background: #28a745; width: auto; padding: 8px 15px; border: none; border-radius: 5px; color: white; cursor: pointer; margin-left: 10px;">⬇️
+                더 만들기</button>
         </div>
-
         <div id="imageGallery"
-            style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+            style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
         </div>
-    </div>
-
-    <div style="display: flex; justify-content: flex-end; padding-bottom: 50px;">
-        <button id="resetBtn" style="width: auto; background-color: #555; font-size: 0.9em;">🔄 전체 초기화</button>
     </div>
 
     <script type="module" src="script-generator.js"></script>
