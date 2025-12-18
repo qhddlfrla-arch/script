@@ -170,17 +170,57 @@ generateBtn.addEventListener('click', async () => {
     }
 });
 
-// 4. 프롬프트 추출
+// 4. 프롬프트 추출 (+ 개별 복사 버튼 목록 생성)
 const sendToImageBtn = document.getElementById('sendToImageBtn');
 sendToImageBtn.addEventListener('click', () => {
     const fullText = document.getElementById('result').innerText;
     const imageInput = document.getElementById('imageScriptInput');
+    const promptList = document.getElementById('promptList');
     const parts = fullText.split('[IMAGE_PROMPTS]');
 
     if (parts.length > 1) {
-        let promptOnly = parts[1].split('[SAFETY_LOG]')[0];
-        imageInput.value = promptOnly.trim();
-        alert(`✅ 영어 프롬프트 추출 완료! (총 ${promptOnly.split('\n').filter(l => l.length > 5).length}컷 - 대본에 맞춰 적절히 생성됨)`);
+        let promptOnly = parts[1].split('[SAFETY_LOG]')[0].trim();
+        imageInput.value = promptOnly;
+
+        // 프롬프트 목록 생성 (개별 복사 버튼)
+        const lines = promptOnly.split('\n').filter(l => l.trim().length > 10);
+        promptList.innerHTML = '<p style="color:#fbc2eb; margin-bottom:10px; font-weight:bold;">📋 프롬프트 목록 (클릭하여 복사)</p>';
+
+        lines.forEach((line, i) => {
+            const cleanLine = line.replace(/^\d+\.\s*/, '').replace(/\s*\([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*\)\s*/g, '').trim();
+            const koreanMatch = line.match(/\(([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*)\)/);
+            const koreanDesc = koreanMatch ? koreanMatch[1] : '';
+
+            const item = document.createElement('div');
+            item.style.cssText = 'display:flex; gap:10px; align-items:center; padding:8px; margin-bottom:5px; background:rgba(0,0,0,0.3); border-radius:8px;';
+
+            const numBadge = document.createElement('span');
+            numBadge.innerText = i === 0 ? '🎬1' : (i + 1);
+            numBadge.style.cssText = i === 0 ? 'background:linear-gradient(to right,#f12711,#f5af19); padding:5px 10px; border-radius:5px; font-weight:bold; color:white;' : 'background:#444; padding:5px 10px; border-radius:5px; color:#aaa;';
+
+            const textSpan = document.createElement('span');
+            textSpan.innerText = koreanDesc || cleanLine.substring(0, 40) + '...';
+            textSpan.style.cssText = 'flex:1; color:#ccc; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+
+            const copyBtn = document.createElement('button');
+            copyBtn.innerText = '📋 복사';
+            copyBtn.style.cssText = 'background:#4da3ff; border:none; border-radius:5px; padding:5px 12px; color:white; cursor:pointer; font-size:12px;';
+            copyBtn.onclick = () => {
+                const antiCollage = ", single image only, one scene, centered composition, no collage, no grid, no split screen, no multiple images";
+                navigator.clipboard.writeText(cleanLine + antiCollage).then(() => {
+                    copyBtn.innerText = '✅ 완료';
+                    setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
+                });
+            };
+
+            item.appendChild(numBadge);
+            item.appendChild(textSpan);
+            item.appendChild(copyBtn);
+            promptList.appendChild(item);
+        });
+
+        promptList.style.display = 'block';
+        alert(`✅ 영어 프롬프트 추출 완료! (총 ${lines.length}컷)`);
     } else {
         imageInput.value = fullText;
     }
