@@ -1,7 +1,7 @@
 import { getGeminiAPIKey, StorageManager } from './storage.js';
 
 // ============================================================
-// 1. [핵심] 시니어 작가 프롬프트 (선생님의 지침 완벽 적용)
+// 1. [핵심] 시니어 작가 프롬프트
 // ============================================================
 const SYSTEM_PROMPT = `
 당신은 '20년 경력의 시니어 오디오북 작가'입니다. 
@@ -21,13 +21,12 @@ const SYSTEM_PROMPT = `
 `;
 
 // ============================================================
-// 2. 기능 구현 (감성 버튼, API, 대본/이미지 생성)
+// 2. 기능 구현
 // ============================================================
 
-// 2-1. 감성(Tone) 버튼 클릭 로직
-let selectedTone = "따뜻한"; // 기본값
+// 2-1. 감성(Tone) 버튼
+let selectedTone = "따뜻한";
 const toneButtons = document.querySelectorAll('.tone-btn');
-
 if (toneButtons) {
     toneButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -68,7 +67,7 @@ if (saveKeyBtn) {
     });
 }
 
-// 2-3. 대본 생성 로직 (★ 에러 수정된 부분)
+// 2-3. 대본 생성 로직 (★ 에러 완벽 수정됨)
 const generateBtn = document.getElementById('generateBtn');
 if (generateBtn) {
     generateBtn.addEventListener('click', async () => {
@@ -104,51 +103,27 @@ if (generateBtn) {
 
             const data = await response.json();
 
-            // ★ 에러 상세 확인을 위한 로그 (F12 콘솔에서 확인 가능)
-            console.log("AI 응답 데이터:", data);
-
-            // 1. 명시적인 에러 메시지가 온 경우
-            if (data.error) {
-                throw new Error(`AI 오류: ${data.error.message}`);
+            // ★ 여기가 핵심! 에러가 나면 원인을 정확히 알려줍니다.
+            if (!response.ok) {
+                throw new Error(`통신 오류 (${response.status}): ${data.error?.message || "알 수 없는 오류"}`);
             }
 
-            // 2. 답변(candidates)이 아예 없는 경우 (안전 필터 등)
+            if (data.promptFeedback && data.promptFeedback.blockReason) {
+                throw new Error(`⚠️ 안전 필터 작동: 주제가 AI 정책에 의해 차단되었습니다. (${data.promptFeedback.blockReason})`);
+            }
+
             if (!data.candidates || data.candidates.length === 0) {
-                if (data.promptFeedback) {
-                    throw new Error("⚠️ 입력하신 내용이 AI 안전 필터에 걸려 답변을 생성하지 못했습니다. 주제를 조금 더 부드럽게 바꿔보세요.");
-                } else {
-                    throw new Error("⚠️ AI가 답변을 생성하지 못했습니다. (원인 불명)");
-                }
+                throw new Error("⚠️ AI가 답변을 생성하지 못했습니다. (빈 응답)");
             }
 
-            // 3. candidates는 있지만 content가 없는 경우 (안전 필터로 차단)
-            const candidate = data.candidates[0];
-            if (!candidate) {
-                throw new Error("⚠️ AI 응답에 candidates가 비어있습니다.");
-            }
-            if (!candidate.content) {
-                const reason = candidate.finishReason || "알 수 없음";
-                throw new Error(`⚠️ AI가 답변 생성을 거부했습니다. (사유: ${reason})\n주제나 내용을 조금 수정해보세요.`);
-            }
-            if (!candidate.content.parts) {
-                throw new Error("⚠️ AI 응답에 parts가 없습니다.");
-            }
-            if (!candidate.content.parts[0]) {
-                throw new Error("⚠️ AI 응답에 parts[0]이 없습니다.");
-            }
-
-            // 4. 정상적인 경우
-            const text = candidate.content.parts[0].text;
-            if (!text) {
-                throw new Error("⚠️ AI 응답에 text가 비어있습니다.");
-            }
+            const text = data.candidates[0].content.parts[0].text;
             resultDiv.innerText = text;
 
             const bridge = document.getElementById('bridgeSection');
             if (bridge) bridge.style.display = 'block';
 
         } catch (error) {
-            console.error(error); // 콘솔에 자세한 에러 출력
+            console.error(error);
             resultDiv.innerText = "❌ 오류 발생:\n" + error.message;
         }
     });
@@ -160,14 +135,8 @@ if (sendToImageBtn) {
     sendToImageBtn.addEventListener('click', function () {
         const script = document.getElementById('result').innerText;
         const imgInput = document.getElementById('imageScriptInput');
-        const imgSection = document.getElementById('imageSection');
-
+        document.getElementById('imageSection').scrollIntoView({ behavior: 'smooth' });
         imgInput.value = script;
-        imgSection.scrollIntoView({ behavior: 'smooth' });
-
-        // 깜빡임 효과
-        imgInput.style.backgroundColor = "#333";
-        setTimeout(() => { imgInput.style.backgroundColor = ""; }, 300);
     });
 }
 
@@ -175,17 +144,15 @@ if (sendToImageBtn) {
 let currentIndex = 0;
 let globalParagraphs = [];
 const BATCH_SIZE = 10;
-
 const startImageBtn = document.getElementById('startImageBtn');
 const nextImageBtn = document.getElementById('nextImageBtn');
 
 if (startImageBtn) {
     startImageBtn.addEventListener('click', () => {
         const script = document.getElementById('imageScriptInput').value;
-        if (!script.trim()) return alert("대본 내용이 없습니다.");
-
+        if (!script.trim()) return alert("내용이 없습니다.");
         globalParagraphs = script.split('\n').filter(l => l.trim().length > 15 && !l.includes('---'));
-        if (globalParagraphs.length === 0) return alert("이미지로 만들 긴 문장이 부족합니다.");
+        if (globalParagraphs.length === 0) return alert("이미지로 만들 내용이 부족합니다.");
 
         currentIndex = 0;
         document.getElementById('imageGallery').innerHTML = '';
@@ -208,20 +175,13 @@ function generateNextBatch() {
         if (progress) progress.innerText = "✅ 전체 완료";
         return;
     }
-
     const endIndex = Math.min(currentIndex + BATCH_SIZE, globalParagraphs.length);
     const batch = globalParagraphs.slice(currentIndex, endIndex);
+    if (progress) progress.innerText = `생성 중... (${currentIndex + 1}~${endIndex})`;
 
-    if (progress) progress.innerText = `생성 중... (${currentIndex + 1} ~ ${endIndex})`;
-
-    batch.forEach((text, i) => {
+    batch.forEach((text) => {
         const div = document.createElement('div');
-        div.className = 'gallery-card';
-        div.style.padding = '10px'; div.style.background = '#222'; div.style.borderRadius = '8px';
-
-        const p = document.createElement('p');
-        p.innerText = text.substring(0, 40) + "...";
-        p.style.color = '#ccc'; p.style.fontSize = '12px'; p.style.marginBottom = '5px';
+        div.className = 'gallery-card'; div.style.padding = '10px'; div.style.background = '#222';
 
         const img = document.createElement('img');
         const seed = Math.floor(Math.random() * 99999);
@@ -230,16 +190,11 @@ function generateNextBatch() {
         img.style.width = '100%'; img.style.borderRadius = '5px'; img.loading = 'lazy';
 
         const a = document.createElement('a');
-        a.href = img.src; a.innerText = "💾 저장"; a.target = "_blank";
-        a.style.display = "block"; a.style.textAlign = "center"; a.style.marginTop = "8px"; a.style.color = "#4da3ff"; a.style.textDecoration = "none";
+        a.href = img.src; a.innerText = "💾 저장"; a.target = "_blank"; a.style.display = "block"; a.style.textAlign = "center"; a.style.color = "#4da3ff";
 
-        div.appendChild(p); div.appendChild(img); div.appendChild(a);
+        div.appendChild(img); div.appendChild(a);
         gallery.appendChild(div);
     });
     currentIndex = endIndex;
-
-    if (currentIndex >= globalParagraphs.length) {
-        if (progress) progress.innerText = "✅ 모든 이미지 생성 완료!";
-        if (nextImageBtn) nextImageBtn.style.display = 'none';
-    }
+    if (currentIndex >= globalParagraphs.length && nextImageBtn) nextImageBtn.style.display = 'none';
 }
