@@ -121,8 +121,15 @@ if (generateBtn) {
                 }
             }
 
-            // 3. 정상적인 경우
-            const text = data.candidates[0].content.parts[0].text;
+            // 3. candidates는 있지만 content가 없는 경우 (안전 필터로 차단)
+            const candidate = data.candidates[0];
+            if (!candidate.content || !candidate.content.parts || !candidate.content.parts[0]) {
+                const reason = candidate.finishReason || "알 수 없음";
+                throw new Error(`⚠️ AI가 답변 생성을 거부했습니다. (사유: ${reason})\n주제나 내용을 조금 수정해보세요.`);
+            }
+
+            // 4. 정상적인 경우
+            const text = candidate.content.parts[0].text;
             resultDiv.innerText = text;
 
             const bridge = document.getElementById('bridgeSection');
