@@ -229,6 +229,7 @@
 
         <label>⏱️ 영상 길이</label>
         <select id="durationSelect">
+            <option value="8min">8분</option>
             <option value="10min">10분</option>
             <option value="15min" selected>15분 (추천)</option>
             <option value="30min">30분</option>
@@ -242,6 +243,9 @@
 
         <div id="bridgeSection" style="text-align: center; margin-top: 30px; display: none;">
             <p>👇 대본이 완성되었습니다!</p>
+            <button id="downloadScriptBtn"
+                style="background: linear-gradient(to right, #667eea, #764ba2); border: none; border-radius: 8px; padding: 12px 25px; color: white; cursor: pointer; margin: 5px;">📥
+                순수 대본 다운로드</button>
             <button id="sendToImageBtn">🎨 삽화 프롬프트 추출하기</button>
         </div>
     </div>
