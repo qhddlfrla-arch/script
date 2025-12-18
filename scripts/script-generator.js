@@ -61,8 +61,25 @@ const COMMON_RULES = `
    - 에세이: Photorealistic, cinematic lighting, 8k, emotional.
    - 튜터(모아): Close-up of senior's hands holding smartphone, clear screen interface, warm indoor lighting, friendly atmosphere.
 6. **형식**: 번호를 붙이고, 영어 프롬프트 뒤에 괄호로 한글 설명을 추가하세요.
-   예: 1. A Korean elderly woman sipping tea in a cozy living room (거실에서 차를 마시는 할머니)
-   예: 2. Close-up of hands holding smartphone (스마트폰을 들고 있는 손)
+7. ★ **일관성 유지 (중요)**: 
+   - 첫 번째 프롬프트에서 주인공의 외모를 상세히 정의하세요. (예: "Korean elderly woman, 65 years old, gray short hair, warm smile, cream cardigan")
+   - 2번 이후 프롬프트에서도 "same woman" 또는 첫 번째와 동일한 외모 묘사를 반복하세요.
+   - 조명/분위기도 통일하세요. (예: warm golden hour lighting, cinematic)
+   예시:
+   1. Korean elderly woman, 65 years old, gray short hair, warm smile, cream cardigan, sipping tea in a cozy living room (거실에서 차를 마시는 할머니)
+   2. Same woman looking at an old photo album with nostalgic expression (사진첩을 보는 같은 할머니)
+
+[유튜브 제목 및 태그]
+1. '[YOUTUBE_PACKAGE]' 제목을 쓰세요.
+2. 영상에 어울리는 매력적인 제목 5개를 추천하세요. (클릭을 유도하는 호기심 자극형)
+3. 관련 태그 10개를 쉼표(,)로 구분해서 한 줄로 작성하세요.
+   형식:
+   제목1: ~~~
+   제목2: ~~~
+   제목3: ~~~
+   제목4: ~~~
+   제목5: ~~~
+   태그: 시니어, 스마트폰, 카카오톡, ...
 
 [안전성 검사 리포트]
 1. 맨 마지막에 '[SAFETY_LOG]' 제목 작성.
@@ -161,6 +178,30 @@ generateBtn.addEventListener('click', async () => {
         let mainContent = splitLog[0];
         let safetyLog = splitLog.length > 1 ? splitLog[1].trim() : "정보 없음";
 
+        // 유튜브 패키지 파싱
+        const youtubePackageBox = document.getElementById('youtubePackageBox');
+        const titlesBox = document.getElementById('titlesBox');
+        const tagsBox = document.getElementById('tagsBox');
+
+        if (mainContent.includes('[YOUTUBE_PACKAGE]')) {
+            const ytParts = mainContent.split('[YOUTUBE_PACKAGE]');
+            mainContent = ytParts[0]; // 대본만 표시
+
+            let ytContent = ytParts[1].split('[IMAGE_PROMPTS]')[0].trim();
+
+            // 제목 추출
+            const titleLines = ytContent.match(/제목\d?:\s*.+/g) || [];
+            titlesBox.innerHTML = titleLines.map((t, i) => `<div>${i + 1}. ${t.replace(/제목\d?:\s*/, '')}</div>`).join('');
+
+            // 태그 추출
+            const tagMatch = ytContent.match(/태그:\s*(.+)/);
+            if (tagMatch) {
+                tagsBox.innerText = tagMatch[1].trim();
+            }
+
+            youtubePackageBox.style.display = 'block';
+        }
+
         resultDiv.innerText = mainContent.trim();
         bridge.style.display = 'block';
 
@@ -179,6 +220,19 @@ generateBtn.addEventListener('click', async () => {
     }
 });
 
+// 3-2. 태그 복사 버튼
+const copyTagsBtn = document.getElementById('copyTagsBtn');
+if (copyTagsBtn) {
+    copyTagsBtn.addEventListener('click', () => {
+        const tags = document.getElementById('tagsBox').innerText;
+        if (tags) {
+            navigator.clipboard.writeText(tags).then(() => {
+                copyTagsBtn.innerText = '✅ 복사 완료!';
+                setTimeout(() => copyTagsBtn.innerText = '📋 태그 복사', 1500);
+            });
+        }
+    });
+}
 // 3-2. 순수 대본 다운로드 (IMAGE_PROMPTS, SAFETY_LOG 제외)
 const downloadScriptBtn = document.getElementById('downloadScriptBtn');
 if (downloadScriptBtn) {
