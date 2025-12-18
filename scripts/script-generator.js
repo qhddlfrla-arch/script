@@ -205,6 +205,9 @@ generateBtn.addEventListener('click', async () => {
         resultDiv.innerText = mainContent.trim();
         bridge.style.display = 'block';
 
+        // ★ 대본 수정 요청 섹션 표시
+        document.getElementById('editRequestSection').style.display = 'block';
+
         safetyBox.style.display = 'block';
         if (safetyLog.includes("이상 없음") || safetyLog.includes("없음")) {
             safetyBox.className = "safe-green";
@@ -219,6 +222,77 @@ generateBtn.addEventListener('click', async () => {
         console.error(error);
     }
 });
+
+// ============================================================
+// 3-1. ★ 대본 수정 요청 기능 (신규) ★
+// ============================================================
+const editScriptBtn = document.getElementById('editScriptBtn');
+if (editScriptBtn) {
+    editScriptBtn.addEventListener('click', async () => {
+        const editRequest = document.getElementById('editRequestInput').value.trim();
+        const currentScript = document.getElementById('result').innerText;
+        const resultDiv = document.getElementById('result');
+
+        if (!editRequest) return alert("수정 요청 내용을 입력해주세요!");
+        if (!currentScript || currentScript === '여기에 대본이 나옵니다...') {
+            return alert("먼저 대본을 생성해주세요!");
+        }
+
+        const apiKey = getGeminiAPIKey();
+        if (!apiKey) return alert("API 키가 없습니다.");
+
+        // 원래 버튼 텍스트 저장 및 로딩 상태 표시
+        const originalBtnText = editScriptBtn.innerText;
+        editScriptBtn.innerText = "⏳ 수정 중...";
+        editScriptBtn.disabled = true;
+        resultDiv.style.opacity = '0.5';
+
+        const editPrompt = `
+당신은 시니어 오디오북 대본 편집 전문가입니다.
+
+[현재 대본]
+${currentScript}
+
+[사용자 수정 요청]
+${editRequest}
+
+[지침]
+1. 사용자의 수정 요청에 따라 위 대본을 수정하세요.
+2. 수정 요청된 부분만 수정하고, 나머지 대본은 그대로 유지하세요.
+3. 대본의 전체 흐름과 톤을 유지하면서 자연스럽게 수정하세요.
+4. 수정된 전체 대본만 출력하세요. (설명이나 부연 없이)
+5. [IMAGE_PROMPTS]나 [YOUTUBE_PACKAGE], [SAFETY_LOG] 섹션은 포함하지 마세요. 순수 대본만 출력하세요.
+`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: editPrompt }] }] })
+            });
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error?.message || "통신 오류");
+            if (!data.candidates || !data.candidates[0].content) throw new Error("AI 응답이 비어있습니다");
+
+            const editedScript = data.candidates[0].content.parts[0].text;
+            resultDiv.innerText = editedScript.trim();
+
+            // 수정 완료 후 입력창 초기화
+            document.getElementById('editRequestInput').value = '';
+
+            alert("✅ 대본이 수정되었습니다!");
+
+        } catch (error) {
+            alert("❌ 수정 중 오류 발생: " + error.message);
+            console.error(error);
+        } finally {
+            editScriptBtn.innerText = originalBtnText;
+            editScriptBtn.disabled = false;
+            resultDiv.style.opacity = '1';
+        }
+    });
+}
 
 // 3-2. 태그 복사 버튼
 const copyTagsBtn = document.getElementById('copyTagsBtn');
@@ -399,6 +473,10 @@ if (resetBtn) {
         document.getElementById('safetyReportBox').innerHTML = '';
         document.getElementById('youtubePackageBox').style.display = 'none';
         document.getElementById('bridgeSection').style.display = 'none';
+
+        // 대본 수정 요청 섹션 초기화
+        document.getElementById('editRequestSection').style.display = 'none';
+        document.getElementById('editRequestInput').value = '';
 
         // 이미지 영역 초기화
         document.getElementById('imageGallery').innerHTML = '';
