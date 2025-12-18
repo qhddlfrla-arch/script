@@ -277,7 +277,11 @@ sendToImageBtn.addEventListener('click', () => {
     promptList.innerHTML = "";
 
     promptsArray.forEach((text, index) => {
-        const cleanText = text.replace(/^\d+\.\s*/, '').replace(/- /g, '').trim();
+        // 영어 프롬프트 (괄호 안의 한글 제거)
+        const englishPrompt = text.replace(/^\d+\.\s*/, '').replace(/\s*\([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*\)\s*/g, '').trim();
+        // 한글 설명 추출 (괄호 안)
+        const koreanMatch = text.match(/\(([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*)\)/);
+        const koreanDesc = koreanMatch ? koreanMatch[1] : null;
 
         const row = document.createElement('div');
         row.style.cssText = 'display:flex; gap:10px; align-items:center; padding:8px; margin-bottom:5px; background:rgba(0,0,0,0.3); border-radius:8px;';
@@ -288,7 +292,8 @@ sendToImageBtn.addEventListener('click', () => {
 
         const textSpan = document.createElement('span');
         textSpan.style.cssText = 'flex:1; color:#ccc; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
-        textSpan.innerText = cleanText.substring(0, 50) + '...';
+        // 한글이 있으면 한글 표시, 없으면 영어 일부 표시
+        textSpan.innerText = koreanDesc || englishPrompt.substring(0, 40) + '...';
 
         const copyBtn = document.createElement('button');
         copyBtn.innerText = '📋 복사';
@@ -296,7 +301,8 @@ sendToImageBtn.addEventListener('click', () => {
 
         copyBtn.addEventListener('click', () => {
             const antiCollage = ", single image only, one scene, centered composition, no collage, no grid, no split screen";
-            navigator.clipboard.writeText(cleanText + antiCollage).then(() => {
+            // 영어 프롬프트만 복사
+            navigator.clipboard.writeText(englishPrompt + antiCollage).then(() => {
                 copyBtn.innerText = '✅ 완료';
                 setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
             });
@@ -381,12 +387,20 @@ function generateNextBatch() {
     if (currentIndex >= globalParagraphs.length) nextImageBtn.style.display = 'none';
 }
 
-// 7. 초기화 버튼 기능
+// 7. 초기화 버튼 기능 (전체 초기화)
 const resetBtn = document.getElementById('resetBtn');
 if (resetBtn) {
     resetBtn.addEventListener('click', () => {
-        if (!confirm("모든 이미지와 프롬프트를 초기화할까요?")) return;
+        if (!confirm("전체 화면을 초기화할까요?\n(대본, 제목/태그, 이미지 모두 삭제됩니다)")) return;
 
+        // 대본 영역 초기화
+        document.getElementById('result').innerText = '여기에 대본이 나옵니다...';
+        document.getElementById('safetyReportBox').style.display = 'none';
+        document.getElementById('safetyReportBox').innerHTML = '';
+        document.getElementById('youtubePackageBox').style.display = 'none';
+        document.getElementById('bridgeSection').style.display = 'none';
+
+        // 이미지 영역 초기화
         document.getElementById('imageGallery').innerHTML = '';
         document.getElementById('imageScriptInput').value = '';
         document.getElementById('progressText').innerText = '';
@@ -397,6 +411,6 @@ if (resetBtn) {
         currentIndex = 0;
         globalParagraphs = [];
 
-        alert("✅ 초기화 완료!");
+        alert("✅ 전체 초기화 완료!");
     });
 }
