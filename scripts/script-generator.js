@@ -123,13 +123,25 @@ if (generateBtn) {
 
             // 3. candidates는 있지만 content가 없는 경우 (안전 필터로 차단)
             const candidate = data.candidates[0];
-            if (!candidate.content || !candidate.content.parts || !candidate.content.parts[0]) {
+            if (!candidate) {
+                throw new Error("⚠️ AI 응답에 candidates가 비어있습니다.");
+            }
+            if (!candidate.content) {
                 const reason = candidate.finishReason || "알 수 없음";
                 throw new Error(`⚠️ AI가 답변 생성을 거부했습니다. (사유: ${reason})\n주제나 내용을 조금 수정해보세요.`);
+            }
+            if (!candidate.content.parts) {
+                throw new Error("⚠️ AI 응답에 parts가 없습니다.");
+            }
+            if (!candidate.content.parts[0]) {
+                throw new Error("⚠️ AI 응답에 parts[0]이 없습니다.");
             }
 
             // 4. 정상적인 경우
             const text = candidate.content.parts[0].text;
+            if (!text) {
+                throw new Error("⚠️ AI 응답에 text가 비어있습니다.");
+            }
             resultDiv.innerText = text;
 
             const bridge = document.getElementById('bridgeSection');
