@@ -1,6 +1,46 @@
 import { getGeminiAPIKey, StorageManager } from './storage.js';
 
 // ============================================================
+// localStorage를 통한 데이터 영구 저장 (재부팅해도 유지)
+// ============================================================
+
+const STORAGE_KEYS = {
+    SCRIPT_INPUT: 'promptExtractor_scriptInput',
+    SAFE_SCRIPT: 'promptExtractor_safeScript',
+    SAFETY_LOG: 'promptExtractor_safetyLog',
+    IMAGE_PROMPTS: 'promptExtractor_imagePrompts',
+    IMAGE_STYLE: 'promptExtractor_imageStyle',
+    RESULT_VISIBLE: 'promptExtractor_resultVisible'
+};
+
+// 데이터 저장 함수
+function saveToStorage(key, value) {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+        console.error('저장 실패:', e);
+    }
+}
+
+// 데이터 불러오기 함수
+function loadFromStorage(key, defaultValue = null) {
+    try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : defaultValue;
+    } catch (e) {
+        console.error('불러오기 실패:', e);
+        return defaultValue;
+    }
+}
+
+// 저장된 데이터 전체 삭제 (초기화 시 사용)
+function clearAllStorage() {
+    Object.values(STORAGE_KEYS).forEach(key => {
+        localStorage.removeItem(key);
+    });
+}
+
+// ============================================================
 // 대본 → 안전 대본 + 이미지 프롬프트 변환 전용 프롬프트
 // ============================================================
 
@@ -47,14 +87,24 @@ const PROMPT_CONVERTER = `
 // 기능 구현
 // ============================================================
 
-// 이미지 스타일 선택
-let selectedStyle = "Photorealistic, cinematic lighting, 8k, emotional";
+// 이미지 스타일 선택 (저장된 스타일 복원)
+let selectedStyle = loadFromStorage(STORAGE_KEYS.IMAGE_STYLE) || "Photorealistic, cinematic lighting, 8k, emotional";
 const styleButtons = document.querySelectorAll('.style-btn');
+
+// 저장된 스타일에 맞게 UI 업데이트
+styleButtons.forEach(btn => {
+    if (btn.getAttribute('data-value') === selectedStyle) {
+        styleButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+});
+
 styleButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         styleButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         selectedStyle = btn.getAttribute('data-value');
+        saveToStorage(STORAGE_KEYS.IMAGE_STYLE, selectedStyle); // 스타일 저장
     });
 });
 
@@ -92,8 +142,100 @@ const resultSection = document.getElementById('resultSection');
 const safeScriptResult = document.getElementById('safeScriptResult');
 const safetyReportBox = document.getElementById('safetyReportBox');
 const promptList = document.getElementById('promptList');
+const scriptInput = document.getElementById('scriptInput');
 
-let generatedPrompts = []; // 전역 저장
+let generatedPrompts = loadFromStorage(STORAGE_KEYS.IMAGE_PROMPTS) || []; // 저장된 프롬프트 복원
+
+// ============================================================
+// 페이지 로드 시 저장된 데이터 복원
+// ============================================================
+function restoreSavedData() {
+    // 대본 입력 복원
+    const savedScript = loadFromStorage(STORAGE_KEYS.SCRIPT_INPUT);
+    if (savedScript) {
+        scriptInput.value = savedScript;
+    }
+
+    // 결과 영역이 표시되어 있었는지 확인
+    const resultVisible = loadFromStorage(STORAGE_KEYS.RESULT_VISIBLE);
+    if (resultVisible) {
+        // 안전 대본 복원
+        const savedSafeScript = loadFromStorage(STORAGE_KEYS.SAFE_SCRIPT);
+        if (savedSafeScript) {
+            safeScriptResult.innerText = savedSafeScript;
+        }
+
+        // 안전성 로그 복원
+        const savedSafetyLog = loadFromStorage(STORAGE_KEYS.SAFETY_LOG);
+        if (savedSafetyLog) {
+            safetyReportBox.style.display = 'block';
+            if (savedSafetyLog.includes("이상 없음") || savedSafetyLog.includes("없음")) {
+                safetyReportBox.className = "safe-green";
+                safetyReportBox.innerText = "✅ 유튜브 안전성 검사 통과 - 순화 필요 없음";
+            } else {
+                safetyReportBox.className = "safe-warning";
+                safetyReportBox.innerHTML = "⚠️ <b>순화된 단어:</b><br>" + savedSafetyLog.replace(/\n/g, '<br>');
+            }
+        }
+
+        // 이미지 프롬프트 목록 복원
+        if (generatedPrompts.length > 0) {
+            renderPromptList();
+        }
+
+        resultSection.style.display = 'block';
+    }
+}
+
+// 프롬프트 목록 렌더링 함수 (복원 시에도 사용)
+function renderPromptList() {
+    promptList.innerHTML = "";
+    generatedPrompts.forEach((text, index) => {
+        const englishPrompt = text.replace(/^\d+\.\s*/, '').replace(/\s*\([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*\)\s*/g, '').trim();
+        const koreanMatch = text.match(/\(([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*)\)/);
+        const koreanDesc = koreanMatch ? koreanMatch[1] : null;
+
+        const row = document.createElement('div');
+        row.className = 'prompt-row';
+
+        const numBadge = document.createElement('span');
+        numBadge.innerText = index === 0 ? '🎬1' : (index + 1);
+        numBadge.className = index === 0 ? 'prompt-num first' : 'prompt-num';
+
+        const textSpan = document.createElement('span');
+        textSpan.className = 'prompt-text';
+        textSpan.innerText = koreanDesc || englishPrompt.substring(0, 50) + '...';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.innerText = '📋 복사';
+        copyBtn.className = 'prompt-copy-btn';
+
+        copyBtn.addEventListener('click', () => {
+            const antiCollage = ", single image only, one scene, centered composition, no collage, no grid, no split screen";
+            navigator.clipboard.writeText(englishPrompt + antiCollage).then(() => {
+                copyBtn.innerText = '✅ 완료';
+                setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
+            });
+        });
+
+        row.appendChild(numBadge);
+        row.appendChild(textSpan);
+        row.appendChild(copyBtn);
+        promptList.appendChild(row);
+    });
+}
+
+// 페이지 로드 시 복원 실행
+restoreSavedData();
+
+// 대본 입력 시 자동 저장 (디바운스 적용)
+let saveTimeout;
+scriptInput.addEventListener('input', () => {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        saveToStorage(STORAGE_KEYS.SCRIPT_INPUT, scriptInput.value);
+    }, 500); // 0.5초 후 저장
+});
 
 generateBtn.addEventListener('click', async () => {
     const script = document.getElementById('scriptInput').value.trim();
@@ -175,47 +317,17 @@ ${script}
         }
 
         // 이미지 프롬프트 목록 생성
-        promptList.innerHTML = "";
         generatedPrompts = imagePrompts.split('\n').filter(line => line.trim().length > 5);
-
-        generatedPrompts.forEach((text, index) => {
-            // 영어 프롬프트 (괄호 안의 한글 제거)
-            const englishPrompt = text.replace(/^\d+\.\s*/, '').replace(/\s*\([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*\)\s*/g, '').trim();
-            // 한글 설명 추출
-            const koreanMatch = text.match(/\(([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*)\)/);
-            const koreanDesc = koreanMatch ? koreanMatch[1] : null;
-
-            const row = document.createElement('div');
-            row.className = 'prompt-row';
-
-            const numBadge = document.createElement('span');
-            numBadge.innerText = index === 0 ? '🎬1' : (index + 1);
-            numBadge.className = index === 0 ? 'prompt-num first' : 'prompt-num';
-
-            const textSpan = document.createElement('span');
-            textSpan.className = 'prompt-text';
-            textSpan.innerText = koreanDesc || englishPrompt.substring(0, 50) + '...';
-
-            const copyBtn = document.createElement('button');
-            copyBtn.innerText = '📋 복사';
-            copyBtn.className = 'prompt-copy-btn';
-
-            copyBtn.addEventListener('click', () => {
-                const antiCollage = ", single image only, one scene, centered composition, no collage, no grid, no split screen";
-                navigator.clipboard.writeText(englishPrompt + antiCollage).then(() => {
-                    copyBtn.innerText = '✅ 완료';
-                    setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
-                });
-            });
-
-            row.appendChild(numBadge);
-            row.appendChild(textSpan);
-            row.appendChild(copyBtn);
-            promptList.appendChild(row);
-        });
+        renderPromptList();
 
         resultSection.style.display = 'block';
         resultSection.scrollIntoView({ behavior: 'smooth' });
+
+        // ★ 결과를 localStorage에 저장
+        saveToStorage(STORAGE_KEYS.SAFE_SCRIPT, safeScript || script);
+        saveToStorage(STORAGE_KEYS.SAFETY_LOG, safetyLog);
+        saveToStorage(STORAGE_KEYS.IMAGE_PROMPTS, generatedPrompts);
+        saveToStorage(STORAGE_KEYS.RESULT_VISIBLE, true);
 
     } catch (error) {
         alert("❌ 오류 발생: " + error.message);
@@ -338,6 +450,10 @@ document.getElementById('openImageFxBtn').addEventListener('click', () => {
 document.getElementById('resetBtn').addEventListener('click', () => {
     if (!confirm("전체를 초기화할까요?")) return;
 
+    // localStorage 데이터 삭제
+    clearAllStorage();
+
+    // 화면 초기화
     document.getElementById('scriptInput').value = '';
     resultSection.style.display = 'none';
     safeScriptResult.innerText = '';
