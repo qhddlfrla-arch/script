@@ -838,7 +838,18 @@ const downloadAllSection = document.getElementById('downloadAllSection');
 const downloadAllBtn = document.getElementById('downloadAllBtn');
 
 // Gemini Imagen API로 이미지 생성
+// 일관된 시드를 위한 변수
+let consistentSeed = null;
+
 async function generateImageWithGemini(prompt, apiKey) {
+    // 첫 번째 이미지 생성 시 시드 설정
+    if (!consistentSeed) {
+        consistentSeed = Math.floor(Math.random() * 1000000);
+    }
+
+    // 실사 품질 강화 프롬프트
+    const enhancedPrompt = `Create a high-quality photorealistic image: ${prompt}. Style: ultra-realistic photography, 8k resolution, sharp details, professional lighting, cinematic quality.`;
+
     // 방법 1: Gemini 2.0 Flash 이미지 생성 시도
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${apiKey}`, {
@@ -846,7 +857,7 @@ async function generateImageWithGemini(prompt, apiKey) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{
-                    parts: [{ text: "Generate an image: " + prompt }]
+                    parts: [{ text: enhancedPrompt }]
                 }],
                 generationConfig: {
                     responseModalities: ["IMAGE", "TEXT"]
@@ -877,7 +888,7 @@ async function generateImageWithGemini(prompt, apiKey) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    instances: [{ prompt: prompt }],
+                    instances: [{ prompt: enhancedPrompt }],
                     parameters: {
                         sampleCount: 1,
                         aspectRatio: selectedRatio,
@@ -897,10 +908,10 @@ async function generateImageWithGemini(prompt, apiKey) {
         }
     }
 
-    // 방법 3: Pollinations AI (무료 백업)
+    // 방법 3: Pollinations AI (무료 백업) - seed 및 model 추가로 일관성 향상
     console.log("Pollinations AI로 이미지 생성 시도...");
-    const encodedPrompt = encodeURIComponent(prompt);
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true`;
+    const encodedPrompt = encodeURIComponent(enhancedPrompt);
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${consistentSeed}&model=flux`;
 
     // 이미지 로드 확인
     return new Promise((resolve, reject) => {
@@ -950,6 +961,9 @@ nextImageBtn.addEventListener('click', async () => {
     nextImageBtn.disabled = false;
 });
 
+// 첫 번째 이미지의 캐릭터 정보를 저장하기 위한 변수
+let firstImageCharacterDesc = '';
+
 async function generateNextBatch() {
     const gallery = document.getElementById('imageGallery');
     const progress = document.getElementById('progressText');
@@ -974,7 +988,20 @@ async function generateNextBatch() {
         if (!cleanText.toLowerCase().includes('korean')) {
             cleanText = 'Korean person, ' + cleanText;
         }
-        const fullPrompt = cleanText + ", " + getFullStyleWithComposition() + ", single scene, no collage";
+
+        // ★ 첫 번째 이미지에서 캐릭터 정보 추출 및 저장 ★
+        if (currentIndex === 0 && generatedImages.length === 0) {
+            // 첫 번째 프롬프트에서 캐릭터 묘사 추출
+            firstImageCharacterDesc = cleanText;
+        }
+
+        // ★ 모든 이미지에 실사 품질 강화 프롬프트 추가 ★
+        const qualityEnhancement = "photorealistic, hyper-realistic, ultra detailed, 8k resolution, cinematic lighting, professional photography, high quality, masterpiece";
+        const consistencyPrompt = firstImageCharacterDesc && currentIndex > 0 ?
+            `same person as before, consistent character, ${qualityEnhancement}` :
+            qualityEnhancement;
+
+        const fullPrompt = cleanText + ", " + consistencyPrompt + ", " + getFullStyleWithComposition() + ", single scene, no collage, single image only, centered composition";
 
         const div = document.createElement('div');
         div.style.background = '#222';
@@ -1122,6 +1149,8 @@ if (resetBtn) {
         generatedPrompts = [];
         generatedImages = [];
         characterPersona = '';
+        firstImageCharacterDesc = '';
+        consistentSeed = null;
 
         // localStorage 초기화
         clearAllStorage();
