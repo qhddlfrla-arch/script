@@ -1,6 +1,46 @@
 import { getGeminiAPIKey, StorageManager } from './storage.js';
 
 // ============================================================
+// localStorage를 통한 데이터 영구 저장 (재부팅해도 유지)
+// ============================================================
+
+const STORAGE_KEYS = {
+    SCRIPT_INPUT: 'scriptRemixer_scriptInput',
+    SAFE_SCRIPT: 'scriptRemixer_safeScript',
+    SAFETY_LOG: 'scriptRemixer_safetyLog',
+    IMAGE_PROMPTS: 'scriptRemixer_imagePrompts',
+    CHARACTER_STYLE: 'scriptRemixer_characterStyle',
+    MOOD_STYLE: 'scriptRemixer_moodStyle',
+    COMPOSITION: 'scriptRemixer_composition',
+    RATIO: 'scriptRemixer_ratio',
+    PERSONA: 'scriptRemixer_persona'
+};
+
+function saveToStorage(key, value) {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+        console.error('저장 실패:', e);
+    }
+}
+
+function loadFromStorage(key, defaultValue = null) {
+    try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : defaultValue;
+    } catch (e) {
+        console.error('불러오기 실패:', e);
+        return defaultValue;
+    }
+}
+
+function clearAllStorage() {
+    Object.values(STORAGE_KEYS).forEach(key => {
+        localStorage.removeItem(key);
+    });
+}
+
+// ============================================================
 // 1. [핵심] 작가들의 지침 보관소 (페르소나 설정)
 // ============================================================
 
@@ -23,7 +63,7 @@ const PROMPT_ESSAY = `
 5. 분량: 사용자가 지정한 영상 길이에 맞게 충분한 분량의 대본을 작성하세요.
 `;
 
-// 📱 [모드 2] '모아(함께하는60+)' - 디지털 튜터 (오프닝 순서 수정됨)
+// 📱 [모드 2] '모아(함께하는60+)' - 디지털 튜터
 const PROMPT_TUTOR = `
 당신은 유튜브 채널 '함께하는60+'를 운영하는 64세 시니어 유튜버 '모아'입니다.
 부산 출신으로 30년 직장 생활 후 은퇴했고, 손주와 소통하기 위해 디지털 공부를 시작한 '노력파 시니어'입니다.
@@ -39,16 +79,15 @@ const PROMPT_TUTOR = `
 1. 관계: 권위적인 강사가 아님. "저도 어제 배웠습니다", "실수해도 괜찮습니다"라며 다독이는 '선배이자 동료'.
 2. 말투:
    - 전체적으로 존댓말 사용. 조곤조곤하고 또박또박 설명.
-   - 가끔 엉뚱한 생활 유머나 실수를 고백함. (예: "아이고, 제가 또 깜빡했네요 허허", "이게 참 우리를 골치 아프게 하죠?")
-   - 어려운 전문 용어는 반드시 생활 언어로 풀어서 비유. (예: 앱=도구상자, 클라우드=은행 금고)
+   - 가끔 엉뚱한 생활 유머나 실수를 고백함. (예: "아이고, 제가 또 깜빡했네요 허허")
+   - 어려운 전문 용어는 반드시 생활 언어로 풀어서 비유.
 3. 진행 스타일:
    - "자, 화면을 크게 보여드릴게요", "손가락으로 꾹 누르세요" 같이 행동 위주로 묘사.
-   - 한 번에 넘어가지 않고 "천천히 해보세요"라며 기다려줌.
 
 [작성 법칙]
 ★ 1. 오프닝 (순서 엄수): 
-   - ① 5초 후킹 (가장 먼저): "이 기능 모르면 손주가 답답해합니다!", "친구들 다 쓰는데 나만 모르면 안 되죠!" 처럼 시청자가 영상을 꼭 봐야 할 강력한 이유를 먼저 제시. (인사 절대 먼저 하지 말 것)
-   - ② 30초 오프닝 (주제 소개): 후킹 직후, 오늘 배울 내용을 간략히 소개. "오늘은 카카오톡에서 사진 보내는 법을 알려드릴게요", "이 기능 하나만 알면 손주한테 칭찬받습니다" 등으로 기대감을 높임.
+   - ① 5초 후킹 (가장 먼저): "이 기능 모르면 손주가 답답해합니다!" 처럼 시청자가 영상을 꼭 봐야 할 강력한 이유를 먼저 제시.
+   - ② 30초 오프닝 (주제 소개): 후킹 직후, 오늘 배울 내용을 간략히 소개.
    - ③ 자기소개 (오프닝 끝난 후): 후킹과 주제 소개가 끝나고 나서 "안녕하세요, 함께하는60+ 모아입니다."라고 인사.
 2. 본문 전개:
    - [동기부여] -> [준비물] -> [1단계, 2단계... 실습] -> [자주 하는 실수 꿀팁]
@@ -66,34 +105,23 @@ const COMMON_RULES = `
    - 필요시 '극단적 선택', '떠났다', '다툼' 등으로 반드시 순화할 것.
 
 [이미지 프롬프트 작성]
-★★★ 중요: 대본을 모두 작성한 후, 맨 마지막에 '[IMAGE_PROMPTS]' 섹션을 한 번만 작성하세요. 대본 중간에 절대 넣지 마세요! ★★★
+★★★ 중요: 대본을 모두 작성한 후, 맨 마지막에 '[IMAGE_PROMPTS]' 섹션을 한 번만 작성하세요. ★★★
 1. 대본 전체를 먼저 완성하세요.
 2. 대본이 끝나면 '[IMAGE_PROMPTS]' 제목을 쓰고, 그 아래에 모든 이미지 프롬프트를 정리해서 작성하세요.
-3. 대본의 흐름에 맞게 적절한 개수의 프롬프트를 작성하세요. (문단 전환, 새로운 장면마다)
+3. 대본의 흐름에 맞게 적절한 개수의 프롬프트를 작성하세요.
 4. **중요: 모든 인물은 반드시 "Korean"으로 명시하세요.**
 5. 스타일: 
    - 에세이: Photorealistic, cinematic lighting, 8k, emotional.
-   - 튜터(모아): Close-up of senior's hands holding smartphone, clear screen interface, warm indoor lighting, friendly atmosphere.
+   - 튜터: Close-up of senior's hands holding smartphone, clear screen interface, warm indoor lighting.
 6. **형식**: 번호를 붙이고, 영어 프롬프트 뒤에 괄호로 한글 설명을 추가하세요.
-7. ★ **일관성 유지 (중요)**: 
-   - 첫 번째 프롬프트에서 주인공의 외모를 상세히 정의하세요. (예: "Korean elderly woman, 65 years old, gray short hair, warm smile, cream cardigan")
+7. ★ **일관성 유지**: 
+   - 첫 번째 프롬프트에서 주인공의 외모를 상세히 정의하세요.
    - 2번 이후 프롬프트에서도 "same woman" 또는 첫 번째와 동일한 외모 묘사를 반복하세요.
-   - 조명/분위기도 통일하세요. (예: warm golden hour lighting, cinematic)
-   예시:
-   1. Korean elderly woman, 65 years old, gray short hair, warm smile, cream cardigan, sipping tea in a cozy living room (거실에서 차를 마시는 할머니)
-   2. Same woman looking at an old photo album with nostalgic expression (사진첩을 보는 같은 할머니)
 
 [유튜브 제목 및 태그]
 1. '[YOUTUBE_PACKAGE]' 제목을 쓰세요.
-2. 영상에 어울리는 매력적인 제목 5개를 추천하세요. (클릭을 유도하는 호기심 자극형)
+2. 영상에 어울리는 매력적인 제목 5개를 추천하세요.
 3. 관련 태그 10개를 쉼표(,)로 구분해서 한 줄로 작성하세요.
-   형식:
-   제목1: ~~~
-   제목2: ~~~
-   제목3: ~~~
-   제목4: ~~~
-   제목5: ~~~
-   태그: 시니어, 스마트폰, 카카오톡, ...
 
 [안전성 검사 리포트]
 1. 맨 마지막에 '[SAFETY_LOG]' 제목 작성.
@@ -101,8 +129,173 @@ const COMMON_RULES = `
 `;
 
 // ============================================================
+// 대본 → 안전 대본 + 이미지 프롬프트 변환 전용 프롬프트
+// ============================================================
+
+const PROMPT_CONVERTER = `
+당신은 '20년 경력의 시니어 오디오북 편집 전문가이자 AI 아트 디렉터'입니다.
+사용자가 제공하는 대본을 아래 작업에 따라 처리하세요.
+
+★★★ 중요: 반드시 한국어(한글)로 응답하세요! 영어로 응답하지 마세요! ★★★
+
+[작업 1: 안전 대본 변환] - ★★★ 유튜브 수익화 보호 필수 ★★★
+1. 사용자가 제공한 대본을 그대로 유지하되, 유튜브 수익화에 위험할 수 있는 모든 단어를 적극적으로 순화하세요.
+2. ★ 순화 대상 카테고리별 예시:
+
+   【폭력/범죄】
+   - '자살/자해' → '극단적 선택/스스로를 해치다'
+   - '죽다/죽음/사망' → '떠나다/세상을 떠나다/영면하다'
+   - '살인/살해' → '범죄/사고'
+   
+   【자해/정신건강】
+   - '우울증/정신병' → '마음의 병/힘든 시간'
+   - '미친/미쳤다' → '힘든/지쳐있는'
+   
+   【성인/선정성】
+   - '성폭행/강간' → '끔찍한 일/범죄'
+   - '불륜/바람' → '잘못된 관계'
+   
+   【약물/중독】
+   - '마약/각성제' → '나쁜 것/위험한 물질'
+
+3. 대본의 전체 흐름, 문체, 톤, 분량은 절대 변경하지 마세요. 오직 위험 단어만 교체하세요.
+4. 순화할 단어가 없으면 원본 대본을 그대로 출력하세요.
+5. 순화한 단어는 반드시 [SAFETY_LOG]에 기록하세요.
+
+[작업 2: 이미지 프롬프트 생성] - ★★★ 한국인 일관성 필수 ★★★
+1. 대본을 읽고, 주요 장면마다 어울리는 이미지 프롬프트를 영어로 작성하세요.
+2. 프롬프트 개수: 대본 길이에 따라 5~20개 (장면 전환, 감정 변화 기준)
+3. ★★★ **[필수] 모든 인물은 반드시 "Korean"으로 시작하세요!** ★★★
+   - 올바른 예: "Korean elderly woman", "Korean middle-aged man"
+4. 스타일: {IMAGE_STYLE}
+5. ★ **일관성 유지 (매우 중요)**:
+   - 첫 번째 프롬프트에서 주인공의 외모를 상세히 정의하세요.
+   - 2번 이후 모든 프롬프트에서 "same Korean woman" 또는 동일한 외모 묘사를 반복하세요.
+6. 형식: 번호를 붙이고, 영어 프롬프트 뒤에 괄호로 한글 설명을 추가하세요.
+
+[출력 형식]
+아래 형식을 정확히 따르세요:
+
+[SAFE_SCRIPT]
+(순화된 대본 전체 또는 원본 대본)
+
+[IMAGE_PROMPTS]
+(이미지 프롬프트 목록)
+
+[SAFETY_LOG]
+(순화한 단어가 있으면 "원래단어 → 순화단어" 형식으로 기록, 없으면 "이상 없음")
+`;
+
+// 등장인물 페르소나 분석 전용 프롬프트
+const PERSONA_ANALYZER = `
+당신은 '시니어 오디오북 일러스트 디렉터'입니다.
+사용자가 제공하는 대본을 읽고, 주인공(메인 등장인물)의 외모 페르소나를 생성하세요.
+
+★★★ 중요: 반드시 영어로 출력하세요! 이미지 생성 AI에 사용됩니다. ★★★
+
+[분석 규칙]
+1. 대본에서 주인공의 나이, 성별, 외모 단서를 찾으세요.
+2. 명시되지 않은 부분은 대본 맥락에 맞게 적절히 추론하세요.
+3. **반드시 "Korean"으로 시작**하세요 (예: "Korean elderly woman")
+
+[포함해야 할 요소]
+- 국적: Korean (필수)
+- 예상 나이: 구체적 숫자 (예: 65 years old)
+- 성별
+- 머리 스타일/색상
+- 얼굴 특징
+- 체형
+- 대표 의상
+- 전반적인 분위기
+
+[출력 형식]
+한 문장으로 쉼표로 구분하여 출력하세요. 다른 설명 없이 페르소나만 출력하세요.
+
+[사용자 대본]
+`;
+
+// ============================================================
 // 2. 기능 구현
 // ============================================================
+
+// ★ 스타일 선택 변수 및 초기화 ★
+let selectedCharacterStyle = loadFromStorage(STORAGE_KEYS.CHARACTER_STYLE) || "Photorealistic, hyper-realistic, 8k, cinematic lighting, detailed skin texture";
+let selectedMoodStyle = loadFromStorage(STORAGE_KEYS.MOOD_STYLE) || "2000s aesthetic, Y2K style, digital era, early internet vibes";
+let selectedComposition = loadFromStorage(STORAGE_KEYS.COMPOSITION) || "natural angle, balanced composition, comfortable framing";
+let selectedRatio = loadFromStorage(STORAGE_KEYS.RATIO) || "16:9";
+let characterPersona = loadFromStorage(STORAGE_KEYS.PERSONA) || '';
+let generatedPrompts = loadFromStorage(STORAGE_KEYS.IMAGE_PROMPTS) || [];
+
+function getFullStyle() {
+    return selectedCharacterStyle + ", " + selectedMoodStyle;
+}
+
+function getFullStyleWithComposition() {
+    return getFullStyle() + ", " + selectedComposition + ", " + selectedRatio + " aspect ratio";
+}
+
+// ★ 스타일 버튼 초기화 함수 ★
+function initStyleButtons() {
+    // 인물 스타일
+    const characterStyleButtons = document.querySelectorAll('#characterStyleGroup .style-btn');
+    characterStyleButtons.forEach(btn => {
+        if (btn.getAttribute('data-value') === selectedCharacterStyle) {
+            characterStyleButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        btn.addEventListener('click', () => {
+            characterStyleButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedCharacterStyle = btn.getAttribute('data-value');
+            saveToStorage(STORAGE_KEYS.CHARACTER_STYLE, selectedCharacterStyle);
+        });
+    });
+
+    // 분위기 스타일
+    const moodStyleButtons = document.querySelectorAll('#moodStyleGroup .style-btn');
+    moodStyleButtons.forEach(btn => {
+        if (btn.getAttribute('data-value') === selectedMoodStyle) {
+            moodStyleButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        btn.addEventListener('click', () => {
+            moodStyleButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedMoodStyle = btn.getAttribute('data-value');
+            saveToStorage(STORAGE_KEYS.MOOD_STYLE, selectedMoodStyle);
+        });
+    });
+
+    // 구도
+    const compositionButtons = document.querySelectorAll('#compositionGroup .style-btn');
+    compositionButtons.forEach(btn => {
+        if (btn.getAttribute('data-value') === selectedComposition) {
+            compositionButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        btn.addEventListener('click', () => {
+            compositionButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedComposition = btn.getAttribute('data-value');
+            saveToStorage(STORAGE_KEYS.COMPOSITION, selectedComposition);
+        });
+    });
+
+    // 비율
+    const ratioButtons = document.querySelectorAll('#ratioGroup .style-btn');
+    ratioButtons.forEach(btn => {
+        if (btn.getAttribute('data-ratio') === selectedRatio) {
+            ratioButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        btn.addEventListener('click', () => {
+            ratioButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedRatio = btn.getAttribute('data-ratio');
+            saveToStorage(STORAGE_KEYS.RATIO, selectedRatio);
+        });
+    });
+}
 
 // ★ 탭 전환 기능 ★
 const tabNewScript = document.getElementById('tabNewScript');
@@ -123,114 +316,11 @@ if (tabNewScript && tabMyScript) {
         tabNewScript.classList.remove('active');
         myScriptSection.style.display = 'block';
         newScriptSection.style.display = 'none';
+        initStyleButtons(); // 탭 전환 시 스타일 버튼 초기화
     });
 }
 
-// ★ 내 대본 → 안전 대본 + 이미지 프롬프트 변환 프롬프트 ★
-const PROMPT_MY_SCRIPT_CONVERTER = `
-당신은 '20년 경력의 시니어 오디오북 편집 전문가이자 AI 아트 디렉터'입니다.
-사용자가 제공하는 대본을 아래 작업에 따라 처리하세요.
-
-★★★ 중요: 반드시 한국어(한글)로 응답하세요! ★★★
-
-[작업 1: 안전 대본 변환]
-1. 사용자가 제공한 대본을 그대로 유지하되, 유튜브 수익화에 위험할 수 있는 단어만 순화하세요.
-2. 순화 대상: '자살' → '극단적 선택', '죽다/죽음' → '떠나다', '살인' → '범죄', '학대' → '상처' 등
-3. 대본의 전체 흐름, 문체, 톤, 분량은 절대 변경하지 마세요. 오직 위험 단어만 교체.
-4. 순화할 단어가 없으면 원본 대본을 그대로 출력.
-
-[작업 2: 이미지 프롬프트 생성]
-1. 대본을 읽고, 주요 장면마다 어울리는 이미지 프롬프트를 영어로 작성.
-2. 프롬프트 개수: 5~20개 (장면 전환, 감정 변화 기준)
-3. **모든 인물은 반드시 "Korean"으로 명시.**
-4. 스타일: Photorealistic, cinematic lighting, 8k, emotional
-5. ★ **일관성 유지**: 첫 프롬프트에서 주인공 외모 상세 정의 후, 이후 "same person" 반복.
-6. 형식: 번호 + 영어 프롬프트 + 괄호로 한글 설명
-   예: 1. Korean elderly woman... (거실에서 차를 마시는 할머니)
-
-[출력 형식]
-[SCRIPT]
-(순화된 대본 또는 원본)
-
-[IMAGE_PROMPTS]
-(이미지 프롬프트 목록)
-
-[SAFETY_LOG]
-(순화한 단어 기록 또는 "이상 없음")
-`;
-
-// ★ 내 대본 → 프롬프트 생성 버튼 ★
-const generateFromMyScriptBtn = document.getElementById('generateFromMyScriptBtn');
-if (generateFromMyScriptBtn) {
-    generateFromMyScriptBtn.addEventListener('click', async () => {
-        const myScript = document.getElementById('myScriptInput').value.trim();
-        const resultDiv = document.getElementById('result');
-        const safetyBox = document.getElementById('safetyReportBox');
-        const bridge = document.getElementById('bridgeSection');
-
-        if (!myScript) return alert("대본을 입력해주세요!");
-
-        const apiKey = getGeminiAPIKey();
-        if (!apiKey) return alert("API 키가 없습니다.");
-
-        generateFromMyScriptBtn.disabled = true;
-        generateFromMyScriptBtn.innerText = "⏳ 처리 중... (안전 검사 + 프롬프트 생성)";
-        resultDiv.innerText = "⏳ 내 대본을 분석하고 이미지 프롬프트를 생성 중입니다...";
-        safetyBox.style.display = 'none';
-        bridge.style.display = 'none';
-
-        const fullPrompt = PROMPT_MY_SCRIPT_CONVERTER + `\n\n[사용자 제공 대본]\n${myScript}`;
-
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
-            });
-            const data = await response.json();
-
-            if (!response.ok) throw new Error(data.error?.message || "통신 오류");
-            if (!data.candidates || !data.candidates[0].content) throw new Error("AI 응답이 비어있습니다");
-
-            const fullText = data.candidates[0].content.parts[0].text;
-
-            // 파싱
-            const splitLog = fullText.split('[SAFETY_LOG]');
-            let mainContent = splitLog[0];
-            let safetyLog = splitLog.length > 1 ? splitLog[1].trim() : "정보 없음";
-
-            // [SCRIPT] 제거
-            if (mainContent.includes('[SCRIPT]')) {
-                mainContent = mainContent.split('[SCRIPT]')[1];
-            }
-
-            resultDiv.innerText = mainContent.trim();
-            bridge.style.display = 'block';
-
-            // 대본 수정 요청 섹션 표시
-            document.getElementById('editRequestSection').style.display = 'block';
-
-            safetyBox.style.display = 'block';
-            if (safetyLog.includes("이상 없음") || safetyLog.includes("없음")) {
-                safetyBox.className = "safe-green";
-                safetyBox.innerText = "✅ 유튜브 안전성 검사 통과";
-            } else {
-                safetyBox.className = "safe-warning";
-                safetyBox.innerHTML = "⚠️ <b>순화된 단어:</b><br>" + safetyLog.replace(/\n/g, '<br>');
-            }
-
-        } catch (error) {
-            resultDiv.innerText = "❌ 오류 발생: " + error.message;
-            console.error(error);
-        } finally {
-            generateFromMyScriptBtn.disabled = false;
-            generateFromMyScriptBtn.innerText = "✨ 안전 대본 + 이미지 프롬프트 생성";
-        }
-    });
-}
-
-
-// 감성 버튼 (탭 버튼과 구분하기 위해 #toneGroup 내부로 한정)
+// 감성 버튼
 let selectedTone = "따뜻한";
 const toneButtons = document.querySelectorAll('#toneGroup .tone-btn');
 toneButtons.forEach(btn => {
@@ -267,7 +357,9 @@ saveKeyBtn.addEventListener('click', () => {
     checkKeyStatus();
 });
 
-// 3. 대본 생성 로직
+// ============================================================
+// 3. 새 대본 생성 로직
+// ============================================================
 const generateBtn = document.getElementById('generateBtn');
 generateBtn.addEventListener('click', async () => {
     const mode = document.getElementById('modeSelect').value;
@@ -325,15 +417,13 @@ generateBtn.addEventListener('click', async () => {
 
         if (mainContent.includes('[YOUTUBE_PACKAGE]')) {
             const ytParts = mainContent.split('[YOUTUBE_PACKAGE]');
-            mainContent = ytParts[0]; // 대본만 표시
+            mainContent = ytParts[0];
 
             let ytContent = ytParts[1].split('[IMAGE_PROMPTS]')[0].trim();
 
-            // 제목 추출
             const titleLines = ytContent.match(/제목\d?:\s*.+/g) || [];
             titlesBox.innerHTML = titleLines.map((t, i) => `<div>${i + 1}. ${t.replace(/제목\d?:\s*/, '')}</div>`).join('');
 
-            // 태그 추출
             const tagMatch = ytContent.match(/태그:\s*(.+)/);
             if (tagMatch) {
                 tagsBox.innerText = tagMatch[1].trim();
@@ -345,7 +435,6 @@ generateBtn.addEventListener('click', async () => {
         resultDiv.innerText = mainContent.trim();
         bridge.style.display = 'block';
 
-        // ★ 대본 수정 요청 섹션 표시
         document.getElementById('editRequestSection').style.display = 'block';
 
         safetyBox.style.display = 'block';
@@ -364,7 +453,193 @@ generateBtn.addEventListener('click', async () => {
 });
 
 // ============================================================
-// 3-1. ★ 대본 수정 요청 기능 (신규) ★
+// 4. 등장인물 페르소나 분석 (1단계)
+// ============================================================
+const analyzePersonaBtn = document.getElementById('analyzePersonaBtn');
+const personaSection = document.getElementById('personaSection');
+const personaInput = document.getElementById('personaInput');
+
+if (analyzePersonaBtn) {
+    analyzePersonaBtn.addEventListener('click', async () => {
+        const script = document.getElementById('myScriptInput').value.trim();
+
+        if (!script) {
+            return alert("대본을 먼저 입력해주세요!");
+        }
+
+        const apiKey = getGeminiAPIKey();
+        if (!apiKey) {
+            return alert("API 키가 없습니다. 위에서 API 키를 입력하고 저장하세요.");
+        }
+
+        analyzePersonaBtn.disabled = true;
+        analyzePersonaBtn.innerText = "⏳ 등장인물 분석 중...";
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: PERSONA_ANALYZER + script }] }] })
+            });
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error?.message || "통신 오류");
+            if (!data.candidates || !data.candidates[0].content) throw new Error("AI 응답이 비어있습니다");
+
+            const persona = data.candidates[0].content.parts[0].text.trim();
+
+            characterPersona = persona;
+            personaInput.value = persona;
+            personaSection.style.display = 'block';
+            saveToStorage(STORAGE_KEYS.PERSONA, persona);
+
+            personaSection.scrollIntoView({ behavior: 'smooth' });
+
+            alert("✅ 등장인물 페르소나 분석 완료!\n\n이제 '2단계: 프롬프트 생성' 버튼을 눌러주세요.\n필요시 페르소나를 직접 수정할 수 있습니다.");
+
+        } catch (error) {
+            alert("❌ 오류 발생: " + error.message);
+            console.error(error);
+        } finally {
+            analyzePersonaBtn.disabled = false;
+            analyzePersonaBtn.innerText = "👤 1단계: 등장인물 분석";
+        }
+    });
+}
+
+// 페르소나 복사 버튼
+const copyPersonaBtn = document.getElementById('copyPersonaBtn');
+if (copyPersonaBtn) {
+    copyPersonaBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(personaInput.value).then(() => {
+            copyPersonaBtn.innerText = '✅ 복사됨!';
+            setTimeout(() => copyPersonaBtn.innerText = '📋 복사', 1500);
+        });
+    });
+}
+
+// 페르소나 입력 시 자동 저장
+if (personaInput) {
+    personaInput.addEventListener('input', () => {
+        characterPersona = personaInput.value;
+        saveToStorage(STORAGE_KEYS.PERSONA, characterPersona);
+    });
+}
+
+// ============================================================
+// 5. 안전 대본 + 이미지 프롬프트 생성 (2단계)
+// ============================================================
+const generateFromMyScriptBtn = document.getElementById('generateFromMyScriptBtn');
+if (generateFromMyScriptBtn) {
+    generateFromMyScriptBtn.addEventListener('click', async () => {
+        const myScript = document.getElementById('myScriptInput').value.trim();
+        const resultDiv = document.getElementById('result');
+        const safetyBox = document.getElementById('safetyReportBox');
+        const bridge = document.getElementById('bridgeSection');
+        const currentPersona = personaInput ? personaInput.value.trim() : '';
+
+        if (!myScript) return alert("대본을 입력해주세요!");
+
+        const apiKey = getGeminiAPIKey();
+        if (!apiKey) return alert("API 키가 없습니다.");
+
+        generateFromMyScriptBtn.disabled = true;
+        generateFromMyScriptBtn.innerText = "⏳ 처리 중... (안전 검사 + 프롬프트 생성)";
+        resultDiv.innerText = "⏳ 내 대본을 분석하고 이미지 프롬프트를 생성 중입니다...";
+        safetyBox.style.display = 'none';
+        bridge.style.display = 'none';
+
+        // 페르소나가 있으면 포함
+        const personaInstruction = currentPersona ? `
+★★★ [중요] 등장인물 페르소나 (모든 이미지 프롬프트의 기준) ★★★
+아래 페르소나를 모든 이미지 프롬프트에서 그대로 사용하세요:
+"${currentPersona}"
+모든 프롬프트는 이 외모 묘사로 시작해야 합니다!
+` : '';
+
+        const fullPrompt = PROMPT_CONVERTER.replace('{IMAGE_STYLE}', getFullStyle()) + personaInstruction + `
+
+[사용자 제공 대본]
+${myScript}
+`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+            });
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error?.message || "통신 오류");
+            if (!data.candidates || !data.candidates[0].content) throw new Error("AI 응답이 비어있습니다");
+
+            const fullText = data.candidates[0].content.parts[0].text;
+
+            // 파싱
+            let safeScript = "";
+            let imagePrompts = "";
+            let safetyLog = "정보 없음";
+
+            // [SAFE_SCRIPT] 파싱
+            if (fullText.includes('[SAFE_SCRIPT]')) {
+                const parts = fullText.split('[SAFE_SCRIPT]');
+                let afterSafe = parts[1] || "";
+
+                if (afterSafe.includes('[IMAGE_PROMPTS]')) {
+                    safeScript = afterSafe.split('[IMAGE_PROMPTS]')[0].trim();
+                } else {
+                    safeScript = afterSafe.split('[SAFETY_LOG]')[0].trim();
+                }
+            }
+
+            // [IMAGE_PROMPTS] 파싱
+            if (fullText.includes('[IMAGE_PROMPTS]')) {
+                const parts = fullText.split('[IMAGE_PROMPTS]');
+                let afterPrompts = parts[1] || "";
+                imagePrompts = afterPrompts.split('[SAFETY_LOG]')[0].trim();
+            }
+
+            // [SAFETY_LOG] 파싱
+            if (fullText.includes('[SAFETY_LOG]')) {
+                const parts = fullText.split('[SAFETY_LOG]');
+                safetyLog = (parts[1] || "").trim();
+            }
+
+            // 결과 표시 (프롬프트 섹션 포함)
+            resultDiv.innerText = safeScript + "\n\n[IMAGE_PROMPTS]\n" + imagePrompts;
+            bridge.style.display = 'block';
+
+            document.getElementById('editRequestSection').style.display = 'block';
+
+            // 안전성 리포트
+            safetyBox.style.display = 'block';
+            if (safetyLog.includes("이상 없음") || safetyLog.includes("없음") || !safetyLog) {
+                safetyBox.className = "safe-green";
+                safetyBox.innerText = "✅ 유튜브 안전성 검사 통과 - 순화 필요 없음";
+            } else {
+                safetyBox.className = "safe-warning";
+                safetyBox.innerHTML = "⚠️ <b>순화된 단어:</b><br>" + safetyLog.replace(/\n/g, '<br>');
+            }
+
+            // 이미지 프롬프트 저장
+            generatedPrompts = imagePrompts.split('\n').filter(line => line.trim().length > 5);
+            saveToStorage(STORAGE_KEYS.IMAGE_PROMPTS, generatedPrompts);
+            saveToStorage(STORAGE_KEYS.SAFE_SCRIPT, safeScript || myScript);
+            saveToStorage(STORAGE_KEYS.SAFETY_LOG, safetyLog);
+
+        } catch (error) {
+            resultDiv.innerText = "❌ 오류 발생: " + error.message;
+            console.error(error);
+        } finally {
+            generateFromMyScriptBtn.disabled = false;
+            generateFromMyScriptBtn.innerText = "✨ 2단계: 프롬프트 생성";
+        }
+    });
+}
+
+// ============================================================
+// 6. 대본 수정 요청 기능
 // ============================================================
 const editScriptBtn = document.getElementById('editScriptBtn');
 if (editScriptBtn) {
@@ -381,7 +656,6 @@ if (editScriptBtn) {
         const apiKey = getGeminiAPIKey();
         if (!apiKey) return alert("API 키가 없습니다.");
 
-        // 원래 버튼 텍스트 저장 및 로딩 상태 표시
         const originalBtnText = editScriptBtn.innerText;
         editScriptBtn.innerText = "⏳ 수정 중...";
         editScriptBtn.disabled = true;
@@ -401,7 +675,7 @@ ${editRequest}
 2. 수정 요청된 부분만 수정하고, 나머지 대본은 그대로 유지하세요.
 3. 대본의 전체 흐름과 톤을 유지하면서 자연스럽게 수정하세요.
 4. 수정된 전체 대본만 출력하세요. (설명이나 부연 없이)
-5. [IMAGE_PROMPTS]나 [YOUTUBE_PACKAGE], [SAFETY_LOG] 섹션은 포함하지 마세요. 순수 대본만 출력하세요.
+5. [IMAGE_PROMPTS]나 [YOUTUBE_PACKAGE], [SAFETY_LOG] 섹션은 포함하지 마세요.
 `;
 
         try {
@@ -418,7 +692,6 @@ ${editRequest}
             const editedScript = data.candidates[0].content.parts[0].text;
             resultDiv.innerText = editedScript.trim();
 
-            // 수정 완료 후 입력창 초기화
             document.getElementById('editRequestInput').value = '';
 
             alert("✅ 대본이 수정되었습니다!");
@@ -434,7 +707,11 @@ ${editRequest}
     });
 }
 
-// 3-2. 태그 복사 버튼
+// ============================================================
+// 7. 기타 버튼들
+// ============================================================
+
+// 태그 복사 버튼
 const copyTagsBtn = document.getElementById('copyTagsBtn');
 if (copyTagsBtn) {
     copyTagsBtn.addEventListener('click', () => {
@@ -447,18 +724,16 @@ if (copyTagsBtn) {
         }
     });
 }
-// 3-2. 순수 대본 다운로드 (IMAGE_PROMPTS, SAFETY_LOG 제외)
+
+// 순수 대본 다운로드
 const downloadScriptBtn = document.getElementById('downloadScriptBtn');
 if (downloadScriptBtn) {
     downloadScriptBtn.addEventListener('click', () => {
         const fullText = document.getElementById('result').innerText;
 
-        // IMAGE_PROMPTS 이전 부분만 추출
         let pureScript = fullText.split('[IMAGE_PROMPTS]')[0].trim();
-        // SAFETY_LOG도 제거 (혹시 있으면)
         pureScript = pureScript.split('[SAFETY_LOG]')[0].trim();
 
-        // 파일 다운로드
         const blob = new Blob([pureScript], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
         const date = new Date().toLocaleDateString('ko-KR').replace(/\./g, '-').replace(/ /g, '');
@@ -469,7 +744,8 @@ if (downloadScriptBtn) {
         alert("✅ 순수 대본이 다운로드되었습니다!");
     });
 }
-// 4. 프롬프트 리스트 생성
+
+// 프롬프트 리스트 생성
 const sendToImageBtn = document.getElementById('sendToImageBtn');
 sendToImageBtn.addEventListener('click', () => {
     const fullText = document.getElementById('result').innerText;
@@ -483,40 +759,51 @@ sendToImageBtn.addEventListener('click', () => {
         let promptOnly = parts[1].split('[SAFETY_LOG]')[0].trim();
         imageInput.value = promptOnly;
         promptsArray = promptOnly.split('\n').filter(line => line.trim().length > 5);
+        generatedPrompts = promptsArray;
+        saveToStorage(STORAGE_KEYS.IMAGE_PROMPTS, generatedPrompts);
     } else {
         alert("프롬프트를 찾을 수 없습니다.");
         return;
     }
 
+    renderPromptList(promptsArray);
+
+    alert(`✅ 총 ${promptsArray.length}개의 장면이 추출되었습니다.\n목록에서 [복사] 버튼을 눌러 ImageFX에 사용하세요.`);
+    document.getElementById('imageSection').scrollIntoView({ behavior: 'smooth' });
+});
+
+// 프롬프트 목록 렌더링 함수
+function renderPromptList(promptsArray) {
+    const promptList = document.getElementById('promptList');
     promptList.innerHTML = "";
 
     promptsArray.forEach((text, index) => {
-        // 영어 프롬프트 (괄호 안의 한글 제거)
         const englishPrompt = text.replace(/^\d+\.\s*/, '').replace(/\s*\([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*\)\s*/g, '').trim();
-        // 한글 설명 추출 (괄호 안)
         const koreanMatch = text.match(/\(([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*)\)/);
         const koreanDesc = koreanMatch ? koreanMatch[1] : null;
 
         const row = document.createElement('div');
-        row.style.cssText = 'display:flex; gap:10px; align-items:center; padding:8px; margin-bottom:5px; background:rgba(0,0,0,0.3); border-radius:8px;';
+        row.className = 'prompt-row';
 
         const numBadge = document.createElement('span');
         numBadge.innerText = index === 0 ? '🎬1' : (index + 1);
-        numBadge.style.cssText = index === 0 ? 'background:linear-gradient(to right,#f12711,#f5af19); padding:5px 10px; border-radius:5px; font-weight:bold; color:white;' : 'background:#444; padding:5px 10px; border-radius:5px; color:#aaa;';
+        numBadge.className = index === 0 ? 'prompt-num first' : 'prompt-num';
 
         const textSpan = document.createElement('span');
-        textSpan.style.cssText = 'flex:1; color:#ccc; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
-        // 한글이 있으면 한글 표시, 없으면 영어 일부 표시
+        textSpan.className = 'prompt-text';
         textSpan.innerText = koreanDesc || englishPrompt.substring(0, 40) + '...';
 
         const copyBtn = document.createElement('button');
         copyBtn.innerText = '📋 복사';
-        copyBtn.style.cssText = 'background:#4da3ff; border:none; border-radius:5px; padding:5px 12px; color:white; cursor:pointer; font-size:12px;';
+        copyBtn.className = 'prompt-copy-btn';
 
         copyBtn.addEventListener('click', () => {
+            let finalPrompt = englishPrompt;
+            if (!englishPrompt.toLowerCase().includes('korean')) {
+                finalPrompt = 'Korean person, ' + englishPrompt;
+            }
             const antiCollage = ", single image only, one scene, centered composition, no collage, no grid, no split screen";
-            // 영어 프롬프트만 복사
-            navigator.clipboard.writeText(englishPrompt + antiCollage).then(() => {
+            navigator.clipboard.writeText(finalPrompt + antiCollage).then(() => {
                 copyBtn.innerText = '✅ 완료';
                 setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
             });
@@ -529,12 +816,9 @@ sendToImageBtn.addEventListener('click', () => {
     });
 
     promptList.style.display = 'block';
+}
 
-    alert(`✅ 총 ${promptsArray.length}개의 장면이 추출되었습니다.\n목록에서 [복사] 버튼을 눌러 ImageFX에 사용하세요.`);
-    document.getElementById('imageSection').scrollIntoView({ behavior: 'smooth' });
-});
-
-// 5. ImageFX 열기
+// ImageFX 열기
 const openImageFxBtn = document.getElementById('openImageFxBtn');
 if (openImageFxBtn) {
     openImageFxBtn.addEventListener('click', () => {
@@ -542,70 +826,270 @@ if (openImageFxBtn) {
     });
 }
 
-// 6. 무료 이미지 생성 (기존 유지)
+// ============================================================
+// 8. 이미지 생성 (Gemini Imagen 3)
+// ============================================================
 let currentIndex = 0;
 let globalParagraphs = [];
+let generatedImages = [];
 const startImageBtn = document.getElementById('startImageBtn');
 const nextImageBtn = document.getElementById('nextImageBtn');
+const downloadAllSection = document.getElementById('downloadAllSection');
+const downloadAllBtn = document.getElementById('downloadAllBtn');
 
-startImageBtn.addEventListener('click', () => {
+// Gemini Imagen API로 이미지 생성
+async function generateImageWithGemini(prompt, apiKey) {
+    // 방법 1: Gemini 2.0 Flash 이미지 생성 시도
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: "Generate an image: " + prompt }]
+                }],
+                generationConfig: {
+                    responseModalities: ["IMAGE", "TEXT"]
+                }
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.candidates && data.candidates[0]?.content?.parts) {
+                for (const part of data.candidates[0].content.parts) {
+                    if (part.inlineData) {
+                        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                    }
+                }
+            }
+        }
+        console.log("Gemini 이미지 생성 실패, Pollinations로 전환");
+    } catch (e) {
+        console.log("Gemini 에러:", e.message);
+    }
+
+    // 방법 2: Imagen 3 시도
+    const imagenModels = ['imagen-3.0-generate-001', 'imagen-3.0-fast-generate-001'];
+    for (const model of imagenModels) {
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    instances: [{ prompt: prompt }],
+                    parameters: {
+                        sampleCount: 1,
+                        aspectRatio: selectedRatio,
+                        personGeneration: "ALLOW_ADULT"
+                    }
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.predictions && data.predictions[0]?.bytesBase64Encoded) {
+                    return `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                }
+            }
+        } catch (e) {
+            console.log(`${model} 에러:`, e.message);
+        }
+    }
+
+    // 방법 3: Pollinations AI (무료 백업)
+    console.log("Pollinations AI로 이미지 생성 시도...");
+    const encodedPrompt = encodeURIComponent(prompt);
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true`;
+
+    // 이미지 로드 확인
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(pollinationsUrl);
+        img.onerror = () => reject(new Error("모든 이미지 생성 방법 실패"));
+        img.src = pollinationsUrl;
+    });
+}
+
+startImageBtn.addEventListener('click', async () => {
     const script = document.getElementById('imageScriptInput').value;
-    if (!script.trim()) return alert("대본이 없습니다.");
+    if (!script.trim()) {
+        // 저장된 프롬프트가 있으면 사용
+        if (generatedPrompts.length > 0) {
+            globalParagraphs = generatedPrompts;
+        } else {
+            return alert("프롬프트가 없습니다. 먼저 '삽화 프롬프트 추출하기' 버튼을 눌러주세요.");
+        }
+    } else {
+        globalParagraphs = script.split('\n').filter(l => l.trim().length > 5);
+    }
 
-    globalParagraphs = script.split('\n').filter(l => l.trim().length > 5);
     if (globalParagraphs.length === 0) return alert("내용이 부족합니다.");
 
+    const apiKey = getGeminiAPIKey();
+    if (!apiKey) return alert("API 키가 없습니다. 위에서 API 키를 입력하고 저장하세요.");
+
     currentIndex = 0;
+    generatedImages = [];
     document.getElementById('imageGallery').innerHTML = '';
+    downloadAllSection.style.display = 'none';
     nextImageBtn.style.display = 'inline-block';
-    generateNextBatch();
+    startImageBtn.disabled = true;
+    startImageBtn.innerText = "⏳ 생성 중...";
+
+    await generateNextBatch();
+
+    startImageBtn.disabled = false;
+    startImageBtn.innerText = "⚡ Gemini로 이미지 생성";
 });
 
-nextImageBtn.addEventListener('click', generateNextBatch);
+nextImageBtn.addEventListener('click', async () => {
+    nextImageBtn.disabled = true;
+    await generateNextBatch();
+    nextImageBtn.disabled = false;
+});
 
-function generateNextBatch() {
-    const style = document.getElementById('imageStyle').value;
+async function generateNextBatch() {
     const gallery = document.getElementById('imageGallery');
     const progress = document.getElementById('progressText');
-    const BATCH_SIZE = 10;
+    const BATCH_SIZE = 3;
+    const apiKey = getGeminiAPIKey();
 
     if (currentIndex >= globalParagraphs.length) {
         nextImageBtn.style.display = 'none';
-        progress.innerText = "✅ 완료";
+        progress.innerText = "✅ 모든 이미지 생성 완료!";
+        if (generatedImages.length > 0) {
+            downloadAllSection.style.display = 'block';
+        }
         return;
     }
+
     const endIndex = Math.min(currentIndex + BATCH_SIZE, globalParagraphs.length);
     const batch = globalParagraphs.slice(currentIndex, endIndex);
-    progress.innerText = `생성 중... (${currentIndex + 1}~${endIndex})`;
+    progress.innerText = `생성 중... (${currentIndex + 1}~${endIndex}/${globalParagraphs.length})`;
 
-    batch.forEach(text => {
-        const cleanText = text.replace(/^\d+\.\s*/, '').replace(/- /g, '');
+    for (const text of batch) {
+        let cleanText = text.replace(/^\d+\.\s*/, '').replace(/\s*\([^)]*[ㄱ-ㅎㅏ-ㅣ가-힣]+[^)]*\)\s*/g, '').trim();
+        if (!cleanText.toLowerCase().includes('korean')) {
+            cleanText = 'Korean person, ' + cleanText;
+        }
+        const fullPrompt = cleanText + ", " + getFullStyleWithComposition() + ", single scene, no collage";
+
         const div = document.createElement('div');
-        div.style.background = '#222'; div.style.padding = '10px'; div.style.borderRadius = '8px';
+        div.style.background = '#222';
+        div.style.padding = '10px';
+        div.style.borderRadius = '8px';
+
         const p = document.createElement('p');
         p.innerText = "🎨 " + cleanText.substring(0, 50) + "...";
-        p.style.color = "#aaa"; p.style.fontSize = "12px"; p.style.marginBottom = "5px";
-        const img = document.createElement('img');
-        const seed = Math.floor(Math.random() * 99999);
-        const prompt = encodeURIComponent(cleanText + ", " + style);
+        p.style.color = "#aaa";
+        p.style.fontSize = "12px";
+        p.style.marginBottom = "5px";
 
-        img.src = `https://image.pollinations.ai/prompt/${prompt}?width=1024&height=576&seed=${seed}&nologo=true&negative_prompt=collage, grid, split screen, multiple images`;
-        img.style.width = '100%'; img.style.borderRadius = '5px'; img.loading = 'lazy';
+        const loadingDiv = document.createElement('div');
+        loadingDiv.innerText = "⏳ 이미지 생성 중...";
+        loadingDiv.style.color = "#888";
+        loadingDiv.style.textAlign = "center";
+        loadingDiv.style.padding = "50px 0";
 
-        const a = document.createElement('a');
-        a.href = img.src; a.innerText = "💾 저장"; a.target = "_blank"; a.style.display = "block"; a.style.textAlign = "center"; a.style.marginTop = "5px"; a.style.color = "#4da3ff";
-        div.appendChild(p); div.appendChild(img); div.appendChild(a);
+        div.appendChild(p);
+        div.appendChild(loadingDiv);
         gallery.appendChild(div);
-    });
+
+        try {
+            const imageUrl = await generateImageWithGemini(fullPrompt, apiKey);
+
+            loadingDiv.remove();
+
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.style.width = '100%';
+            img.style.borderRadius = '5px';
+            img.style.aspectRatio = selectedRatio.replace(':', '/');
+            img.style.objectFit = 'cover';
+
+            const downloadBtn = document.createElement('button');
+            downloadBtn.innerText = "💾 저장";
+            downloadBtn.style.display = "block";
+            downloadBtn.style.width = "100%";
+            downloadBtn.style.marginTop = "8px";
+            downloadBtn.style.padding = "8px";
+            downloadBtn.style.background = "linear-gradient(135deg, #4da3ff, #6c5ce7)";
+            downloadBtn.style.border = "none";
+            downloadBtn.style.borderRadius = "5px";
+            downloadBtn.style.color = "white";
+            downloadBtn.style.cursor = "pointer";
+
+            downloadBtn.addEventListener('click', () => {
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = `gemini_image_${Date.now()}.png`;
+                link.click();
+            });
+
+            div.appendChild(img);
+            div.appendChild(downloadBtn);
+
+            generatedImages.push({
+                url: imageUrl,
+                name: `gemini_image_${generatedImages.length + 1}.png`
+            });
+
+        } catch (error) {
+            loadingDiv.innerText = "❌ 생성 실패: " + error.message;
+            loadingDiv.style.color = "#ff5252";
+            console.error("이미지 생성 오류:", error);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
     currentIndex = endIndex;
-    if (currentIndex >= globalParagraphs.length) nextImageBtn.style.display = 'none';
+    progress.innerText = `완료: ${currentIndex}/${globalParagraphs.length}`;
+
+    if (currentIndex >= globalParagraphs.length) {
+        nextImageBtn.style.display = 'none';
+        progress.innerText = "✅ 모든 이미지 생성 완료!";
+        if (generatedImages.length > 0) {
+            downloadAllSection.style.display = 'block';
+        }
+    }
 }
 
-// 7. 초기화 버튼 기능 (전체 초기화)
+// 일괄 다운로드 기능
+if (downloadAllBtn) {
+    downloadAllBtn.addEventListener('click', async () => {
+        if (generatedImages.length === 0) {
+            return alert("다운로드할 이미지가 없습니다.");
+        }
+
+        downloadAllBtn.disabled = true;
+        downloadAllBtn.innerText = "📥 다운로드 중...";
+
+        for (let i = 0; i < generatedImages.length; i++) {
+            const img = generatedImages[i];
+            const link = document.createElement('a');
+            link.href = img.url;
+            link.download = `image_${i + 1}.png`;
+            link.click();
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        downloadAllBtn.disabled = false;
+        downloadAllBtn.innerText = "📥 전체 이미지 일괄 다운로드";
+        alert(`✅ ${generatedImages.length}개의 이미지가 다운로드되었습니다!`);
+    });
+}
+
+// ============================================================
+// 9. 초기화 버튼
+// ============================================================
 const resetBtn = document.getElementById('resetBtn');
 if (resetBtn) {
     resetBtn.addEventListener('click', () => {
-        if (!confirm("전체 화면을 초기화할까요?\n(대본, 제목/태그, 이미지 모두 삭제됩니다)")) return;
+        if (!confirm("전체 화면을 초기화할까요?\n(대본, 이미지, 저장된 설정 모두 삭제됩니다)")) return;
 
         // 대본 영역 초기화
         document.getElementById('result').innerText = '여기에 대본이 나옵니다...';
@@ -618,17 +1102,63 @@ if (resetBtn) {
         document.getElementById('editRequestSection').style.display = 'none';
         document.getElementById('editRequestInput').value = '';
 
+        // 내 대본 섹션 초기화
+        document.getElementById('myScriptInput').value = '';
+        personaSection.style.display = 'none';
+        personaInput.value = '';
+
         // 이미지 영역 초기화
         document.getElementById('imageGallery').innerHTML = '';
         document.getElementById('imageScriptInput').value = '';
         document.getElementById('progressText').innerText = '';
         document.getElementById('promptList').innerHTML = '';
         document.getElementById('promptList').style.display = 'none';
+        downloadAllSection.style.display = 'none';
         nextImageBtn.style.display = 'none';
 
+        // 변수 초기화
         currentIndex = 0;
         globalParagraphs = [];
+        generatedPrompts = [];
+        generatedImages = [];
+        characterPersona = '';
+
+        // localStorage 초기화
+        clearAllStorage();
 
         alert("✅ 전체 초기화 완료!");
     });
 }
+
+// ============================================================
+// 10. 저장된 데이터 복원 (페이지 로드 시)
+// ============================================================
+function restoreSavedData() {
+    const savedScript = loadFromStorage(STORAGE_KEYS.SCRIPT_INPUT);
+    if (savedScript) {
+        const myScriptInput = document.getElementById('myScriptInput');
+        if (myScriptInput) myScriptInput.value = savedScript;
+    }
+
+    const savedPersona = loadFromStorage(STORAGE_KEYS.PERSONA);
+    if (savedPersona && personaInput) {
+        characterPersona = savedPersona;
+        personaInput.value = savedPersona;
+        personaSection.style.display = 'block';
+    }
+}
+
+// 대본 입력 시 자동 저장
+const myScriptInput = document.getElementById('myScriptInput');
+if (myScriptInput) {
+    let saveTimeout;
+    myScriptInput.addEventListener('input', () => {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            saveToStorage(STORAGE_KEYS.SCRIPT_INPUT, myScriptInput.value);
+        }, 500);
+    });
+}
+
+// 초기화
+restoreSavedData();

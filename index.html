@@ -17,7 +17,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -33,6 +33,12 @@
             background: linear-gradient(to right, #a18cd1, #fbc2eb);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            color: #a18cd1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
         }
 
         label {
@@ -56,14 +62,23 @@
             box-sizing: border-box;
         }
 
-        .tone-group {
+        textarea {
+            line-height: 1.8;
+            resize: vertical;
+        }
+
+        /* 탭/톤/스타일 버튼 공통 */
+        .tone-group,
+        .style-group {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
 
-        .tone-btn {
+        .tone-btn,
+        .style-btn {
             flex: 1;
+            min-width: 100px;
             padding: 10px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -71,14 +86,29 @@
             color: #ccc;
             cursor: pointer;
             text-align: center;
+            transition: all 0.2s;
+        }
+
+        .tone-btn:hover,
+        .style-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .tone-btn.active {
             background: linear-gradient(to right, #6a11cb, #2575fc);
             color: white;
             font-weight: bold;
+            border-color: transparent;
         }
 
+        .style-btn.active {
+            background: linear-gradient(to right, #f7971e, #ffd200);
+            color: #222;
+            font-weight: bold;
+            border-color: transparent;
+        }
+
+        /* 메인 버튼들 */
         #generateBtn {
             width: 100%;
             padding: 16px;
@@ -90,6 +120,17 @@
             font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #generateBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(142, 45, 226, 0.4);
+        }
+
+        #generateBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .api-box {
@@ -124,7 +165,7 @@
             min-height: 100px;
         }
 
-        /* ★ 안전성 리포트 박스 스타일 (신규) ★ */
+        /* 안전성 리포트 박스 */
         #safetyReportBox {
             margin-top: 20px;
             padding: 15px;
@@ -145,53 +186,157 @@
             color: #ffca28;
         }
 
-        /* 이미지 생성기 스타일 */
-        h2 {
-            color: #a18cd1;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
-        }
-
-        #sendToImageBtn {
-            margin-top: 20px;
-            padding: 12px 30px;
-            background: linear-gradient(to right, #ff512f, #dd2476);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
+        /* 이미지 버튼 그룹 */
         .image-btn-group {
             display: flex;
             gap: 10px;
             margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .image-btn-group button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .image-btn-group button:hover {
+            opacity: 0.9;
         }
 
         #startImageBtn {
-            flex: 1;
-            padding: 12px 20px;
             background: #007bff;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
         }
 
         #openImageFxBtn {
-            flex: 1;
-            padding: 12px 20px;
             background: linear-gradient(to right, #34a853, #4285f4);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
             font-weight: bold;
         }
 
-        #openImageFxBtn:hover {
-            opacity: 0.9;
+        /* 프롬프트 리스트 */
+        #promptList {
+            margin-top: 15px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .prompt-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .prompt-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .prompt-num {
+            background: #444;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #aaa;
+            font-size: 0.9rem;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .prompt-num.first {
+            background: linear-gradient(to right, #f7971e, #ffd200);
+            color: #222;
+            font-weight: bold;
+        }
+
+        .prompt-text {
+            flex: 1;
+            color: #ccc;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .prompt-copy-btn {
+            background: #4da3ff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* 다운로드 버튼 */
+        #downloadAllBtn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 10px;
+            padding: 14px 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #downloadAllBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        #downloadAllBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 이미지 갤러리 */
+        #imageGallery {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        /* 복사 버튼 */
+        .copy-btn {
+            background: #4da3ff;
+            border: none;
+            border-radius: 5px;
+            padding: 6px 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .copy-btn:hover {
+            background: #3d8ee0;
+        }
+
+        /* 결과 박스 */
+        .result-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-title {
+            color: #ffd200;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
     </style>
 </head>
@@ -199,15 +344,12 @@
 <body>
 
     <div class="container" id="scriptSection">
-        <h1>Youtube Script Remixer</h1>
-        <p style="text-align: center; margin-bottom: 20px; color: #aaa; font-size: 0.9rem;">
-            💡 대본은 이미 있고 이미지 프롬프트만 필요하세요?
-            <a href="prompt-extractor.html" style="color: #fbc2eb; text-decoration: none; font-weight: bold;">→ 대본 →
-                프롬프트 변환기</a>
-        </p>
+        <h1>🎬 Youtube Script Remixer</h1>
+
         <div class="api-box">
-            <span>🔑</span> <input type="password" id="apiKeyInput" placeholder="API Key 입력"> <button
-                id="saveKeyBtn">저장</button>
+            <span>🔑</span>
+            <input type="password" id="apiKeyInput" placeholder="API Key 입력">
+            <button id="saveKeyBtn">저장</button>
         </div>
         <div id="keyStatusText" style="text-align: right; color: #aaa; font-size: 0.8rem; margin-bottom: 20px;"></div>
 
@@ -217,15 +359,111 @@
             <button id="tabMyScript" class="tone-btn" style="flex: 1; padding: 12px;">📝 내 대본 → 프롬프트</button>
         </div>
 
-        <!-- ★ 내 대본 입력 섹션 (기본 숨김) ★ -->
-        <div id="myScriptSection"
-            style="display: none; margin-bottom: 25px; padding: 20px; background: rgba(247, 151, 30, 0.1); border: 1px solid rgba(247, 151, 30, 0.3); border-radius: 12px;">
-            <label style="color: #ffd200;">📄 내 대본 붙여넣기</label>
-            <textarea id="myScriptInput" rows="10" placeholder="여기에 직접 작성한 대본을 붙여넣으세요..."></textarea>
-            <button id="generateFromMyScriptBtn"
-                style="width: 100%; margin-top: 15px; padding: 16px; background: linear-gradient(to right, #f7971e, #ffd200); color: #222; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer;">
-                ✨ 안전 대본 + 이미지 프롬프트 생성
-            </button>
+        <!-- ★ 내 대본 입력 섹션 (업그레이드됨!) ★ -->
+        <div id="myScriptSection" style="display: none; margin-bottom: 25px;">
+            <div
+                style="padding: 20px; background: rgba(247, 151, 30, 0.1); border: 1px solid rgba(247, 151, 30, 0.3); border-radius: 12px;">
+                <label style="color: #ffd200;">📄 내 대본 붙여넣기</label>
+                <textarea id="myScriptInput" rows="10" placeholder="여기에 직접 작성한 대본을 붙여넣으세요..."></textarea>
+
+                <!-- 등장인물 페르소나 섹션 -->
+                <div id="personaSection" style="display: none; margin-top: 20px;">
+                    <div class="result-box" style="border: 2px solid #f7971e;">
+                        <div class="result-title">
+                            <span>👤 등장인물 페르소나 (이미지 일관성 기준)</span>
+                            <button class="copy-btn" id="copyPersonaBtn">📋 복사</button>
+                        </div>
+                        <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 10px;">
+                            ⚠️ 아래 페르소나가 모든 이미지 프롬프트에 자동 적용됩니다. 필요시 수정하세요.
+                        </p>
+                        <textarea id="personaInput" rows="4" style="font-size: 0.9rem;"
+                            placeholder="예: Korean elderly woman, 65 years old, gray permed short hair, warm brown eyes, round face, gentle smile, cream knit cardigan"></textarea>
+                    </div>
+                </div>
+
+                <!-- 스타일 선택 그룹 -->
+                <label style="margin-top: 20px;">🎨 1. 인물 스타일</label>
+                <div class="style-group" id="characterStyleGroup">
+                    <button class="style-btn active"
+                        data-value="Photorealistic, hyper-realistic, 8k, cinematic lighting, detailed skin texture">📷
+                        실사 극대화</button>
+                    <button class="style-btn"
+                        data-value="anime style, Japanese animation, vibrant colors, expressive eyes">🎌 애니메이션</button>
+                    <button class="style-btn" data-value="anthropomorphic animal, cute animal character, furry style">🐻
+                        동물</button>
+                    <button class="style-btn"
+                        data-value="Korean webtoon style, manhwa, clean lines, digital art, soft shading">📱 웹툰</button>
+                </div>
+
+                <label style="margin-top: 15px;">🌈 2. 배경/분위기 스타일</label>
+                <div class="style-group" id="moodStyleGroup">
+                    <button class="style-btn"
+                        data-value="emotional, melancholic, warm golden hour lighting, nostalgic atmosphere">💕
+                        감성멜로</button>
+                    <button class="style-btn"
+                        data-value="vintage photography, sepia tone, film grain, retro aesthetic">📜 빈티지</button>
+                    <button class="style-btn" data-value="minimal, clean background, simple composition, soft colors">⬜
+                        미니멀</button>
+                    <button class="style-btn" data-value="modern, sleek, contemporary design, urban setting">🏙️
+                        모던</button>
+                    <button class="style-btn" data-value="1980s aesthetic, neon lights, synthwave, retro futurism">📼
+                        1980년대</button>
+                    <button class="style-btn active"
+                        data-value="2000s aesthetic, Y2K style, digital era, early internet vibes">💿 2000년대</button>
+                    <button class="style-btn"
+                        data-value="eerie, creepy atmosphere, dark shadows, unsettling, horror elements">👻 괴이함</button>
+                    <button class="style-btn"
+                        data-value="kawaii, adorable, pastel colors, soft lighting, cute aesthetic">🌸 귀여움</button>
+                    <button class="style-btn"
+                        data-value="Joseon dynasty Korea, traditional hanbok, historical Korean setting, palace">🏯
+                        조선시대</button>
+                    <button class="style-btn"
+                        data-value="creative, artistic, surreal, imaginative, unique visual style">🎭 창의적인</button>
+                </div>
+
+                <label style="margin-top: 15px;">📐 3. 사진 구도</label>
+                <div class="style-group" id="compositionGroup">
+                    <button class="style-btn active"
+                        data-value="natural angle, balanced composition, comfortable framing">📸
+                        기본</button>
+                    <button class="style-btn" data-value="medium shot, waist up, natural framing">👤
+                        미디엄샷</button>
+                    <button class="style-btn" data-value="close-up shot, face focus, emotional expression">😊
+                        클로즈업</button>
+                    <button class="style-btn" data-value="extreme close-up, eyes and face detail">👁️ 익스트림</button>
+                    <button class="style-btn" data-value="full body shot, entire figure visible">🧍 전신샷</button>
+                    <button class="style-btn" data-value="wide shot, establishing shot, environment focus">🏞️
+                        와이드샷</button>
+                    <button class="style-btn" data-value="over the shoulder shot, perspective view">🔄 어깨너머</button>
+                    <button class="style-btn" data-value="bird's eye view, top-down perspective">🦅 조감도</button>
+                    <button class="style-btn" data-value="low angle shot, looking up, dramatic perspective">⬆️
+                        로우앵글</button>
+                    <button class="style-btn" data-value="dutch angle, tilted frame, dynamic composition">↗️
+                        더치앵글</button>
+                </div>
+
+                <label style="margin-top: 15px;">📏 4. 이미지 비율</label>
+                <div class="style-group" id="ratioGroup">
+                    <button class="style-btn active" data-value="16:9" data-ratio="16:9">📺 16:9 (유튜브)</button>
+                    <button class="style-btn" data-value="9:16" data-ratio="9:16">📱 9:16 (쇼츠)</button>
+                    <button class="style-btn" data-value="1:1" data-ratio="1:1">⬜ 1:1 (정사각형)</button>
+                    <button class="style-btn" data-value="4:3" data-ratio="4:3">🖼️ 4:3 (클래식)</button>
+                    <button class="style-btn" data-value="3:4" data-ratio="3:4">📷 3:4 (인물)</button>
+                    <button class="style-btn" data-value="21:9" data-ratio="21:9">🎬 21:9 (시네마)</button>
+                </div>
+
+                <!-- 2단계 버튼 -->
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button id="analyzePersonaBtn"
+                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-size: 1rem; font-weight: bold; cursor: pointer;">
+                        👤 1단계: 등장인물 분석
+                    </button>
+                    <button id="generateFromMyScriptBtn"
+                        style="flex: 1; padding: 14px; background: linear-gradient(to right, #f7971e, #ffd200); border: none; border-radius: 12px; color: #222; font-size: 1rem; font-weight: bold; cursor: pointer;">
+                        ✨ 2단계: 프롬프트 생성
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- ★ 새 대본 생성 섹션 ★ -->
@@ -262,7 +500,6 @@
 
             <button id="generateBtn">🚀 안전 대본 생성</button>
         </div>
-        <!-- newScriptSection 닫기 -->
 
         <div id="result">여기에 대본이 나옵니다...</div>
 
@@ -285,16 +522,17 @@
             <button id="downloadScriptBtn"
                 style="background: linear-gradient(to right, #667eea, #764ba2); border: none; border-radius: 8px; padding: 12px 25px; color: white; cursor: pointer; margin: 5px;">📥
                 순수 대본 다운로드</button>
-            <button id="sendToImageBtn">🎨 삽화 프롬프트 추출하기</button>
+            <button id="sendToImageBtn"
+                style="margin-top: 20px; padding: 12px 30px; background: linear-gradient(to right, #ff512f, #dd2476); border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 1rem;">🎨
+                삽화 프롬프트 추출하기</button>
         </div>
 
-        <!-- ★ 대본 수정 요청 섹션 ★ -->
+        <!-- 대본 수정 요청 섹션 -->
         <div id="editRequestSection"
             style="margin-top: 30px; padding: 20px; background: rgba(255, 165, 0, 0.1); border: 1px solid rgba(255, 165, 0, 0.3); border-radius: 12px; display: none;">
             <p style="color: #ffc107; font-weight: bold; margin-bottom: 15px;">✏️ 대본 수정 요청</p>
-            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">수정하고 싶은 부분을 알려주세요. 예: "첫 번째 문장을 더 임팩트
-                있게
-                바꿔줘", "할머니 대신 할아버지로 바꿔줘"</p>
+            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">수정하고 싶은 부분을 알려주세요. 예: "첫 번째 문장을 더 임팩트 있게
+                바꿔줘"</p>
             <textarea id="editRequestInput" rows="3" placeholder="예: '인생은 짧다'라는 문장을 '우리의 시간은 소중하다'로 바꿔줘"></textarea>
             <button id="editScriptBtn"
                 style="width: 100%; margin-top: 15px; padding: 14px; background: linear-gradient(to right, #f7971e, #ffd200); color: #222; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer;">✨
@@ -305,34 +543,30 @@
     <div class="container" id="imageSection">
         <h2>🖼️ AI 아트 디렉터 (삽화 생성)</h2>
         <p style="font-size: 0.9rem; color: #aaa;">아래에 추출된 '영어 프롬프트'를 사용해서 그림을 그립니다.</p>
-        <textarea id="imageScriptInput" rows="4" placeholder="위 버튼을 누르면 영어 프롬프트가 복사됩니다."></textarea>
+        <textarea id="imageScriptInput" rows="4" placeholder="프롬프트가 자동으로 여기 표시됩니다."></textarea>
 
-        <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-            <select id="imageStyle" style="flex: 1;">
-                <option value="cinematic photo, soft warm lighting, 35mm film, nostalgic">📷 영화 같은 실사</option>
-                <option value="watercolor painting, storybook style, soft colors">🖌️ 수채화</option>
-                <option value="oil painting, warm tones, textured brushstrokes">🎨 유화</option>
-                <option value="vintage photography, sepia tone, grainy">📜 빈티지</option>
-            </select>
-        </div>
-
-        <!-- 프롬프트 목록 (개별 복사 버튼) -->
-        <div id="promptList" style="margin-top: 15px; max-height: 300px; overflow-y: auto; display: none;"></div>
+        <!-- 프롬프트 목록 -->
+        <div id="promptList" style="display: none;"></div>
 
         <div class="image-btn-group">
-            <button id="startImageBtn">⚡ 여기서 바로 생성 (무료/빠름)</button>
+            <button id="startImageBtn">⚡ Gemini로 이미지 생성</button>
             <button id="openImageFxBtn">💎 구글 ImageFX로 생성 (고화질)</button>
         </div>
 
         <div style="text-align: center; margin-top: 15px;">
             <span id="progressText" style="color: #fbc2eb; font-weight: bold;"></span>
             <button id="nextImageBtn"
-                style="display: none; background: #28a745; width: auto; padding: 8px 15px; border: none; border-radius: 5px; color: white;">⬇️
+                style="display: none; background: #28a745; width: auto; padding: 8px 15px; border: none; border-radius: 5px; color: white; cursor: pointer;">⬇️
                 더 만들기</button>
         </div>
-        <div id="imageGallery"
-            style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+
+        <div id="imageGallery"></div>
+
+        <!-- 일괄 다운로드 섹션 -->
+        <div id="downloadAllSection" style="display: none; text-align: center; margin-top: 20px;">
+            <button id="downloadAllBtn">📥 전체 이미지 일괄 다운로드</button>
         </div>
+
         <div style="text-align: right; margin-top: 20px;">
             <button id="resetBtn"
                 style="background: #dc3545; border: none; border-radius: 8px; padding: 10px 20px; color: white; cursor: pointer;">🔄
