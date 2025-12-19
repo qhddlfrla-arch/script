@@ -104,9 +104,135 @@ const COMMON_RULES = `
 // 2. 기능 구현
 // ============================================================
 
-// 감성 버튼
+// ★ 탭 전환 기능 ★
+const tabNewScript = document.getElementById('tabNewScript');
+const tabMyScript = document.getElementById('tabMyScript');
+const newScriptSection = document.getElementById('newScriptSection');
+const myScriptSection = document.getElementById('myScriptSection');
+
+if (tabNewScript && tabMyScript) {
+    tabNewScript.addEventListener('click', () => {
+        tabNewScript.classList.add('active');
+        tabMyScript.classList.remove('active');
+        newScriptSection.style.display = 'block';
+        myScriptSection.style.display = 'none';
+    });
+
+    tabMyScript.addEventListener('click', () => {
+        tabMyScript.classList.add('active');
+        tabNewScript.classList.remove('active');
+        myScriptSection.style.display = 'block';
+        newScriptSection.style.display = 'none';
+    });
+}
+
+// ★ 내 대본 → 안전 대본 + 이미지 프롬프트 변환 프롬프트 ★
+const PROMPT_MY_SCRIPT_CONVERTER = `
+당신은 '20년 경력의 시니어 오디오북 편집 전문가이자 AI 아트 디렉터'입니다.
+사용자가 제공하는 대본을 아래 작업에 따라 처리하세요.
+
+★★★ 중요: 반드시 한국어(한글)로 응답하세요! ★★★
+
+[작업 1: 안전 대본 변환]
+1. 사용자가 제공한 대본을 그대로 유지하되, 유튜브 수익화에 위험할 수 있는 단어만 순화하세요.
+2. 순화 대상: '자살' → '극단적 선택', '죽다/죽음' → '떠나다', '살인' → '범죄', '학대' → '상처' 등
+3. 대본의 전체 흐름, 문체, 톤, 분량은 절대 변경하지 마세요. 오직 위험 단어만 교체.
+4. 순화할 단어가 없으면 원본 대본을 그대로 출력.
+
+[작업 2: 이미지 프롬프트 생성]
+1. 대본을 읽고, 주요 장면마다 어울리는 이미지 프롬프트를 영어로 작성.
+2. 프롬프트 개수: 5~20개 (장면 전환, 감정 변화 기준)
+3. **모든 인물은 반드시 "Korean"으로 명시.**
+4. 스타일: Photorealistic, cinematic lighting, 8k, emotional
+5. ★ **일관성 유지**: 첫 프롬프트에서 주인공 외모 상세 정의 후, 이후 "same person" 반복.
+6. 형식: 번호 + 영어 프롬프트 + 괄호로 한글 설명
+   예: 1. Korean elderly woman... (거실에서 차를 마시는 할머니)
+
+[출력 형식]
+[SCRIPT]
+(순화된 대본 또는 원본)
+
+[IMAGE_PROMPTS]
+(이미지 프롬프트 목록)
+
+[SAFETY_LOG]
+(순화한 단어 기록 또는 "이상 없음")
+`;
+
+// ★ 내 대본 → 프롬프트 생성 버튼 ★
+const generateFromMyScriptBtn = document.getElementById('generateFromMyScriptBtn');
+if (generateFromMyScriptBtn) {
+    generateFromMyScriptBtn.addEventListener('click', async () => {
+        const myScript = document.getElementById('myScriptInput').value.trim();
+        const resultDiv = document.getElementById('result');
+        const safetyBox = document.getElementById('safetyReportBox');
+        const bridge = document.getElementById('bridgeSection');
+
+        if (!myScript) return alert("대본을 입력해주세요!");
+
+        const apiKey = getGeminiAPIKey();
+        if (!apiKey) return alert("API 키가 없습니다.");
+
+        generateFromMyScriptBtn.disabled = true;
+        generateFromMyScriptBtn.innerText = "⏳ 처리 중... (안전 검사 + 프롬프트 생성)";
+        resultDiv.innerText = "⏳ 내 대본을 분석하고 이미지 프롬프트를 생성 중입니다...";
+        safetyBox.style.display = 'none';
+        bridge.style.display = 'none';
+
+        const fullPrompt = PROMPT_MY_SCRIPT_CONVERTER + `\n\n[사용자 제공 대본]\n${myScript}`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+            });
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error?.message || "통신 오류");
+            if (!data.candidates || !data.candidates[0].content) throw new Error("AI 응답이 비어있습니다");
+
+            const fullText = data.candidates[0].content.parts[0].text;
+
+            // 파싱
+            const splitLog = fullText.split('[SAFETY_LOG]');
+            let mainContent = splitLog[0];
+            let safetyLog = splitLog.length > 1 ? splitLog[1].trim() : "정보 없음";
+
+            // [SCRIPT] 제거
+            if (mainContent.includes('[SCRIPT]')) {
+                mainContent = mainContent.split('[SCRIPT]')[1];
+            }
+
+            resultDiv.innerText = mainContent.trim();
+            bridge.style.display = 'block';
+
+            // 대본 수정 요청 섹션 표시
+            document.getElementById('editRequestSection').style.display = 'block';
+
+            safetyBox.style.display = 'block';
+            if (safetyLog.includes("이상 없음") || safetyLog.includes("없음")) {
+                safetyBox.className = "safe-green";
+                safetyBox.innerText = "✅ 유튜브 안전성 검사 통과";
+            } else {
+                safetyBox.className = "safe-warning";
+                safetyBox.innerHTML = "⚠️ <b>순화된 단어:</b><br>" + safetyLog.replace(/\n/g, '<br>');
+            }
+
+        } catch (error) {
+            resultDiv.innerText = "❌ 오류 발생: " + error.message;
+            console.error(error);
+        } finally {
+            generateFromMyScriptBtn.disabled = false;
+            generateFromMyScriptBtn.innerText = "✨ 안전 대본 + 이미지 프롬프트 생성";
+        }
+    });
+}
+
+
+// 감성 버튼 (탭 버튼과 구분하기 위해 #toneGroup 내부로 한정)
 let selectedTone = "따뜻한";
-const toneButtons = document.querySelectorAll('.tone-btn');
+const toneButtons = document.querySelectorAll('#toneGroup .tone-btn');
 toneButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         toneButtons.forEach(b => b.classList.remove('active'));

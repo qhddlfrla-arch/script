@@ -211,37 +211,58 @@
         </div>
         <div id="keyStatusText" style="text-align: right; color: #aaa; font-size: 0.8rem; margin-bottom: 20px;"></div>
 
-        <label>✍️ 작가 모드</label>
-        <select id="modeSelect">
-            <option value="essay">📝 감성 에세이 (인생 이야기)</option>
-            <option value="tutor">💻 디지털 튜터 (IT 강의)</option>
-        </select>
-
-        <label>📄 주제 또는 키워드</label>
-        <textarea id="topicInput" rows="3" placeholder="예: 노후의 친구 관계, 황혼 육아..."></textarea>
-
-        <label>📖 지난 이야기 (선택사항)</label>
-        <textarea id="prevStoryInput" rows="2" placeholder="이전 영상 내용이 있다면 적어주세요."></textarea>
-
-        <label>💫 감성(Tone)</label>
-        <div class="tone-group" id="toneGroup">
-            <button class="tone-btn active" data-value="따뜻한">🤗 따뜻한</button>
-            <button class="tone-btn" data-value="차분한">🧘 차분한</button>
-            <button class="tone-btn" data-value="희망적">🌅 희망적</button>
-            <button class="tone-btn" data-value="향수적">🍂 향수적</button>
-            <button class="tone-btn" data-value="지혜로운">📚 지혜로운</button>
+        <!-- ★ 입력 모드 탭 ★ -->
+        <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+            <button id="tabNewScript" class="tone-btn active" style="flex: 1; padding: 12px;">🆕 새 대본 생성</button>
+            <button id="tabMyScript" class="tone-btn" style="flex: 1; padding: 12px;">📝 내 대본 → 프롬프트</button>
         </div>
 
-        <label>⏱️ 영상 길이</label>
-        <select id="durationSelect">
-            <option value="8min">8분</option>
-            <option value="10min">10분</option>
-            <option value="15min" selected>15분 (추천)</option>
-            <option value="20min">20분</option>
-            <option value="30min">30분</option>
-        </select>
+        <!-- ★ 내 대본 입력 섹션 (기본 숨김) ★ -->
+        <div id="myScriptSection"
+            style="display: none; margin-bottom: 25px; padding: 20px; background: rgba(247, 151, 30, 0.1); border: 1px solid rgba(247, 151, 30, 0.3); border-radius: 12px;">
+            <label style="color: #ffd200;">📄 내 대본 붙여넣기</label>
+            <textarea id="myScriptInput" rows="10" placeholder="여기에 직접 작성한 대본을 붙여넣으세요..."></textarea>
+            <button id="generateFromMyScriptBtn"
+                style="width: 100%; margin-top: 15px; padding: 16px; background: linear-gradient(to right, #f7971e, #ffd200); color: #222; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer;">
+                ✨ 안전 대본 + 이미지 프롬프트 생성
+            </button>
+        </div>
 
-        <button id="generateBtn">🚀 안전 대본 생성</button>
+        <!-- ★ 새 대본 생성 섹션 ★ -->
+        <div id="newScriptSection">
+            <label>✍️ 작가 모드</label>
+            <select id="modeSelect">
+                <option value="essay">📝 감성 에세이 (인생 이야기)</option>
+                <option value="tutor">💻 디지털 튜터 (IT 강의)</option>
+            </select>
+
+            <label>📄 주제 또는 키워드</label>
+            <textarea id="topicInput" rows="3" placeholder="예: 노후의 친구 관계, 황혼 육아..."></textarea>
+
+            <label>📖 지난 이야기 (선택사항)</label>
+            <textarea id="prevStoryInput" rows="2" placeholder="이전 영상 내용이 있다면 적어주세요."></textarea>
+
+            <label>💫 감성(Tone)</label>
+            <div class="tone-group" id="toneGroup">
+                <button class="tone-btn active" data-value="따뜻한">🤗 따뜻한</button>
+                <button class="tone-btn" data-value="차분한">🧘 차분한</button>
+                <button class="tone-btn" data-value="희망적">🌅 희망적</button>
+                <button class="tone-btn" data-value="향수적">🍂 향수적</button>
+                <button class="tone-btn" data-value="지혜로운">📚 지혜로운</button>
+            </div>
+
+            <label>⏱️ 영상 길이</label>
+            <select id="durationSelect">
+                <option value="8min">8분</option>
+                <option value="10min">10분</option>
+                <option value="15min" selected>15분 (추천)</option>
+                <option value="20min">20분</option>
+                <option value="30min">30분</option>
+            </select>
+
+            <button id="generateBtn">🚀 안전 대본 생성</button>
+        </div>
+        <!-- newScriptSection 닫기 -->
 
         <div id="result">여기에 대본이 나옵니다...</div>
 
@@ -271,7 +292,8 @@
         <div id="editRequestSection"
             style="margin-top: 30px; padding: 20px; background: rgba(255, 165, 0, 0.1); border: 1px solid rgba(255, 165, 0, 0.3); border-radius: 12px; display: none;">
             <p style="color: #ffc107; font-weight: bold; margin-bottom: 15px;">✏️ 대본 수정 요청</p>
-            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">수정하고 싶은 부분을 알려주세요. 예: "첫 번째 문장을 더 임팩트 있게
+            <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 15px;">수정하고 싶은 부분을 알려주세요. 예: "첫 번째 문장을 더 임팩트
+                있게
                 바꿔줘", "할머니 대신 할아버지로 바꿔줘"</p>
             <textarea id="editRequestInput" rows="3" placeholder="예: '인생은 짧다'라는 문장을 '우리의 시간은 소중하다'로 바꿔줘"></textarea>
             <button id="editScriptBtn"
