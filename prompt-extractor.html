@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대본 → 이미지 프롬프트 변환기</title>
+    <style>
+        body {
+            background-color: #0f0c29;
+            background: linear-gradient(to right, #1a1a2e, #16213e, #0f0c29);
+            color: #fff;
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .nav-link {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .nav-link a {
+            color: #a18cd1;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .nav-link a:hover {
+            text-decoration: underline;
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #d1d1d1;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            line-height: 1.8;
+            resize: vertical;
+        }
+
+        .api-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #f7971e;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #saveKeyBtn {
+            width: auto;
+            padding: 10px 20px;
+            background: #28a745;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+
+        #generateBtn {
+            width: 100%;
+            padding: 16px;
+            margin-top: 30px;
+            background: linear-gradient(to right, #f7971e, #ffd200);
+            color: #222;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #generateBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(247, 151, 30, 0.4);
+        }
+
+        #generateBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .style-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .style-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #ccc;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .style-btn.active {
+            background: linear-gradient(to right, #f7971e, #ffd200);
+            color: #222;
+            font-weight: bold;
+            border-color: transparent;
+        }
+
+        /* 결과 영역 */
+        #resultSection {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .result-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-title {
+            color: #ffd200;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: #4da3ff;
+            border: none;
+            border-radius: 5px;
+            padding: 6px 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .copy-btn:hover {
+            background: #3d8ee0;
+        }
+
+        #safeScriptResult {
+            white-space: pre-wrap;
+            line-height: 1.8;
+            color: #eee;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        #safetyReportBox {
+            padding: 15px;
+            border-radius: 12px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .safe-green {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #81c784;
+        }
+
+        .safe-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            color: #ffca28;
+        }
+
+        /* 프롬프트 리스트 */
+        #promptList {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .prompt-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .prompt-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .prompt-num {
+            background: #444;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #aaa;
+            font-size: 0.9rem;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .prompt-num.first {
+            background: linear-gradient(to right, #f7971e, #ffd200);
+            color: #222;
+            font-weight: bold;
+        }
+
+        .prompt-text {
+            flex: 1;
+            color: #ccc;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .prompt-copy-btn {
+            background: #4da3ff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* 이미지 생성 섹션 */
+        .image-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .image-btn-group button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        #startImageBtn {
+            background: #007bff;
+        }
+
+        #openImageFxBtn {
+            background: linear-gradient(to right, #34a853, #4285f4);
+            font-weight: bold;
+        }
+
+        #imageGallery {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        #progressText {
+            color: #ffd200;
+            font-weight: bold;
+        }
+
+        #nextImageBtn {
+            display: none;
+            background: #28a745;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        #resetBtn {
+            background: #dc3545;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>📝 대본 → 이미지 프롬프트</h1>
+        <p class="subtitle">내가 쓴 대본을 붙여넣으면, 안전 대본 + 이미지 프롬프트만 생성합니다.</p>
+
+        <div class="nav-link">
+            <a href="index.html">← 대본 생성기로 돌아가기</a>
+        </div>
+
+        <div class="api-box">
+            <span>🔑</span>
+            <input type="password" id="apiKeyInput" placeholder="Gemini API Key 입력">
+            <button id="saveKeyBtn">저장</button>
+        </div>
+        <div id="keyStatusText" style="text-align: right; color: #aaa; font-size: 0.8rem; margin-bottom: 20px;"></div>
+
+        <label>📄 내 대본 붙여넣기</label>
+        <textarea id="scriptInput" rows="12" placeholder="여기에 직접 작성한 대본을 붙여넣으세요..."></textarea>
+
+        <label>🎨 이미지 스타일</label>
+        <div class="style-group" id="styleGroup">
+            <button class="style-btn active" data-value="Photorealistic, cinematic lighting, 8k, emotional">📷 영화 같은
+                실사</button>
+            <button class="style-btn" data-value="watercolor painting, storybook style, soft colors">🖌️ 수채화</button>
+            <button class="style-btn" data-value="oil painting, warm tones, textured brushstrokes">🎨 유화</button>
+            <button class="style-btn" data-value="vintage photography, sepia tone, grainy">📜 빈티지</button>
+        </div>
+
+        <button id="generateBtn">✨ 안전 대본 + 이미지 프롬프트 생성</button>
+
+        <!-- 결과 영역 -->
+        <div id="resultSection">
+            <div class="result-box">
+                <div class="result-title">
+                    <span>✅ 안전 대본</span>
+                    <button class="copy-btn" id="copySafeScriptBtn">📋 대본 복사</button>
+                </div>
+                <div id="safeScriptResult"></div>
+            </div>
+
+            <div id="safetyReportBox"></div>
+
+            <div class="result-box">
+                <div class="result-title">
+                    <span>🖼️ 이미지 프롬프트 (클릭하여 복사)</span>
+                    <button class="copy-btn" id="copyAllPromptsBtn">📋 전체 복사</button>
+                </div>
+                <div id="promptList"></div>
+            </div>
+
+            <div class="image-btn-group">
+                <button id="startImageBtn">⚡ 여기서 바로 생성 (무료/빠름)</button>
+                <button id="openImageFxBtn">💎 구글 ImageFX로 생성 (고화질)</button>
+            </div>
+
+            <div style="text-align: center; margin-top: 15px;">
+                <span id="progressText"></span>
+                <button id="nextImageBtn">⬇️ 더 만들기</button>
+            </div>
+
+            <div id="imageGallery"></div>
+
+            <div style="text-align: right;">
+                <button id="resetBtn">🔄 초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="scripts/prompt-extractor.js"></script>
+</body>
+
+</html>
