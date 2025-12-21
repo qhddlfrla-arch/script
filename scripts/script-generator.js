@@ -108,7 +108,12 @@ const COMMON_RULES = `
 ★★★ 중요: 대본을 모두 작성한 후, 맨 마지막에 '[IMAGE_PROMPTS]' 섹션을 한 번만 작성하세요. ★★★
 1. 대본 전체를 먼저 완성하세요.
 2. 대본이 끝나면 '[IMAGE_PROMPTS]' 제목을 쓰고, 그 아래에 모든 이미지 프롬프트를 정리해서 작성하세요.
-3. 대본의 흐름에 맞게 적절한 개수의 프롬프트를 작성하세요.
+3. ★★★ 이미지 개수 (필수): 대본의 각 문단(단락)마다 최소 1개씩 이미지 프롬프트를 작성하세요. ★★★
+   - 8분 영상: 최소 15~20개
+   - 10분 영상: 최소 20~25개
+   - 15분 영상: 최소 25~35개
+   - 20분 영상: 최소 35~45개
+   - 30분 영상: 최소 50개 이상
 4. **중요: 모든 인물은 반드시 "Korean"으로 명시하세요.**
 5. 스타일: 
    - 에세이: Photorealistic, cinematic lighting, 8k, emotional.
@@ -163,8 +168,8 @@ const PROMPT_CONVERTER = `
 5. 순화한 단어는 반드시 [SAFETY_LOG]에 기록하세요.
 
 [작업 2: 이미지 프롬프트 생성] - ★★★ 한국인 일관성 필수 ★★★
-1. 대본을 읽고, 주요 장면마다 어울리는 이미지 프롬프트를 영어로 작성하세요.
-2. 프롬프트 개수: 대본 길이에 따라 5~20개 (장면 전환, 감정 변화 기준)
+1. 대본을 읽고, 각 문단(단락)마다 최소 1개의 이미지 프롬프트를 영어로 작성하세요.
+2. ★★★ 프롬프트 개수: 대본의 문단 수만큼 작성하세요 (최소 15~30개 이상) ★★★
 3. ★★★ **[필수] 모든 인물은 반드시 "Korean"으로 시작하세요!** ★★★
    - 올바른 예: "Korean elderly woman", "Korean middle-aged man"
 4. 스타일: {IMAGE_STYLE}
@@ -212,6 +217,79 @@ const PERSONA_ANALYZER = `
 한 문장으로 쉼표로 구분하여 출력하세요. 다른 설명 없이 페르소나만 출력하세요.
 
 [사용자 대본]
+`;
+
+// ============================================================
+// 블로그 글쓰기 전용 프롬프트 (더유니크한)
+// ============================================================
+
+const PROMPT_BLOG = `
+당신은 네이버 블로그 SEO 전문가이자 10년 경력의 블로거입니다.
+사용자가 제공하는 키워드로 블로그 글을 작성하세요.
+
+★★★ 절대 금지 사항 ★★★
+1. 특수문자 사용 금지: #, *, _, \`, ~, ^, [ ], ( ) 등 일체 사용 금지
+2. HTML 태그 사용 금지 (예: <b>, <strong>, <em> 등)
+3. 마크다운 문법 사용 금지 (예: **굵게**, *기울임*, \`코드\` 등)
+4. 강조나 목록 표시를 위한 특수문자 일체 사용 금지
+5. 순수한 한글 텍스트만 사용할 것, 이모지 사용 금지
+6. "소제목1", "본문1", "결론", "태그" 같은 구조 레이블 절대 사용 금지
+
+★★★ 글 구조 ★★★
+아래 형식으로 자연스럽게 작성하되, 레이블 없이 바로 내용만 작성하세요:
+
+첫 번째 주제의 제목
+첫 번째 주제에 대한 본문 내용
+
+두 번째 주제의 제목
+두 번째 주제에 대한 본문 내용
+
+세 번째 주제의 제목
+세 번째 주제에 대한 본문 내용
+
+마무리 요약 내용 (2~3줄)
+오늘 정보가 도움 되셨다면 공감과 댓글 부탁드려요! 더유니크한이었습니다.
+
+#태그1 #태그2 #태그3 ...
+
+[BLOG_IMAGES]
+(여기에 이미지 프롬프트 작성)
+
+★★★ 문체 ★★★
+친근한 해요체 사용 (~해요)
+
+★★★ 본문 작성 조건 (4가지 모두 충족) ★★★
+1. 구글 SEO에 최적화된 글 (키워드 자연스럽게 포함)
+2. 남에게 공유하고 싶은 유용한 정보가 담긴 글
+3. 작성자 본인이 직접 겪은 듯한 생생한 경험과 후기가 담긴 자연스러운 글
+4. 검색자가 더이상 검색하지 않아도 될 정도로 상세한 정보를 포함한 글
+
+★★★ 마무리 규칙 ★★★
+1. 본문 전체 내용을 2~3줄로 요약
+2. 글의 맨 마지막 문장은 무조건 아래 멘트로 끝낼 것:
+   "오늘 정보가 도움 되셨다면 공감과 댓글 부탁드려요! 더유니크한이었습니다."
+
+★★★ 태그 규칙 ★★★
+1. 본문 내용과 관련된 해시태그 10개를 한 줄에 작성
+2. 형식: #키워드1 #키워드2 #키워드3 ...
+3. 아래 3개 태그는 무조건 포함할 것:
+   #더유니크한 #더유니크한푸드 #천연벌꿀
+
+★★★ 블로그 이미지 프롬프트 (필수) ★★★
+블로그 본문 끝에 반드시 [BLOG_IMAGES] 섹션을 추가하고, 블로그 내용에 어울리는 이미지 프롬프트 3~5개를 작성하세요.
+형식: 번호. 한글설명 | 영어프롬프트
+- 한글설명: 이미지가 무엇인지 간단히 설명
+- 영어프롬프트: AI 이미지 생성용 상세한 영어 프롬프트
+스타일: 음식/제품 사진은 밝고 깔끔한 테이블 위, 자연광, 고화질 푸드 포토그래피 스타일
+예시:
+1. 꿀이 흐르는 모습 | Golden organic honey dripping from wooden dipper into glass jar, warm natural lighting, clean white marble background, food photography, 8k
+2. 벌집과 야생화 | Fresh honeycomb on rustic wooden board with wildflowers, soft morning light, appetizing food styling, high quality
+
+[분량 가이드]
+{LENGTH_GUIDE}
+
+[키워드]
+{KEYWORD}
 `;
 
 // ============================================================
@@ -300,24 +378,44 @@ function initStyleButtons() {
 // ★ 탭 전환 기능 ★
 const tabNewScript = document.getElementById('tabNewScript');
 const tabMyScript = document.getElementById('tabMyScript');
+const tabBlogWrite = document.getElementById('tabBlogWrite');
 const newScriptSection = document.getElementById('newScriptSection');
 const myScriptSection = document.getElementById('myScriptSection');
+const blogWriteSection = document.getElementById('blogWriteSection');
 
-if (tabNewScript && tabMyScript) {
-    tabNewScript.addEventListener('click', () => {
-        tabNewScript.classList.add('active');
-        tabMyScript.classList.remove('active');
-        newScriptSection.style.display = 'block';
-        myScriptSection.style.display = 'none';
-    });
+function switchTab(activeTab) {
+    // 모든 탭 비활성화
+    tabNewScript?.classList.remove('active');
+    tabMyScript?.classList.remove('active');
+    tabBlogWrite?.classList.remove('active');
 
-    tabMyScript.addEventListener('click', () => {
-        tabMyScript.classList.add('active');
-        tabNewScript.classList.remove('active');
-        myScriptSection.style.display = 'block';
-        newScriptSection.style.display = 'none';
-        initStyleButtons(); // 탭 전환 시 스타일 버튼 초기화
-    });
+    // 모든 섹션 숨기기
+    if (newScriptSection) newScriptSection.style.display = 'none';
+    if (myScriptSection) myScriptSection.style.display = 'none';
+    if (blogWriteSection) blogWriteSection.style.display = 'none';
+
+    // 선택된 탭 활성화
+    if (activeTab === 'new') {
+        tabNewScript?.classList.add('active');
+        if (newScriptSection) newScriptSection.style.display = 'block';
+    } else if (activeTab === 'my') {
+        tabMyScript?.classList.add('active');
+        if (myScriptSection) myScriptSection.style.display = 'block';
+        initStyleButtons();
+    } else if (activeTab === 'blog') {
+        tabBlogWrite?.classList.add('active');
+        if (blogWriteSection) blogWriteSection.style.display = 'block';
+    }
+}
+
+if (tabNewScript) {
+    tabNewScript.addEventListener('click', () => switchTab('new'));
+}
+if (tabMyScript) {
+    tabMyScript.addEventListener('click', () => switchTab('my'));
+}
+if (tabBlogWrite) {
+    tabBlogWrite.addEventListener('click', () => switchTab('blog'));
 }
 
 // 감성 버튼
@@ -721,6 +819,22 @@ if (copyTagsBtn) {
                 copyTagsBtn.innerText = '✅ 복사 완료!';
                 setTimeout(() => copyTagsBtn.innerText = '📋 태그 복사', 1500);
             });
+        }
+    });
+}
+
+// 전체 복사 버튼 (블로그용)
+const copyBlogBtn = document.getElementById('copyBlogBtn');
+if (copyBlogBtn) {
+    copyBlogBtn.addEventListener('click', () => {
+        const resultText = document.getElementById('result').innerText;
+        if (resultText && resultText !== '여기에 대본이 나옵니다...') {
+            navigator.clipboard.writeText(resultText).then(() => {
+                copyBlogBtn.innerText = '✅ 복사 완료!';
+                setTimeout(() => copyBlogBtn.innerText = '📋 전체 복사', 1500);
+            });
+        } else {
+            alert("복사할 내용이 없습니다.");
         }
     });
 }
@@ -1186,6 +1300,247 @@ if (myScriptInput) {
         saveTimeout = setTimeout(() => {
             saveToStorage(STORAGE_KEYS.SCRIPT_INPUT, myScriptInput.value);
         }, 500);
+    });
+}
+
+// ============================================================
+// 11. 블로그 글 생성 기능
+// ============================================================
+let blogImagePrompts = []; // 블로그 이미지 프롬프트 저장
+
+const generateBlogBtn = document.getElementById('generateBlogBtn');
+if (generateBlogBtn) {
+    generateBlogBtn.addEventListener('click', async () => {
+        const keyword = document.getElementById('blogKeywordInput').value.trim();
+        const length = document.getElementById('blogLengthSelect').value;
+        const resultDiv = document.getElementById('result');
+        const blogImageSection = document.getElementById('blogImageSection');
+
+        if (!keyword) {
+            return alert("키워드를 입력해주세요!");
+        }
+
+        const apiKey = getGeminiAPIKey();
+        if (!apiKey) {
+            return alert("API 키가 없습니다. 위에서 API 키를 입력하고 저장하세요.");
+        }
+
+        // 분량 가이드 설정
+        let lengthGuide = "";
+        if (length === "short") {
+            lengthGuide = "짧게 작성 (1500자 내외). 핵심 정보만 간결하게.";
+        } else if (length === "medium") {
+            lengthGuide = "중간 분량 (2500자 내외). 적당한 깊이와 상세함.";
+        } else {
+            lengthGuide = "길게 작성 (4000자 내외). 매우 상세하고 풍부한 정보.";
+        }
+
+        generateBlogBtn.disabled = true;
+        generateBlogBtn.innerText = "⏳ 블로그 글 작성 중...";
+        resultDiv.innerText = "⏳ 블로그 글을 작성하고 있습니다. 잠시만 기다려주세요...";
+        if (blogImageSection) blogImageSection.style.display = 'none';
+
+        // 프롬프트 생성
+        const fullPrompt = PROMPT_BLOG
+            .replace('{LENGTH_GUIDE}', lengthGuide)
+            .replace('{KEYWORD}', keyword);
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+            });
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error?.message || "통신 오류");
+            if (!data.candidates || !data.candidates[0].content) throw new Error("AI 응답이 비어있습니다");
+
+            const fullText = data.candidates[0].content.parts[0].text;
+
+            // [BLOG_IMAGES] 섹션 파싱
+            let blogContent = fullText;
+            blogImagePrompts = [];
+
+            if (fullText.includes('[BLOG_IMAGES]')) {
+                const parts = fullText.split('[BLOG_IMAGES]');
+                blogContent = parts[0].trim();
+                const imageSection = parts[1] || "";
+
+                // 이미지 프롬프트 추출 (번호. 으로 시작하는 줄)
+                const lines = imageSection.split('\n');
+                for (const line of lines) {
+                    const match = line.match(/^\d+\.\s*(.+)/);
+                    if (match && match[1].trim().length > 10) {
+                        blogImagePrompts.push(match[1].trim());
+                    }
+                }
+            }
+
+            // 결과 표시 (이미지 프롬프트 제외)
+            resultDiv.innerText = blogContent;
+
+            // 복사 버튼 표시를 위해 브릿지 섹션 표시
+            const bridge = document.getElementById('bridgeSection');
+            if (bridge) {
+                bridge.style.display = 'block';
+            }
+
+            // 이미지 프롬프트가 있으면 표시
+            if (blogImagePrompts.length > 0 && blogImageSection) {
+                blogImageSection.style.display = 'block';
+                renderBlogPromptList(blogImagePrompts);
+            }
+
+            alert("✅ 블로그 글이 생성되었습니다!" + (blogImagePrompts.length > 0 ? `\n이미지 프롬프트 ${blogImagePrompts.length}개도 생성되었습니다.` : ""));
+
+        } catch (error) {
+            resultDiv.innerText = "❌ 오류 발생: " + error.message;
+            console.error(error);
+        } finally {
+            generateBlogBtn.disabled = false;
+            generateBlogBtn.innerText = "✍️ 블로그 글 생성하기";
+        }
+    });
+}
+
+// 블로그 이미지 프롬프트 목록 렌더링
+function renderBlogPromptList(prompts) {
+    const listDiv = document.getElementById('blogPromptList');
+    if (!listDiv) return;
+
+    listDiv.innerHTML = '';
+    prompts.forEach((prompt, index) => {
+        // 한글|영어 형식 파싱
+        let koreanDesc = prompt;
+        let englishPrompt = prompt;
+
+        if (prompt.includes('|')) {
+            const parts = prompt.split('|');
+            koreanDesc = parts[0].trim();
+            englishPrompt = parts[1].trim();
+        }
+
+        const row = document.createElement('div');
+        row.style.cssText = 'display: flex; gap: 10px; align-items: center; padding: 8px; margin-bottom: 5px; background: rgba(0,0,0,0.3); border-radius: 8px;';
+
+        const numBadge = document.createElement('span');
+        numBadge.innerText = index + 1;
+        numBadge.style.cssText = 'background: #6a11cb; padding: 4px 10px; border-radius: 5px; color: white; font-size: 12px;';
+
+        const textSpan = document.createElement('span');
+        textSpan.innerText = koreanDesc;
+        textSpan.style.cssText = 'flex: 1; color: #ccc; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.innerText = '📋 복사';
+        copyBtn.style.cssText = 'background: #4da3ff; border: none; border-radius: 5px; padding: 4px 12px; color: white; cursor: pointer; font-size: 12px;';
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(englishPrompt).then(() => {
+                copyBtn.innerText = '✅ 완료';
+                setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
+            });
+        });
+
+        row.appendChild(numBadge);
+        row.appendChild(textSpan);
+        row.appendChild(copyBtn);
+        listDiv.appendChild(row);
+
+        // 영어 프롬프트를 데이터 속성에 저장 (이미지 생성용)
+        row.dataset.englishPrompt = englishPrompt;
+    });
+}
+
+// 블로그 이미지 생성 버튼
+const generateBlogImagesBtn = document.getElementById('generateBlogImagesBtn');
+if (generateBlogImagesBtn) {
+    generateBlogImagesBtn.addEventListener('click', async () => {
+        if (blogImagePrompts.length === 0) {
+            return alert("이미지 프롬프트가 없습니다. 먼저 블로그 글을 생성하세요.");
+        }
+
+        const apiKey = getGeminiAPIKey();
+        if (!apiKey) return alert("API 키가 없습니다.");
+
+        const gallery = document.getElementById('blogImageGallery');
+        const progress = document.getElementById('blogImageProgress');
+        if (!gallery) return;
+
+        gallery.innerHTML = '';
+        generateBlogImagesBtn.disabled = true;
+        generateBlogImagesBtn.innerText = "⏳ 이미지 생성 중...";
+
+        for (let i = 0; i < blogImagePrompts.length; i++) {
+            let prompt = blogImagePrompts[i];
+
+            // 한글|영어 형식에서 영어 프롬프트만 추출
+            if (prompt.includes('|')) {
+                prompt = prompt.split('|')[1].trim();
+            }
+
+            progress.innerText = `생성 중... (${i + 1}/${blogImagePrompts.length})`;
+
+            const div = document.createElement('div');
+            div.style.cssText = 'background: #222; padding: 8px; border-radius: 8px;';
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.innerText = "⏳ 생성 중...";
+            loadingDiv.style.cssText = 'color: #888; text-align: center; padding: 40px 0; font-size: 12px;';
+            div.appendChild(loadingDiv);
+            gallery.appendChild(div);
+
+            try {
+                const imageUrl = await generateImageWithGemini(prompt + ", food photography, product photography, bright natural lighting, clean background, high quality, 8k", apiKey);
+
+                loadingDiv.remove();
+
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.style.cssText = 'width: 100%; border-radius: 5px; aspect-ratio: 1/1; object-fit: cover;';
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.innerText = "💾 저장";
+                downloadBtn.style.cssText = 'display: block; width: 100%; margin-top: 5px; padding: 6px; background: linear-gradient(135deg, #4da3ff, #6c5ce7); border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 11px;';
+                downloadBtn.addEventListener('click', () => {
+                    const link = document.createElement('a');
+                    link.href = imageUrl;
+                    link.download = `blog_image_${i + 1}.png`;
+                    link.click();
+                });
+
+                div.appendChild(img);
+                div.appendChild(downloadBtn);
+
+            } catch (error) {
+                loadingDiv.innerText = "❌ 실패";
+                loadingDiv.style.color = "#ff5252";
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+
+        progress.innerText = `✅ ${blogImagePrompts.length}개 이미지 생성 완료!`;
+        generateBlogImagesBtn.disabled = false;
+        generateBlogImagesBtn.innerText = "🎨 블로그 이미지 생성 (AI)";
+    });
+}
+
+// ImageFX로 블로그 이미지 생성
+const openImageFxBlogBtn = document.getElementById('openImageFxBlogBtn');
+if (openImageFxBlogBtn) {
+    openImageFxBlogBtn.addEventListener('click', () => {
+        window.open("https://aitestkitchen.withgoogle.com/tools/image-fx", "_blank");
+        if (blogImagePrompts.length > 0) {
+            let firstPrompt = blogImagePrompts[0];
+            // 한글|영어 형식에서 영어 프롬프트만 추출
+            if (firstPrompt.includes('|')) {
+                firstPrompt = firstPrompt.split('|')[1].trim();
+            }
+            navigator.clipboard.writeText(firstPrompt).then(() => {
+                alert("✅ 첫 번째 프롬프트가 클립보드에 복사되었습니다!\nImageFX에서 붙여넣기 하세요.");
+            });
+        }
     });
 }
 

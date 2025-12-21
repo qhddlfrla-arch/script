@@ -32,6 +32,7 @@
             margin-bottom: 10px;
             background: linear-gradient(to right, #a18cd1, #fbc2eb);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -357,6 +358,7 @@
         <div style="display: flex; gap: 10px; margin-bottom: 25px;">
             <button id="tabNewScript" class="tone-btn active" style="flex: 1; padding: 12px;">🆕 새 대본 생성</button>
             <button id="tabMyScript" class="tone-btn" style="flex: 1; padding: 12px;">📝 내 대본 → 프롬프트</button>
+            <button id="tabBlogWrite" class="tone-btn" style="flex: 1; padding: 12px;">✍️ 블로그 글쓰기</button>
         </div>
 
         <!-- ★ 내 대본 입력 섹션 (업그레이드됨!) ★ -->
@@ -501,6 +503,49 @@
             <button id="generateBtn">🚀 안전 대본 생성</button>
         </div>
 
+        <!-- ★ 블로그 글쓰기 섹션 ★ -->
+        <div id="blogWriteSection" style="display: none;">
+            <div
+                style="padding: 20px; background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); border-radius: 12px;">
+                <label style="color: #81c784;">🔑 블로그 키워드</label>
+                <input type="text" id="blogKeywordInput" placeholder="예: 천연벌꿀 효능, 프로폴리스 추천..."
+                    style="margin-bottom: 15px;">
+
+                <label style="margin-top: 15px;">📏 글 분량</label>
+                <select id="blogLengthSelect">
+                    <option value="short">짧게 (1500자 내외)</option>
+                    <option value="medium" selected>중간 (2500자 내외)</option>
+                    <option value="long">길게 (4000자 내외)</option>
+                </select>
+
+                <button id="generateBlogBtn"
+                    style="width: 100%; margin-top: 20px; padding: 16px; background: linear-gradient(to right, #28a745, #20c997); border: none; border-radius: 12px; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer;">
+                    ✍️ 블로그 글 생성하기
+                </button>
+            </div>
+
+            <!-- 블로그 이미지 프롬프트 섹션 -->
+            <div id="blogImageSection"
+                style="display: none; margin-top: 20px; padding: 20px; background: rgba(74, 0, 224, 0.1); border: 1px solid rgba(74, 0, 224, 0.3); border-radius: 12px;">
+                <p style="color: #b388ff; font-weight: bold; margin-bottom: 15px;">🖼️ 블로그 이미지 프롬프트</p>
+                <div id="blogPromptList" style="max-height: 200px; overflow-y: auto;"></div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button id="generateBlogImagesBtn"
+                        style="flex: 1; padding: 14px; background: linear-gradient(to right, #8e2de2, #4a00e0); border: none; border-radius: 10px; color: white; font-size: 1rem; font-weight: bold; cursor: pointer;">
+                        🎨 블로그 이미지 생성 (AI)
+                    </button>
+                    <button id="openImageFxBlogBtn"
+                        style="flex: 1; padding: 14px; background: linear-gradient(to right, #34a853, #4285f4); border: none; border-radius: 10px; color: white; font-size: 1rem; font-weight: bold; cursor: pointer;">
+                        💎 ImageFX로 생성
+                    </button>
+                </div>
+                <div id="blogImageGallery"
+                    style="margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                </div>
+                <div id="blogImageProgress" style="text-align: center; margin-top: 10px; color: #b388ff;"></div>
+            </div>
+        </div>
+
         <div id="result">여기에 대본이 나옵니다...</div>
 
         <div id="safetyReportBox"></div>
@@ -519,6 +564,9 @@
 
         <div id="bridgeSection" style="text-align: center; margin-top: 30px; display: none;">
             <p>👇 대본이 완성되었습니다!</p>
+            <button id="copyBlogBtn"
+                style="background: linear-gradient(to right, #28a745, #20c997); border: none; border-radius: 8px; padding: 12px 25px; color: white; cursor: pointer; margin: 5px;">📋
+                전체 복사</button>
             <button id="downloadScriptBtn"
                 style="background: linear-gradient(to right, #667eea, #764ba2); border: none; border-radius: 8px; padding: 12px 25px; color: white; cursor: pointer; margin: 5px;">📥
                 순수 대본 다운로드</button>
