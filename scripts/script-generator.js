@@ -1666,6 +1666,7 @@ function renderBlogPromptList(prompts) {
 }
 
 // 블로그 이미지 생성 버튼
+let generatedBlogImages = []; // 블로그 이미지 URL 저장 배열
 const generateBlogImagesBtn = document.getElementById('generateBlogImagesBtn');
 if (generateBlogImagesBtn) {
     generateBlogImagesBtn.addEventListener('click', async () => {
@@ -1678,6 +1679,10 @@ if (generateBlogImagesBtn) {
 
         const gallery = document.getElementById('blogImageGallery');
         const progress = document.getElementById('blogImageProgress');
+        const downloadAllSection = document.getElementById('blogDownloadAllSection');
+
+        generatedBlogImages = []; // 초기화
+        if (downloadAllSection) downloadAllSection.style.display = 'none';
         if (!gallery) return;
 
         gallery.innerHTML = '';
@@ -1725,6 +1730,12 @@ if (generateBlogImagesBtn) {
                 div.appendChild(img);
                 div.appendChild(downloadBtn);
 
+                // 이미지 URL 저장
+                generatedBlogImages.push({
+                    url: imageUrl,
+                    name: `blog_image_${i + 1}.png`
+                });
+
             } catch (error) {
                 loadingDiv.innerText = "❌ 실패";
                 loadingDiv.style.color = "#ff5252";
@@ -1736,6 +1747,11 @@ if (generateBlogImagesBtn) {
         progress.innerText = `✅ ${blogImagePrompts.length}개 이미지 생성 완료!`;
         generateBlogImagesBtn.disabled = false;
         generateBlogImagesBtn.innerText = "🎨 블로그 이미지 생성 (AI)";
+
+        // 일괄 다운로드 버튼 표시
+        if (generatedBlogImages.length > 0 && downloadAllSection) {
+            downloadAllSection.style.display = 'block';
+        }
     });
 }
 
@@ -1754,6 +1770,33 @@ if (openImageFxBlogBtn) {
                 alert("✅ 첫 번째 프롬프트가 클립보드에 복사되었습니다!\nImageFX에서 붙여넣기 하세요.");
             });
         }
+    });
+}
+
+// 블로그 이미지 일괄 다운로드
+const downloadAllBlogImagesBtn = document.getElementById('downloadAllBlogImagesBtn');
+if (downloadAllBlogImagesBtn) {
+    downloadAllBlogImagesBtn.addEventListener('click', async () => {
+        if (generatedBlogImages.length === 0) {
+            return alert("다운로드할 이미지가 없습니다.");
+        }
+
+        downloadAllBlogImagesBtn.disabled = true;
+        downloadAllBlogImagesBtn.innerText = "📥 다운로드 중...";
+
+        for (let i = 0; i < generatedBlogImages.length; i++) {
+            const img = generatedBlogImages[i];
+            const link = document.createElement('a');
+            link.href = img.url;
+            link.download = img.name;
+            link.click();
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        downloadAllBlogImagesBtn.disabled = false;
+        downloadAllBlogImagesBtn.innerText = "📥 블로그 이미지 전체 다운로드";
+        alert(`✅ ${generatedBlogImages.length}개의 블로그 이미지가 다운로드되었습니다!`);
     });
 }
 
