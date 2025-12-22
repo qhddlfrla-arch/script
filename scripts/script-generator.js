@@ -1440,15 +1440,16 @@ if (generateBlogBtn) {
             }
 
             // ★ 마침표/물음표/느낌표 후 줄바꿈 처리 (가독성 향상) ★
-            // 문장 끝 부호 다음에 줄바꿈 추가 (한글 다음 마침표, 공백 있든 없든)
-            // "요." / "다." / "죠." 등 다음에 줄바꿈
-            blogContent = blogContent.replace(/([요다죠음됨함임까])\.\s*/g, '$1.\n\n');
+            // 모든 한글 다음 마침표 뒤에 줄바꿈 추가
+            blogContent = blogContent.replace(/([가-힣])\.\s*/g, '$1.\n\n');
             // 물음표 다음에 줄바꿈
             blogContent = blogContent.replace(/\?\s*/g, '?\n\n');
             // 느낌표 다음에 줄바꿈
             blogContent = blogContent.replace(/!\s*/g, '!\n\n');
             // 연속된 줄바꿈 정리 (3개 이상은 2개로)
             blogContent = blogContent.replace(/\n{3,}/g, '\n\n');
+            // 해시태그 줄은 붙여쓰기 (태그 복원)
+            blogContent = blogContent.replace(/#([^\n]+)\n\n#/g, '#$1 #');
 
             // 결과 표시 (이미지 프롬프트 제외)
             resultDiv.innerText = blogContent;
