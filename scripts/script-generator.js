@@ -1439,6 +1439,14 @@ if (generateBlogBtn) {
                 }
             }
 
+            // ★ 마침표 후 줄바꿈 처리 (가독성 향상) ★
+            // 마침표+공백 뒤에 한글이 오면 줄바꿈 추가
+            blogContent = blogContent.replace(/\. ([가-힣])/g, '.\n\n$1');
+            // 물음표+공백 뒤에 한글이 오면 줄바꿈 추가
+            blogContent = blogContent.replace(/\? ([가-힣])/g, '?\n\n$1');
+            // 느낌표+공백 뒤에 한글이 오면 줄바꿈 추가
+            blogContent = blogContent.replace(/! ([가-힣])/g, '!\n\n$1');
+
             // 결과 표시 (이미지 프롬프트 제외)
             resultDiv.innerText = blogContent;
 
