@@ -1440,6 +1440,8 @@ if (generateBlogBtn) {
             }
 
             // ★ 마침표/물음표/느낌표 후 줄바꿈 처리 (가독성 향상) ★
+            // <br> 태그 제거 (AI가 가끔 생성함)
+            blogContent = blogContent.replace(/<br\s*\/?>/gi, '\n');
             // 모든 한글 다음 마침표 뒤에 줄바꿈 추가
             blogContent = blogContent.replace(/([가-힣])\.\s*/g, '$1.\n\n');
             // 물음표 다음에 줄바꿈
