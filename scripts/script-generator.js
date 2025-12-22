@@ -1474,7 +1474,10 @@ if (generateBlogBtn) {
                 naverBlogSection.style.display = 'block';
             }
 
-            alert("✅ 블로그 글이 생성되었습니다!" + (blogImagePrompts.length > 0 ? `\n이미지 프롬프트 ${blogImagePrompts.length}개도 생성되었습니다.` : ""));
+            // ★ 자동으로 블로그 제목 추천 실행 ★
+            await generateBlogTitles(keyword);
+
+            alert("✅ 블로그 글이 생성되었습니다!" + (blogImagePrompts.length > 0 ? `\n이미지 프롬프트 ${blogImagePrompts.length}개도 생성되었습니다.` : "") + "\n제목 추천도 자동으로 생성되었습니다!");
 
         } catch (error) {
             resultDiv.innerText = "❌ 오류 발생: " + error.message;
@@ -1520,100 +1523,116 @@ const PROMPT_BLOG_TITLE = `
 {KEYWORD}
 `;
 
+// ★ 블로그 제목 생성 함수 (재사용 가능) ★
+async function generateBlogTitles(keyword) {
+    const titleResult = document.getElementById('blogTitleResult');
+    const titleList = document.getElementById('blogTitleList');
+    const generateBlogTitleBtn = document.getElementById('generateBlogTitleBtn');
+
+    if (!keyword) {
+        return;
+    }
+
+    const apiKey = getGeminiAPIKey();
+    if (!apiKey) {
+        return;
+    }
+
+    if (generateBlogTitleBtn) {
+        generateBlogTitleBtn.disabled = true;
+        generateBlogTitleBtn.innerText = "⏳ 제목 생성 중...";
+    }
+
+    const fullPrompt = PROMPT_BLOG_TITLE.replace('{KEYWORD}', keyword);
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+        });
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error?.message || "통신 오류");
+        if (!data.candidates || !data.candidates[0].content) throw new Error("AI 응답이 비어있습니다");
+
+        const fullText = data.candidates[0].content.parts[0].text;
+
+        // 제목 파싱 (1. 제목, 2. 제목 형식)
+        const titles = [];
+        const lines = fullText.split('\n');
+        for (const line of lines) {
+            const match = line.match(/^\d+\.\s*(.+)/);
+            if (match && match[1].trim().length > 5) {
+                titles.push(match[1].trim());
+            }
+        }
+
+        // 결과 표시
+        if (titles.length > 0 && titleList) {
+            titleList.innerHTML = '';
+            titles.forEach((title, index) => {
+                const titleCard = document.createElement('div');
+                titleCard.style.cssText = 'display: flex; gap: 10px; align-items: center; padding: 12px; background: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; cursor: pointer; transition: all 0.2s;';
+                titleCard.addEventListener('mouseenter', () => {
+                    titleCard.style.background = 'rgba(255, 193, 7, 0.25)';
+                    titleCard.style.transform = 'translateX(5px)';
+                });
+                titleCard.addEventListener('mouseleave', () => {
+                    titleCard.style.background = 'rgba(255, 193, 7, 0.15)';
+                    titleCard.style.transform = 'translateX(0)';
+                });
+
+                const numBadge = document.createElement('span');
+                numBadge.innerText = index + 1;
+                numBadge.style.cssText = 'background: linear-gradient(to right, #f7971e, #ffd200); padding: 6px 12px; border-radius: 6px; color: #222; font-weight: bold; font-size: 14px;';
+
+                const titleText = document.createElement('span');
+                titleText.innerText = title;
+                titleText.style.cssText = 'flex: 1; color: #fff; font-size: 14px; font-weight: 500;';
+
+                const copyBtn = document.createElement('button');
+                copyBtn.innerText = '📋 복사';
+                copyBtn.style.cssText = 'background: #4da3ff; border: none; border-radius: 6px; padding: 6px 14px; color: white; cursor: pointer; font-size: 13px; font-weight: bold;';
+                copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(title).then(() => {
+                        copyBtn.innerText = '✅ 완료!';
+                        setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
+                    });
+                });
+
+                titleCard.appendChild(numBadge);
+                titleCard.appendChild(titleText);
+                titleCard.appendChild(copyBtn);
+                titleList.appendChild(titleCard);
+            });
+
+            titleResult.style.display = 'block';
+        }
+
+    } catch (error) {
+        console.error("제목 생성 오류:", error);
+    } finally {
+        if (generateBlogTitleBtn) {
+            generateBlogTitleBtn.disabled = false;
+            generateBlogTitleBtn.innerText = "💡 제목 추천받기";
+        }
+    }
+}
+
 const generateBlogTitleBtn = document.getElementById('generateBlogTitleBtn');
 if (generateBlogTitleBtn) {
     generateBlogTitleBtn.addEventListener('click', async () => {
         const keyword = document.getElementById('blogKeywordInput').value.trim();
-        const titleResult = document.getElementById('blogTitleResult');
-        const titleList = document.getElementById('blogTitleList');
-
         if (!keyword) {
             return alert("키워드를 먼저 입력해주세요!");
         }
-
         const apiKey = getGeminiAPIKey();
         if (!apiKey) {
             return alert("API 키가 없습니다. 위에서 API 키를 입력하고 저장하세요.");
         }
-
-        generateBlogTitleBtn.disabled = true;
-        generateBlogTitleBtn.innerText = "⏳ 제목 생성 중...";
-
-        const fullPrompt = PROMPT_BLOG_TITLE.replace('{KEYWORD}', keyword);
-
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
-            });
-            const data = await response.json();
-
-            if (!response.ok) throw new Error(data.error?.message || "통신 오류");
-            if (!data.candidates || !data.candidates[0].content) throw new Error("AI 응답이 비어있습니다");
-
-            const fullText = data.candidates[0].content.parts[0].text;
-
-            // 제목 파싱 (1. 제목, 2. 제목 형식)
-            const titles = [];
-            const lines = fullText.split('\n');
-            for (const line of lines) {
-                const match = line.match(/^\d+\.\s*(.+)/);
-                if (match && match[1].trim().length > 5) {
-                    titles.push(match[1].trim());
-                }
-            }
-
-            // 결과 표시
-            if (titles.length > 0 && titleList) {
-                titleList.innerHTML = '';
-                titles.forEach((title, index) => {
-                    const titleCard = document.createElement('div');
-                    titleCard.style.cssText = 'display: flex; gap: 10px; align-items: center; padding: 12px; background: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; cursor: pointer; transition: all 0.2s;';
-                    titleCard.addEventListener('mouseenter', () => {
-                        titleCard.style.background = 'rgba(255, 193, 7, 0.25)';
-                        titleCard.style.transform = 'translateX(5px)';
-                    });
-                    titleCard.addEventListener('mouseleave', () => {
-                        titleCard.style.background = 'rgba(255, 193, 7, 0.15)';
-                        titleCard.style.transform = 'translateX(0)';
-                    });
-
-                    const numBadge = document.createElement('span');
-                    numBadge.innerText = index + 1;
-                    numBadge.style.cssText = 'background: linear-gradient(to right, #f7971e, #ffd200); padding: 6px 12px; border-radius: 6px; color: #222; font-weight: bold; font-size: 14px;';
-
-                    const titleText = document.createElement('span');
-                    titleText.innerText = title;
-                    titleText.style.cssText = 'flex: 1; color: #fff; font-size: 14px; font-weight: 500;';
-
-                    const copyBtn = document.createElement('button');
-                    copyBtn.innerText = '📋 복사';
-                    copyBtn.style.cssText = 'background: #4da3ff; border: none; border-radius: 6px; padding: 6px 14px; color: white; cursor: pointer; font-size: 13px; font-weight: bold;';
-                    copyBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        navigator.clipboard.writeText(title).then(() => {
-                            copyBtn.innerText = '✅ 완료!';
-                            setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
-                        });
-                    });
-
-                    titleCard.appendChild(numBadge);
-                    titleCard.appendChild(titleText);
-                    titleCard.appendChild(copyBtn);
-                    titleList.appendChild(titleCard);
-                });
-
-                titleResult.style.display = 'block';
-            }
-
-        } catch (error) {
-            alert("❌ 오류 발생: " + error.message);
-            console.error(error);
-        } finally {
-            generateBlogTitleBtn.disabled = false;
-            generateBlogTitleBtn.innerText = "💡 제목 추천받기";
-        }
+        await generateBlogTitles(keyword);
     });
 }
 
