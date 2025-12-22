@@ -1643,7 +1643,7 @@ if (generateBlogImagesBtn) {
             gallery.appendChild(div);
 
             try {
-                const imageUrl = await generateImageWithGemini(prompt + ", food photography, product photography, bright natural lighting, clean background, high quality, 8k", apiKey);
+                const imageUrl = await generateImageWithGemini(prompt + ", food photography, product photography, bright natural lighting, pure white background, solid white backdrop, clean minimal style, high quality, 8k", apiKey);
 
                 loadingDiv.remove();
 
