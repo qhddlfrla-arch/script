@@ -592,6 +592,18 @@
             <div id="naverBlogSection"
                 style="display: none; margin-top: 20px; padding: 15px; background: rgba(3, 199, 90, 0.15); border: 1px solid rgba(3, 199, 90, 0.4); border-radius: 12px;">
                 <p style="color: #03c75a; font-weight: bold; margin-bottom: 12px;">📝 네이버 블로그 발행</p>
+
+                <!-- 블로그 ID 입력 -->
+                <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: center;">
+                    <span style="color: #81c784; font-size: 0.85rem; white-space: nowrap;">🔗 내 블로그 ID:</span>
+                    <input type="text" id="blogIdInput" placeholder="예: theuniquefood"
+                        style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(3, 199, 90, 0.4); background: rgba(0,0,0,0.3); color: white; font-size: 0.9rem;">
+                    <button id="saveBlogIdBtn"
+                        style="background: #28a745; border: none; border-radius: 6px; padding: 8px 14px; color: white; cursor: pointer; font-size: 0.85rem; white-space: nowrap;">저장</button>
+                </div>
+                <p style="color: #888; font-size: 0.75rem; margin-bottom: 12px;">💡 블로그 ID는 blog.naver.com/<strong
+                        style="color:#03c75a;">여기부분</strong> 입니다.</p>
+
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
                     <button id="copyTitleAndContentBtn"
                         style="background: linear-gradient(to right, #03c75a, #00a86b); border: none; border-radius: 8px; padding: 12px 20px; color: white; cursor: pointer; font-weight: bold;">📋

@@ -13,7 +13,8 @@ const STORAGE_KEYS = {
     MOOD_STYLE: 'scriptRemixer_moodStyle',
     COMPOSITION: 'scriptRemixer_composition',
     RATIO: 'scriptRemixer_ratio',
-    PERSONA: 'scriptRemixer_persona'
+    PERSONA: 'scriptRemixer_persona',
+    BLOG_ID: 'scriptRemixer_blogId'
 };
 
 function saveToStorage(key, value) {
@@ -249,23 +250,45 @@ const PROMPT_BLOG = `
 5. 순수한 한글 텍스트만 사용할 것, 이모지 사용 금지
 6. "소제목1", "본문1", "결론", "태그" 같은 구조 레이블 절대 사용 금지
 
-★★★ 글 구조 (정보형) ★★★
-아래 형식으로 자연스럽게 작성하되, 레이블 없이 바로 내용만 작성하세요:
+★★★ 글 구조 (정보형) - 줄바꿈 매우 중요! ★★★
+아래 형식으로 자연스럽게 작성하되, 레이블 없이 바로 내용만 작성하세요.
 
-[첫 번째 소제목] - 키워드란 무엇인가요? / 키워드 기본 정보
-첫 번째 주제에 대한 상세한 정보
+★★★ 줄바꿈 규칙 (필수!) ★★★
+1. 모든 소제목 앞에는 반드시 빈 줄 2개를 넣으세요
+2. 모든 문단 사이에는 빈 줄 1개를 넣으세요
+3. 글이 한 덩어리로 붙어있으면 안 됩니다
+4. 가독성을 위해 적절히 문단을 나누세요
 
-[두 번째 소제목] - 키워드의 효능/장점/특징
-두 번째 주제에 대한 상세한 정보
+[글 구조 예시]
 
-[세 번째 소제목] - 키워드 사용법/먹는법/활용법
-세 번째 주제에 대한 상세한 정보
+소제목1
 
-[네 번째 소제목] - 키워드 주의사항/부작용/보관법
-네 번째 주제에 대한 상세한 정보
+첫 번째 문단 내용...
 
-[마무리] - 핵심 정리
+두 번째 문단 내용...
+
+
+소제목2
+
+세 번째 문단 내용...
+
+네 번째 문단 내용...
+
+
+소제목3
+
+다섯 번째 문단 내용...
+
+
+소제목4
+
+여섯 번째 문단 내용...
+
+
+마무리
+
 본문 요약 (2~3줄)
+
 오늘 정보가 도움 되셨다면 공감과 댓글 부탁드려요! 더유니크한이었습니다.
 
 #태그1 #태그2 #태그3 ...
@@ -1743,7 +1766,38 @@ if (copyTitleAndContentBtn) {
 const openNaverBlogBtn = document.getElementById('openNaverBlogBtn');
 if (openNaverBlogBtn) {
     openNaverBlogBtn.addEventListener('click', () => {
-        // 네이버 블로그 글쓰기 페이지 열기
-        window.open('https://blog.naver.com/PostWriteForm.naver', '_blank');
+        // 저장된 블로그 ID 가져오기
+        const blogId = loadFromStorage(STORAGE_KEYS.BLOG_ID) || '';
+
+        if (blogId) {
+            // 블로그 ID가 있으면 해당 블로그 글쓰기 페이지로 이동
+            window.open(`https://blog.naver.com/${blogId}/postwrite`, '_blank');
+        } else {
+            // 블로그 ID가 없으면 일반 글쓰기 페이지로 이동
+            window.open('https://blog.naver.com/PostWriteForm.naver', '_blank');
+        }
     });
+}
+
+// 네이버 블로그 ID 저장 버튼
+const saveBlogIdBtn = document.getElementById('saveBlogIdBtn');
+if (saveBlogIdBtn) {
+    saveBlogIdBtn.addEventListener('click', () => {
+        const blogIdInput = document.getElementById('blogIdInput');
+        if (blogIdInput && blogIdInput.value.trim()) {
+            saveToStorage(STORAGE_KEYS.BLOG_ID, blogIdInput.value.trim());
+            alert('✅ 블로그 ID가 저장되었습니다!');
+        } else {
+            alert('블로그 ID를 입력해주세요.');
+        }
+    });
+}
+
+// 저장된 블로그 ID 복원
+const blogIdInput = document.getElementById('blogIdInput');
+if (blogIdInput) {
+    const savedBlogId = loadFromStorage(STORAGE_KEYS.BLOG_ID);
+    if (savedBlogId) {
+        blogIdInput.value = savedBlogId;
+    }
 }
