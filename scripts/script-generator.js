@@ -1413,6 +1413,12 @@ if (generateBlogBtn) {
                 renderBlogPromptList(blogImagePrompts);
             }
 
+            // 네이버 블로그 발행 섹션 표시
+            const naverBlogSection = document.getElementById('naverBlogSection');
+            if (naverBlogSection) {
+                naverBlogSection.style.display = 'block';
+            }
+
             alert("✅ 블로그 글이 생성되었습니다!" + (blogImagePrompts.length > 0 ? `\n이미지 프롬프트 ${blogImagePrompts.length}개도 생성되었습니다.` : ""));
 
         } catch (error) {
@@ -1698,3 +1704,46 @@ if (openImageFxBlogBtn) {
 
 // 초기화
 restoreSavedData();
+
+// ============================================================
+// 13. 네이버 블로그 바로가기 기능
+// ============================================================
+let generatedBlogTitle = ''; // 생성된 블로그 제목 저장
+
+// 제목+본문 복사 버튼
+const copyTitleAndContentBtn = document.getElementById('copyTitleAndContentBtn');
+if (copyTitleAndContentBtn) {
+    copyTitleAndContentBtn.addEventListener('click', () => {
+        const resultDiv = document.getElementById('result');
+        const blogContent = resultDiv.innerText;
+
+        // 제목 리스트에서 첫 번째 제목 가져오기
+        const titleList = document.getElementById('blogTitleList');
+        let title = '';
+        if (titleList && titleList.children.length > 0) {
+            const firstTitleSpan = titleList.children[0].querySelector('span:nth-child(2)');
+            if (firstTitleSpan) {
+                title = firstTitleSpan.innerText;
+            }
+        }
+
+        // 제목+본문 조합
+        const fullContent = title ? `${title}\n\n${blogContent}` : blogContent;
+
+        navigator.clipboard.writeText(fullContent).then(() => {
+            copyTitleAndContentBtn.innerText = '✅ 복사완료!';
+            setTimeout(() => {
+                copyTitleAndContentBtn.innerText = '📋 제목+본문 복사';
+            }, 2000);
+        });
+    });
+}
+
+// 네이버 블로그 열기 버튼
+const openNaverBlogBtn = document.getElementById('openNaverBlogBtn');
+if (openNaverBlogBtn) {
+    openNaverBlogBtn.addEventListener('click', () => {
+        // 네이버 블로그 글쓰기 페이지 열기
+        window.open('https://blog.naver.com/PostWriteForm.naver', '_blank');
+    });
+}
