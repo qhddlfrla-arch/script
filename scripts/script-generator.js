@@ -781,8 +781,18 @@ generateBtn.addEventListener('click', async () => {
 
             let ytContent = ytParts[1].split('[IMAGE_PROMPTS]')[0].trim();
 
-            const titleLines = ytContent.match(/제목\d?:\s*.+/g) || [];
-            titlesBox.innerHTML = titleLines.map((t, i) => `<div>${i + 1}. ${t.replace(/제목\d?:\s*/, '')}</div>`).join('');
+            // 제목 파싱 개선 - 다양한 형식 지원
+            let titleLines = ytContent.match(/제목\s*\d?\s*[:.]\s*.+/g) || [];
+            if (titleLines.length === 0) {
+                // 숫자. 형식도 시도 (예: 1. 제목내용)
+                titleLines = ytContent.match(/^\d+\.\s*.+/gm) || [];
+            }
+            if (titleLines.length === 0) {
+                // 줄바꿈으로 분리된 제목도 시도
+                const lines = ytContent.split('\n').filter(l => l.trim() && !l.includes('태그'));
+                titleLines = lines.slice(0, 3);
+            }
+            titlesBox.innerHTML = titleLines.map((t, i) => `<div style="margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px;">🎬 ${i + 1}. ${t.replace(/제목\s*\d?\s*[:.]\s*/, '').replace(/^\d+\.\s*/, '').trim()}</div>`).join('');
 
             const tagMatch = ytContent.match(/태그:\s*(.+)/);
             if (tagMatch) {
