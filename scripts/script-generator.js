@@ -740,6 +740,9 @@ generateBtn.addEventListener('click', async () => {
         let mainContent = splitLog[0];
         let safetyLog = splitLog.length > 1 ? splitLog[1].trim() : "정보 없음";
 
+        // 마크다운 코드블록 제거 (```text 등)
+        mainContent = mainContent.replace(/```\w*\n?/g, '').trim();
+
         // 유튜브 패키지 파싱
         const youtubePackageBox = document.getElementById('youtubePackageBox');
         const titlesBox = document.getElementById('titlesBox');
@@ -762,19 +765,58 @@ generateBtn.addEventListener('click', async () => {
             youtubePackageBox.style.display = 'block';
         }
 
-        // ★ 이어쓰기: 지난 이야기가 있으면 이전 파트 + 새 파트 합치기 ★
-        let finalContent = mainContent.trim();
+        // ★ 이어쓰기: 누적 대본 관리 ★
+        const ACCUMULATED_SCRIPT_KEY = 'scriptRemixer_accumulatedScript';
+        const PART_COUNT_KEY = 'scriptRemixer_partCount';
+
+        // 현재 파트 번호 가져오기
+        let currentPartCount = parseInt(localStorage.getItem(PART_COUNT_KEY) || '0', 10);
+
+        // 새 파트 정리
+        let cleanNewPart = mainContent.trim()
+            .replace(/\[SCRIPT\]/g, '')
+            .replace(/\[계속\.{3}\]/g, '')
+            .trim();
+
+        let finalContent = '';
 
         if (prevStory && prevStory.trim().length > 100) {
-            // 지난 이야기에서 "[계속...]" 제거
-            let cleanPrevStory = prevStory.replace(/\[계속\.{3}\]/g, '').trim();
-            // [SCRIPT] 태그 제거 (중복 방지)
-            cleanPrevStory = cleanPrevStory.replace(/\[SCRIPT\]/g, '').trim();
-            // 새 파트에서도 [SCRIPT] 제거
-            let cleanNewPart = mainContent.trim().replace(/\[SCRIPT\]/g, '').trim();
+            // 이어쓰기 모드: 이전 누적 대본 + 새 파트
+            let accumulatedScript = localStorage.getItem(ACCUMULATED_SCRIPT_KEY) || '';
 
-            // 이전 파트 + 구분선 + 새 파트 합치기
-            finalContent = `[SCRIPT]\n${cleanPrevStory}\n\n--- 파트 ${Math.ceil(cleanPrevStory.length / 4000) + 1} ---\n\n${cleanNewPart}`;
+            if (!accumulatedScript) {
+                // 첫 이어쓰기: 지난 이야기를 기반으로
+                let cleanPrevStory = prevStory
+                    .replace(/\[SCRIPT\]/g, '')
+                    .replace(/\[계속\.{3}\]/g, '')
+                    .replace(/```\w*\n?/g, '')
+                    .trim();
+                accumulatedScript = cleanPrevStory;
+                currentPartCount = 1;
+            }
+
+            currentPartCount++;
+
+            // 누적 대본에 새 파트 추가
+            accumulatedScript = `${accumulatedScript}\n\n========== ✅ 파트 ${currentPartCount} 완성 ==========\n\n${cleanNewPart}`;
+
+            // localStorage에 저장
+            localStorage.setItem(ACCUMULATED_SCRIPT_KEY, accumulatedScript);
+            localStorage.setItem(PART_COUNT_KEY, currentPartCount.toString());
+
+            finalContent = `[SCRIPT]\n\n${accumulatedScript}`;
+        } else {
+            // 새 대본 시작
+            currentPartCount = 1;
+            localStorage.setItem(ACCUMULATED_SCRIPT_KEY, cleanNewPart);
+            localStorage.setItem(PART_COUNT_KEY, '1');
+
+            // [계속...]이 있으면 파트1 표시
+            if (cleanNewPart.includes('[계속') || mainContent.includes('[계속')) {
+                finalContent = `[SCRIPT]\n\n========== ✅ 파트 1 완성 ==========\n\n${cleanNewPart}`;
+            } else {
+                finalContent = mainContent.trim();
+            }
         }
 
         resultDiv.innerText = finalContent;
