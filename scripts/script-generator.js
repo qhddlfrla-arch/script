@@ -641,19 +641,34 @@ toneButtons.forEach(btn => {
 // 영상 길이 선택 시 안내 문구 동적 업데이트
 const durationSelect = document.getElementById('durationSelect');
 const durationGuideText = document.getElementById('durationGuideText');
-if (durationSelect && durationGuideText) {
-    durationSelect.addEventListener('change', () => {
-        const selectedOption = durationSelect.selectedOptions[0];
-        const parts = parseInt(selectedOption.getAttribute('data-parts'), 10);
 
-        if (parts === 1) {
-            durationGuideText.innerHTML = '✅ <strong>1회 생성</strong>으로 완성됩니다.';
-            durationGuideText.style.color = '#4caf50';
-        } else {
-            durationGuideText.innerHTML = `⚠️ <strong>${parts}회 생성</strong> 필요! 파트1 생성 후 → "지난 이야기"에 붙여넣기 → 다시 생성 (${parts}번 반복)`;
-            durationGuideText.style.color = '#ffc107';
-        }
-    });
+// 진행 상황 업데이트 함수
+function updateProgressDisplay() {
+    if (!durationSelect || !durationGuideText) return;
+
+    const selectedOption = durationSelect.selectedOptions[0];
+    const totalParts = parseInt(selectedOption.getAttribute('data-parts'), 10);
+    const currentPart = parseInt(localStorage.getItem('scriptRemixer_partCount') || '0', 10);
+
+    if (totalParts === 1) {
+        durationGuideText.innerHTML = '✅ <strong>1회 생성</strong>으로 완성됩니다.';
+        durationGuideText.style.color = '#4caf50';
+    } else if (currentPart === 0) {
+        durationGuideText.innerHTML = `⚠️ <strong>${totalParts}회 생성</strong> 필요! 파트1 생성 후 → "지난 이야기"에 붙여넣기 → 다시 생성 (${totalParts}번 반복)`;
+        durationGuideText.style.color = '#ffc107';
+    } else if (currentPart >= totalParts) {
+        durationGuideText.innerHTML = `🎉 <strong>${totalParts}회 중 ${totalParts}회 완료!</strong> 대본이 완성되었습니다!`;
+        durationGuideText.style.color = '#4caf50';
+    } else {
+        durationGuideText.innerHTML = `🔄 <strong>${totalParts}회 중 ${currentPart}회 생성 완료</strong> → 남은 ${totalParts - currentPart}회 더 생성하세요!`;
+        durationGuideText.style.color = '#2196f3';
+    }
+}
+
+if (durationSelect && durationGuideText) {
+    durationSelect.addEventListener('change', updateProgressDisplay);
+    // 페이지 로드 시 진행 상황 표시
+    updateProgressDisplay();
 }
 
 // API 키 관리
@@ -804,12 +819,18 @@ generateBtn.addEventListener('click', async () => {
             localStorage.setItem(ACCUMULATED_SCRIPT_KEY, accumulatedScript);
             localStorage.setItem(PART_COUNT_KEY, currentPartCount.toString());
 
+            // 진행 상황 업데이트
+            updateProgressDisplay();
+
             finalContent = `[SCRIPT]\n\n${accumulatedScript}`;
         } else {
             // 새 대본 시작
             currentPartCount = 1;
             localStorage.setItem(ACCUMULATED_SCRIPT_KEY, cleanNewPart);
             localStorage.setItem(PART_COUNT_KEY, '1');
+
+            // 진행 상황 업데이트
+            updateProgressDisplay();
 
             // [계속...]이 있으면 파트1 표시
             if (cleanNewPart.includes('[계속') || mainContent.includes('[계속')) {
