@@ -931,14 +931,14 @@ generateBtn.addEventListener('click', async () => {
                 partDownloadButtons.appendChild(btn);
             }
 
-            // ★ 파트별 프롬프트 다운로드 버튼 생성 ★
+            // ★ 파트별 프롬프트 다운로드 버튼 생성 (항상 표시) ★
             const partPromptButtons = document.getElementById('partPromptButtons');
             if (partPromptButtons) {
                 partPromptButtons.innerHTML = '';
 
                 for (let i = 0; i < currentPartNum; i++) {
                     const promptBtn = document.createElement('button');
-                    promptBtn.innerText = `🎨 파트${i + 1} 프롬프트`;
+                    promptBtn.innerText = `🎨 파트${i + 1}프롬프트`;
                     promptBtn.style.cssText = 'background: linear-gradient(135deg, #ff512f, #dd2476); border: none; border-radius: 6px; padding: 8px 12px; color: white; cursor: pointer; font-size: 0.8rem; margin: 2px;';
 
                     const promptIndex = i;
