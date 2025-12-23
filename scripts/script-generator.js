@@ -788,7 +788,27 @@ generateBtn.addEventListener('click', async () => {
     const apiKey = getGeminiAPIKey();
     if (!apiKey) return alert("API 키가 없습니다.");
 
-    const fullPrompt = `${systemPromptBase}\n\n${COMMON_RULES}\n\n[입력 정보]\n- 주제: ${topic}\n- 지난이야기: ${prevStory}\n- 감성: ${selectedTone}\n- 분량: ${duration}`;
+    // ★★★ 창작 강제 규칙 - 입력을 절대 복사하지 않도록 ★★★
+    const creativityEnforcer = `
+🚨🚨🚨 [최종 경고 - AI가 반드시 지켜야 할 규칙] 🚨🚨🚨
+
+아래 [참고 텍스트]는 "이런 느낌으로 새 이야기를 써달라"는 힌트일 뿐입니다!
+
+절대 하면 안 되는 것:
+- [참고 텍스트]의 첫 문장을 그대로 쓰기 ← 절대 금지!
+- [참고 텍스트]에 나온 이름(미숙, 연이, 수아 등) 사용 ← 절대 금지!
+- [참고 텍스트]의 대사를 그대로 복사 ← 절대 금지!
+
+반드시 해야 하는 것:
+- 완전히 다른 새 이름 창작 (봉순, 말자, 용팔, 만복 등)
+- 완전히 다른 첫 문장으로 시작
+- 완전히 다른 배경/상황 설정
+
+[참고 텍스트]를 한 글자라도 베끼면 실패입니다!
+이 텍스트에서 "감정/테마"만 추출하고, 100% 새로운 이야기를 창작하세요!
+`;
+
+    const fullPrompt = `${systemPromptBase}\n\n${COMMON_RULES}\n\n${creativityEnforcer}\n\n[참고 텍스트 - 절대 복사 금지! 테마만 참고!]\n${topic}\n\n[추가 정보]\n- 지난이야기: ${prevStory}\n- 감성: ${selectedTone}\n- 분량: ${duration}`;
 
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
