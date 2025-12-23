@@ -828,7 +828,26 @@ generateBtn.addEventListener('click', async () => {
 이 텍스트에서 "감정/테마"만 추출하고, 100% 새로운 이야기를 창작하세요!
 `;
 
-    const fullPrompt = `${systemPromptBase}\n\n${COMMON_RULES}\n\n${creativityEnforcer}\n\n[참고 텍스트 - 절대 복사 금지! 테마만 참고!]\n${topic}\n\n[추가 정보]\n- 지난이야기: ${prevStory}\n- 감성: ${selectedTone}\n- 분량: ${duration}`;
+    // ★★★ 파트 정보 및 클로징 규칙 ★★★
+    const isLastPart = nextPart >= totalParts;
+    const partInfo = `
+🚨🚨🚨 [매우 중요] 현재 작성 중인 파트 정보 🚨🚨🚨
+
+현재: 총 ${totalParts}개 파트 중 ${nextPart}번째 파트를 작성 중입니다.
+${isLastPart ?
+            `✅ 이것은 마지막 파트입니다! 
+   - 스토리를 완결하세요
+   - 클로징 5가지 체크리스트를 모두 작성하세요
+   - 채널명("6070 인생 라디오 '여울'"), 구독, 좋아요 유도를 포함하세요` :
+            `🚨 이것은 마지막 파트가 아닙니다! (${nextPart}/${totalParts})
+   - 클로징을 절대 작성하지 마세요!!!
+   - "6070 인생 라디오 여울이었습니다" 같은 문구 금지!!!
+   - "구독과 좋아요 부탁드립니다" 같은 문구 금지!!!
+   - 스토리 중간에서 "[계속...]"으로 끝내세요!
+   - 예: "그녀는 아들의 손을 꼭 잡았다. 그리고... [계속...]"`}
+`;
+
+    const fullPrompt = `${systemPromptBase}\n\n${COMMON_RULES}\n\n${creativityEnforcer}\n\n${partInfo}\n\n[참고 텍스트 - 절대 복사 금지! 테마만 참고!]\n${topic}\n\n[추가 정보]\n- 지난이야기: ${prevStory}\n- 감성: ${selectedTone}\n- 분량: ${duration}`;
 
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
