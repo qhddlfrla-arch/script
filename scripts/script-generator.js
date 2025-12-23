@@ -1064,6 +1064,21 @@ ${isLastPart ?
                             const finalPrompts = promptLines.join('\n');
 
                             if (finalPrompts) {
+                                // ★ AI 아트 디렉터 섹션에 프롬프트 표시 ★
+                                const imageInput = document.getElementById('imageScriptInput');
+                                if (imageInput) {
+                                    imageInput.value = finalPrompts;
+                                }
+
+                                // 프롬프트 배열로 변환하여 렌더링
+                                generatedPrompts = promptLines;
+                                saveToStorage(STORAGE_KEYS.IMAGE_PROMPTS, generatedPrompts);
+                                renderPromptList(promptLines);
+
+                                // 이미지 섹션으로 스크롤
+                                document.getElementById('imageSection').scrollIntoView({ behavior: 'smooth' });
+
+                                // 다운로드도 진행
                                 const blob = new Blob([finalPrompts], { type: 'text/plain;charset=utf-8' });
                                 const url = URL.createObjectURL(blob);
                                 const a = document.createElement('a');
@@ -1071,6 +1086,8 @@ ${isLastPart ?
                                 a.download = `prompts_part${promptIndex + 1}_${Date.now()}.txt`;
                                 a.click();
                                 URL.revokeObjectURL(url);
+
+                                alert(`✅ 파트${promptIndex + 1}의 ${promptLines.length}개 프롬프트가 추출되었습니다.\n파일 다운로드 + AI 아트 디렉터 섹션에 표시됨!`);
                             } else {
                                 alert(`파트${promptIndex + 1}에 프롬프트가 없습니다.`);
                             }
