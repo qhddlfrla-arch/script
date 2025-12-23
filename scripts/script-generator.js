@@ -1339,30 +1339,46 @@ sendToImageBtn.addEventListener('click', () => {
     const parts = fullText.split('[IMAGE_PROMPTS]');
     let promptsArray = [];
 
+    // 화면에서 프롬프트 찾기
+    let promptOnly = '';
     if (parts.length > 1) {
-        let promptOnly = parts[1]
+        promptOnly = parts[1]
             .split('[SAFETY_LOG]')[0]
             .split('[YOUTUBE_PACKAGE]')[0]
             .split('[SCRIPT]')[0]
             .trim();
+    }
 
-        // 불필요한 텍스트 제거 (대본 내용이 섞여 들어온 경우)
-        promptOnly = promptOnly.replace(/^.*?(?=\d+\.\s)/s, ''); // 첫 번째 숫자 프롬프트 전까지 제거
+    // 화면에서 못 찾으면 localStorage 확인
+    if (!promptOnly || promptOnly.length < 50) {
+        const accumulatedScript = localStorage.getItem('scriptRemixer_accumulatedScript') || '';
+        const storageParts = accumulatedScript.split('[IMAGE_PROMPTS]');
+        if (storageParts.length > 1) {
+            promptOnly = storageParts[1]
+                .split('[SAFETY_LOG]')[0]
+                .split('[YOUTUBE_PACKAGE]')[0]
+                .trim();
+        }
+    }
 
-        imageInput.value = promptOnly;
-
-        // 번호로 시작하는 줄만 프롬프트로 인식
-        promptsArray = promptOnly.split('\n').filter(line => {
-            const trimmed = line.trim();
-            return trimmed.length > 5 && /^\d+\./.test(trimmed);
-        });
-
-        generatedPrompts = promptsArray;
-        saveToStorage(STORAGE_KEYS.IMAGE_PROMPTS, generatedPrompts);
-    } else {
-        alert("프롬프트를 찾을 수 없습니다.");
+    if (!promptOnly || promptOnly.length < 50) {
+        alert("⚠️ 이미지 프롬프트를 찾을 수 없습니다.\n\n가능한 원인:\n1. 마지막 파트(4회 중 4회)까지 생성하지 않음\n2. AI가 프롬프트 생성을 건너뜀\n\n해결 방법:\n1. 마지막 파트까지 모두 생성해주세요\n2. 또는 '맞춤 프롬프트 생성' 기능을 사용해주세요");
         return;
     }
+
+    // 불필요한 텍스트 제거 (대본 내용이 섞여 들어온 경우)
+    promptOnly = promptOnly.replace(/^.*?(?=\d+\.\s)/s, ''); // 첫 번째 숫자 프롬프트 전까지 제거
+
+    imageInput.value = promptOnly;
+
+    // 번호로 시작하는 줄만 프롬프트로 인식
+    promptsArray = promptOnly.split('\n').filter(line => {
+        const trimmed = line.trim();
+        return trimmed.length > 5 && /^\d+\./.test(trimmed);
+    });
+
+    generatedPrompts = promptsArray;
+    saveToStorage(STORAGE_KEYS.IMAGE_PROMPTS, generatedPrompts);
 
     renderPromptList(promptsArray);
 
