@@ -946,6 +946,12 @@ generateBtn.addEventListener('click', async () => {
                         partContent = accumulatedScript;
                     }
 
+                    // ★ 순수 대본만 추출 (프롬프트, 유튜브 패키지, 안전성 로그 제거) ★
+                    partContent = partContent.split('[IMAGE_PROMPTS]')[0];
+                    partContent = partContent.split('[YOUTUBE_PACKAGE]')[0];
+                    partContent = partContent.split('[SAFETY_LOG]')[0];
+                    partContent = partContent.replace(/\[SCRIPT\]/g, '').trim();
+
                     const blob = new Blob([partContent], { type: 'text/plain;charset=utf-8' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
