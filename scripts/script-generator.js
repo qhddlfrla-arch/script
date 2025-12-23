@@ -976,29 +976,46 @@ generateBtn.addEventListener('click', async () => {
 
                     const promptIndex = i;
                     promptBtn.addEventListener('click', () => {
-                        // 해당 파트의 프롬프트 추출 (이미지 프롬프트 섹션에서)
-                        const fullText = document.getElementById('result').innerText;
-                        const imgParts = fullText.split('[IMAGE_PROMPTS]');
+                        // ★ 누적된 스크립트에서 해당 파트의 프롬프트 추출 ★
+                        const accumulatedScript = localStorage.getItem('scriptRemixer_accumulatedScript') || '';
 
-                        if (imgParts.length > 1) {
-                            let allPrompts = imgParts[1].split('[SAFETY_LOG]')[0].split('[YOUTUBE_PACKAGE]')[0].trim();
-                            let promptLines = allPrompts.split('\n').filter(l => /^\d+\./.test(l.trim()));
+                        // 파트 구분자로 나누기
+                        const partSeparator = /={5,}\s*✅\s*파트\s*\d+\s*완성\s*={5,}/;
+                        const partSections = accumulatedScript.split(partSeparator);
 
-                            // 파트당 프롬프트 개수 계산 (대략 균등 분배)
-                            const promptsPerPart = Math.ceil(promptLines.length / currentPartNum);
-                            const startIdx = promptIndex * promptsPerPart;
-                            const endIdx = Math.min(startIdx + promptsPerPart, promptLines.length);
-                            const partPrompts = promptLines.slice(startIdx, endIdx).join('\n');
+                        let partContent = '';
+                        if (partSections[promptIndex]) {
+                            partContent = partSections[promptIndex];
+                        } else if (promptIndex === 0) {
+                            // 첫 파트인데 구분자가 없으면 전체에서 추출
+                            partContent = accumulatedScript;
+                        }
 
-                            const blob = new Blob([partPrompts], { type: 'text/plain;charset=utf-8' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `prompts_part${promptIndex + 1}_${Date.now()}.txt`;
-                            a.click();
-                            URL.revokeObjectURL(url);
+                        // 해당 파트에서 [IMAGE_PROMPTS] 섹션 추출
+                        if (partContent.includes('[IMAGE_PROMPTS]')) {
+                            let prompts = partContent.split('[IMAGE_PROMPTS]')[1];
+                            prompts = prompts.split('[SAFETY_LOG]')[0];
+                            prompts = prompts.split('[YOUTUBE_PACKAGE]')[0];
+                            prompts = prompts.split(/={5,}/)[0]; // 다음 구분자 전까지만
+                            prompts = prompts.trim();
+
+                            // 프롬프트 라인만 필터링 (번호. 로 시작하는 줄)
+                            let promptLines = prompts.split('\n').filter(l => /^\d+\./.test(l.trim()));
+                            const finalPrompts = promptLines.join('\n');
+
+                            if (finalPrompts) {
+                                const blob = new Blob([finalPrompts], { type: 'text/plain;charset=utf-8' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `prompts_part${promptIndex + 1}_${Date.now()}.txt`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                            } else {
+                                alert(`파트${promptIndex + 1}에 프롬프트가 없습니다.`);
+                            }
                         } else {
-                            alert('프롬프트를 찾을 수 없습니다. 먼저 "삽화 프롬프트 추출하기"를 클릭해주세요.');
+                            alert(`파트${promptIndex + 1}에서 [IMAGE_PROMPTS] 섹션을 찾을 수 없습니다.`);
                         }
                     });
 
