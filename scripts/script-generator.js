@@ -738,7 +738,22 @@ generateBtn.addEventListener('click', async () => {
             youtubePackageBox.style.display = 'block';
         }
 
-        resultDiv.innerText = mainContent.trim();
+        // ★ 이어쓰기: 지난 이야기가 있으면 이전 파트 + 새 파트 합치기 ★
+        let finalContent = mainContent.trim();
+
+        if (prevStory && prevStory.trim().length > 100) {
+            // 지난 이야기에서 "[계속...]" 제거
+            let cleanPrevStory = prevStory.replace(/\[계속\.{3}\]/g, '').trim();
+            // [SCRIPT] 태그 제거 (중복 방지)
+            cleanPrevStory = cleanPrevStory.replace(/\[SCRIPT\]/g, '').trim();
+            // 새 파트에서도 [SCRIPT] 제거
+            let cleanNewPart = mainContent.trim().replace(/\[SCRIPT\]/g, '').trim();
+
+            // 이전 파트 + 구분선 + 새 파트 합치기
+            finalContent = `[SCRIPT]\n${cleanPrevStory}\n\n--- 파트 ${Math.ceil(cleanPrevStory.length / 4000) + 1} ---\n\n${cleanNewPart}`;
+        }
+
+        resultDiv.innerText = finalContent;
         bridge.style.display = 'block';
 
         document.getElementById('editRequestSection').style.display = 'block';
