@@ -855,6 +855,14 @@ generateBtn.addEventListener('click', async () => {
         resultDiv.innerText = finalContent;
         bridge.style.display = 'block';
 
+        // ★ 자동 이어쓰기: 생성된 대본을 "지난 이야기"에 자동으로 채우기 ★
+        const prevStoryInput = document.getElementById('prevStoryInput');
+        if (prevStoryInput && totalParts > 1) {
+            // 누적된 대본을 지난 이야기에 자동으로 채움
+            const accumulatedScript = localStorage.getItem('scriptRemixer_accumulatedScript') || cleanNewPart;
+            prevStoryInput.value = accumulatedScript;
+        }
+
         document.getElementById('editRequestSection').style.display = 'block';
 
         safetyBox.style.display = 'block';
