@@ -837,7 +837,10 @@ generateBtn.addEventListener('click', async () => {
             body: JSON.stringify({
                 contents: [{ parts: [{ text: fullPrompt }] }],
                 generationConfig: {
-                    maxOutputTokens: 8192
+                    maxOutputTokens: 8192,
+                    temperature: 1.0,  // 창작성 극대화 (0.0=보수적, 1.0=창의적)
+                    topP: 0.95,
+                    topK: 40
                 }
             })
         });
