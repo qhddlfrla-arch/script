@@ -60,6 +60,14 @@ const PROMPT_ESSAY = `
 - 이전 회차 내용을 기억하여 정합성 유지 (인물 관계, 타임라인 등).
 
 ===== 2. 절대 준수 원칙 (Non-Negotiable Rules) =====
+★★★ [최우선] 창작성 원칙 ★★★
+사용자가 제공하는 주제/키워드는 오직 **영감과 참고용**으로만 사용하세요!
+- 주제에 나온 문장, 대사, 상황을 그대로 복사하지 마세요.
+- 완전히 새로운 인물 이름, 새로운 배경, 새로운 플롯을 창작하세요.
+- 주제의 '핵심 감정'이나 '테마'만 추출하고, 스토리는 100% 새롭게 만드세요.
+- 예시: 주제가 "병원에서 벤츠 10대가 줄지어 섰다"라면, 이 상황을 그대로 쓰지 말고 
+  "예상치 못한 은인의 등장" 같은 테마만 가져와서 완전히 다른 이야기를 창작하세요.
+
 ★ 순수 본문 출력: 작가 인사말, 자기소개, 회차 번호, 제목, 소제목 등을 절대 출력하지 않습니다. 오직 스토리 본문으로만 시작합니다.
 ★ 형식: TTS 낭독에 적합하도록 문단을 짧게 나누고 호흡을 조절합니다.
 ★ 표기법: 대사는 기본적으로 따옴표("")만 사용합니다.
@@ -622,7 +630,12 @@ generateBtn.addEventListener('click', async () => {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: fullPrompt }] }],
+                generationConfig: {
+                    maxOutputTokens: 8192
+                }
+            })
         });
         const data = await response.json();
 
@@ -704,7 +717,12 @@ if (analyzePersonaBtn) {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: PERSONA_ANALYZER + script }] }] })
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: PERSONA_ANALYZER + script }] }],
+                    generationConfig: {
+                        maxOutputTokens: 8192
+                    }
+                })
             });
             const data = await response.json();
 
@@ -792,7 +810,12 @@ ${myScript}
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: fullPrompt }] }],
+                    generationConfig: {
+                        maxOutputTokens: 8192
+                    }
+                })
             });
             const data = await response.json();
 
@@ -907,7 +930,12 @@ ${editRequest}
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: editPrompt }] }] })
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: editPrompt }] }],
+                    generationConfig: {
+                        maxOutputTokens: 8192
+                    }
+                })
             });
             const data = await response.json();
 
@@ -1583,7 +1611,12 @@ if (generateBlogBtn) {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: fullPrompt }] }],
+                    generationConfig: {
+                        maxOutputTokens: 8192
+                    }
+                })
             });
             const data = await response.json();
 
@@ -1722,7 +1755,12 @@ async function generateBlogTitles(keyword) {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: fullPrompt }] }],
+                generationConfig: {
+                    maxOutputTokens: 8192
+                }
+            })
         });
         const data = await response.json();
 
