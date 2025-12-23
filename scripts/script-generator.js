@@ -49,6 +49,7 @@ function clearAllStorage() {
 const PROMPT_ESSAY = `
 ===== 1. 페르소나 및 핵심 역할 (Persona & Role) =====
 신분: 20년 경력의 시니어 전문 장편 스토리/대본 작가 (라디오 연속극, 오디오북, 매거진 연재 경력 보유).
+채널명: 6070 인생 라디오 '여울'
 타겟 독자: 50대~70대 시니어 (중장년층).
 문체: 할머니가 손주에게 옛날이야기를 해주듯 따뜻하고 정감 있는 구어체.
 
@@ -81,14 +82,12 @@ const PROMPT_ESSAY = `
 - 브릿지 문장: 장면과 장면, 사건과 사건을 자연스럽게 연결하는 서술 (시간의 흐름, 장소 이동 등).
 - 특징: 감정 지문과 나레이션을 풍부하게 사용하여 몰입감 증대.
 
-[클로징: 여운과 행동 유도]
-- 암시 (요약 & 가치): "이 이야기를 통해 우리는 ~을 느낄 수 있었지요." (이야기의 교훈이나 가치 전달).
-- 독려 (공감 유도): "여러분의 삶에도 이런 순간이 찾아오길 바랍니다." (청취자의 삶과 연결).
-- 기대 및 보상: 다음 이야기에 대한 예고 또는 청취 시 얻게 될 즐거움 언급.
-- 채널명 언급: '함께하는60+' 채널임을 인지시킴.
-- 행동 유도 (Call to Action):
-  * 댓글 유도: "여러분의 생각은 어떠신가요? 댓글로 남겨주세요."
-  * 구독/좋아요 유도: "더 많은 이야기를 듣고 싶으시다면 구독과 좋아요 부탁드립니다."
+[클로징: 여운과 행동 유도] ★★★ 필수 체크리스트 ★★★
+1. 암시 (요약 & 활용 강조): "이 이야기를 통해 우리는 ~을 느낄 수 있었지요. 오늘 들으신 이야기를 일상에서도 떠올려 보세요." (이야기의 교훈과 활용법 전달)
+2. 독려 (공감 유도): "여러분의 삶에도 이런 순간이 찾아오길 바랍니다." (청취자의 삶과 연결하며 공감 유도)
+3. 기대 (채널명 언급): "다음 이야기도 기대해 주세요. 6070 인생 라디오 '여울'이었습니다." (채널명 인지시키기)
+4. 댓글 유도: "여러분의 생각은 어떠신가요? 댓글로 남겨주세요."
+5. 구독/좋아요 유도: "더 많은 이야기를 듣고 싶으시다면 구독과 좋아요 부탁드립니다."
 
 ===== 4. 작업 워크플로우 (Workflow) =====
 [단계 1: 사용자 입력 분석]
@@ -105,7 +104,7 @@ const PROMPT_ESSAY = `
 
 [단계 4: 규칙 검증 및 출력]
 - 인사말/제목 제거 확인.
-- '함께하는60+' 채널 언급 및 좋아요/구독/댓글 유도 확인.
+- 클로징 5가지 체크리스트(암시, 독려, 기대+채널명, 댓글유도, 구독유도) 모두 포함 확인.
 - 최종적으로 순수 텍스트만 출력.
 
 ★★★ 중요: 반드시 한국어(한글)로 대본을 작성하세요! 영어로 작성하지 마세요! ★★★
@@ -532,6 +531,19 @@ if (tabMyScript) {
 if (tabBlogWrite) {
     tabBlogWrite.addEventListener('click', () => switchTab('blog'));
 }
+
+// 작가 모드 버튼 그룹
+let selectedMode = "essay";
+const modeButtons = document.querySelectorAll('#modeGroup .tone-btn');
+const modeSelectHidden = document.getElementById('modeSelect');
+modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        modeButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedMode = btn.getAttribute('data-value');
+        if (modeSelectHidden) modeSelectHidden.value = selectedMode;
+    });
+});
 
 // 감성 버튼
 let selectedTone = "따뜻한";

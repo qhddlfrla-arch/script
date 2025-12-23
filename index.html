@@ -471,10 +471,13 @@
         <!-- ★ 새 대본 생성 섹션 ★ -->
         <div id="newScriptSection">
             <label>✍️ 작가 모드</label>
-            <select id="modeSelect">
-                <option value="essay">📝 감성 에세이 (인생 이야기)</option>
-                <option value="tutor">💻 디지털 튜터 (IT 강의)</option>
-            </select>
+            <div class="tone-group" id="modeGroup" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="tone-btn active" data-value="essay" style="padding: 15px; font-size: 1rem;">📝 감성
+                    에세이<br><small style="color: #aaa; font-size: 0.8rem;">(인생 이야기)</small></button>
+                <button class="tone-btn" data-value="tutor" style="padding: 15px; font-size: 1rem;">💻 디지털 튜터<br><small
+                        style="color: #aaa; font-size: 0.8rem;">(IT 강의)</small></button>
+            </div>
+            <input type="hidden" id="modeSelect" value="essay">
 
             <label>📄 주제 또는 키워드</label>
             <textarea id="topicInput" rows="3" placeholder="예: 노후의 친구 관계, 황혼 육아..."></textarea>
