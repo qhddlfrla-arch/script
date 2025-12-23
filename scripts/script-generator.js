@@ -790,6 +790,28 @@ generateBtn.addEventListener('click', async () => {
 
     // ★★★ 파트 정보 및 클로징 규칙 ★★★
     const isLastPart = nextPart >= totalParts;
+
+    // ★ 지난 이야기에서 마지막 의미있는 문장 추출 ★
+    let lastSentence = '';
+    if (prevStory && prevStory.trim().length > 100) {
+        // [계속...], [IMAGE_PROMPTS] 등을 제거하고 마지막 의미있는 문장 찾기
+        let cleanPrev = prevStory
+            .replace(/\[계속\.{3}\]/g, '')
+            .replace(/\[IMAGE_PROMPTS\][\s\S]*/g, '')
+            .replace(/\[YOUTUBE_PACKAGE\][\s\S]*/g, '')
+            .replace(/\[SAFETY_LOG\][\s\S]*/g, '')
+            .replace(/━+.*━+/g, '')
+            .trim();
+
+        // 마지막 2-3문장 추출 (마침표, 물음표, 느낌표로 분리)
+        const sentences = cleanPrev.split(/(?<=[.?!。])\s+/).filter(s => s.trim().length > 10);
+        if (sentences.length >= 2) {
+            lastSentence = sentences.slice(-2).join(' ');
+        } else if (sentences.length === 1) {
+            lastSentence = sentences[0];
+        }
+    }
+
     const partInfo = `
 🚨🚨🚨 [매우 중요] 현재 작성 중인 파트 정보 🚨🚨🚨
 
@@ -805,6 +827,22 @@ ${isLastPart ?
    - "구독과 좋아요 부탁드립니다" 같은 문구 금지!!!
    - 스토리 중간에서 "[계속...]"으로 끝내세요!
    - 예: "그녀는 아들의 손을 꼭 잡았다. 그리고... [계속...]"`}
+
+${lastSentence ? `
+★★★★★ [최우선] 이어쓰기 지침 - 자연스럽게 연결하세요! ★★★★★
+
+▶ 파트${nextPart - 1}의 마지막 장면:
+"${lastSentence}"
+
+▶ 파트${nextPart} 시작 규칙:
+1. 위 문장의 **바로 다음 순간**부터 시작하세요!
+2. 새로운 오프닝/도입부 없이 즉시 이어서 쓰세요!
+3. 같은 장면, 같은 감정선을 이어가세요!
+4. 예시:
+   - 파트1 끝: "영희는 문을 열었다."
+   - 파트2 시작: "문 너머에는 예상치 못한 손님이 서 있었다."
+5. 인물 이름, 성격, 상황을 100% 동일하게 유지하세요!
+` : ''}
 `;
 
     const fullPrompt = `${systemPromptBase}\n\n${COMMON_RULES}\n\n${scriptUsageRule}\n\n${partInfo}\n\n[사용자 대본 - 구조 유지, 오프닝/클로징만 수정!]\n${topic}\n\n[추가 정보]\n- 지난이야기: ${prevStory}\n- 감성: ${selectedTone}\n- 분량: ${duration}`;
