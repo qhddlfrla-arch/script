@@ -1013,6 +1013,94 @@ sendToImageBtn.addEventListener('click', () => {
     document.getElementById('imageSection').scrollIntoView({ behavior: 'smooth' });
 });
 
+// ============================================================
+// 맞춤 프롬프트 생성 기능
+// ============================================================
+const generateCustomPromptsBtn = document.getElementById('generateCustomPromptsBtn');
+if (generateCustomPromptsBtn) {
+    generateCustomPromptsBtn.addEventListener('click', async () => {
+        const fullText = document.getElementById('result').innerText;
+        const customCount = parseInt(document.getElementById('customPromptCount').value, 10);
+        const imageInput = document.getElementById('imageScriptInput');
+
+        // 대본에서 순수 텍스트만 추출
+        let pureScript = fullText.split('[IMAGE_PROMPTS]')[0].trim();
+        pureScript = pureScript.split('[SAFETY_LOG]')[0].trim();
+        pureScript = pureScript.split('[YOUTUBE_PACKAGE]')[0].trim();
+        pureScript = pureScript.split('---')[0].trim();
+
+        if (!pureScript || pureScript === '여기에 대본이 나옵니다...' || pureScript.length < 100) {
+            return alert("먼저 대본을 생성해주세요!");
+        }
+
+        const apiKey = getGeminiAPIKey();
+        if (!apiKey) return alert("API 키가 없습니다.");
+
+        generateCustomPromptsBtn.disabled = true;
+        generateCustomPromptsBtn.innerText = "⏳ 생성 중...";
+
+        const customPromptRequest = `
+당신은 유튜브 영상용 이미지 프롬프트 생성 전문가입니다.
+아래 대본을 분석하여 **정확히 ${customCount}개**의 이미지 프롬프트를 생성하세요.
+
+★★★ 필수 규칙 ★★★
+1. 반드시 **${customCount}개**의 프롬프트를 생성하세요 (더 많거나 적으면 안 됨)
+2. 대본 전체에 걸쳐 **균등하게** 장면을 배분하세요
+3. 모든 프롬프트는 **영어**로 작성하고, 괄호 안에 **한글 설명** 추가
+4. 캐릭터와 장면의 **일관성** 유지 (같은 인물은 동일한 외모 묘사)
+5. 각 프롬프트에 감정, 조명, 분위기를 포함하세요
+
+★★★ 출력 형식 ★★★
+반드시 아래 형식만 출력하세요:
+1. [영어 프롬프트] (한글 설명)
+2. [영어 프롬프트] (한글 설명)
+...
+${customCount}. [영어 프롬프트] (한글 설명)
+
+★★★ 대본 ★★★
+${pureScript.substring(0, 15000)}
+`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: customPromptRequest }] }],
+                    generationConfig: {
+                        maxOutputTokens: 8000,
+                        temperature: 0.7
+                    }
+                })
+            });
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error?.message || "통신 오류");
+            if (!data.candidates || !data.candidates[0].content) throw new Error("AI 응답이 비어있습니다");
+
+            const generatedText = data.candidates[0].content.parts[0].text;
+
+            // 프롬프트 파싱 및 표시
+            imageInput.value = generatedText;
+            const promptsArray = generatedText.split('\n').filter(line => line.trim().match(/^\d+\./));
+            generatedPrompts = promptsArray;
+            saveToStorage(STORAGE_KEYS.IMAGE_PROMPTS, generatedPrompts);
+
+            renderPromptList(promptsArray);
+
+            alert(`✅ ${promptsArray.length}개의 맞춤 프롬프트가 생성되었습니다!`);
+            document.getElementById('imageSection').scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            alert("❌ 오류 발생: " + error.message);
+            console.error(error);
+        } finally {
+            generateCustomPromptsBtn.disabled = false;
+            generateCustomPromptsBtn.innerText = "🎯 맞춤 프롬프트 생성";
+        }
+    });
+}
+
 // 프롬프트 목록 렌더링 함수
 function renderPromptList(promptsArray) {
     const promptList = document.getElementById('promptList');
@@ -1166,18 +1254,37 @@ async function generateImageWithGemini(prompt, apiKey) {
 
 startImageBtn.addEventListener('click', async () => {
     const script = document.getElementById('imageScriptInput').value;
+    let allPrompts = [];
+
     if (!script.trim()) {
         // 저장된 프롬프트가 있으면 사용
         if (generatedPrompts.length > 0) {
-            globalParagraphs = generatedPrompts;
+            allPrompts = generatedPrompts;
         } else {
             return alert("프롬프트가 없습니다. 먼저 '삽화 프롬프트 추출하기' 버튼을 눌러주세요.");
         }
     } else {
-        globalParagraphs = script.split('\n').filter(l => l.trim().length > 5);
+        allPrompts = script.split('\n').filter(l => l.trim().length > 5);
     }
 
-    if (globalParagraphs.length === 0) return alert("내용이 부족합니다.");
+    if (allPrompts.length === 0) return alert("내용이 부족합니다.");
+
+    // ★ 이미지 개수 선택 적용 ★
+    const imageCountSelect = document.getElementById('imageCountSelect');
+    const selectedCount = imageCountSelect ? imageCountSelect.value : 'all';
+
+    if (selectedCount === 'all') {
+        globalParagraphs = allPrompts;
+    } else {
+        const count = parseInt(selectedCount, 10);
+        globalParagraphs = allPrompts.slice(0, count);
+    }
+
+    // 프롬프트 개수 정보 표시
+    const promptCountInfo = document.getElementById('promptCountInfo');
+    if (promptCountInfo) {
+        promptCountInfo.innerText = `(총 ${allPrompts.length}개 중 ${globalParagraphs.length}개 생성 예정)`;
+    }
 
     const apiKey = getGeminiAPIKey();
     if (!apiKey) return alert("API 키가 없습니다. 위에서 API 키를 입력하고 저장하세요.");
