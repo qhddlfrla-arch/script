@@ -496,17 +496,16 @@
 
             <label>⏱️ 영상 길이</label>
             <select id="durationSelect">
-                <option value="8min">8분</option>
-                <option value="10min">10분</option>
-                <option value="15min" selected>15분 (추천)</option>
-                <option value="20min">20분</option>
-                <option value="30min">30분</option>
-                <option value="60min">1시간</option>
-                <option value="90min">1시간30분</option>
-                <option value="120min">2시간</option>
+                <option value="8min" data-parts="1">8분 (1회 생성)</option>
+                <option value="10min" data-parts="1">10분 (1회 생성)</option>
+                <option value="15min" data-parts="1" selected>15분 (1회 생성, 추천)</option>
+                <option value="20min" data-parts="1">20분 (1회 생성)</option>
+                <option value="30min" data-parts="2">30분 (2회 생성)</option>
+                <option value="60min" data-parts="4">1시간 (4회 생성)</option>
+                <option value="90min" data-parts="6">1시간30분 (6회 생성)</option>
+                <option value="120min" data-parts="8">2시간 (8회 생성)</option>
             </select>
-            <p style="color: #ffc107; font-size: 0.8rem; margin-top: 8px;">💡 30분 이상: 파트1 먼저 생성 → "지난 이야기"에 파트1 내용 입력 →
-                다시 생성하면 파트2 이어서 작성됩니다.</p>
+            <p id="durationGuideText" style="color: #ffc107; font-size: 0.8rem; margin-top: 8px;">✅ 1회 생성으로 완성됩니다.</p>
 
             <button id="generateBtn">🚀 안전 대본 생성</button>
         </div>

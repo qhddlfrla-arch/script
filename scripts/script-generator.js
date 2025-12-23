@@ -614,6 +614,24 @@ toneButtons.forEach(btn => {
     });
 });
 
+// 영상 길이 선택 시 안내 문구 동적 업데이트
+const durationSelect = document.getElementById('durationSelect');
+const durationGuideText = document.getElementById('durationGuideText');
+if (durationSelect && durationGuideText) {
+    durationSelect.addEventListener('change', () => {
+        const selectedOption = durationSelect.selectedOptions[0];
+        const parts = parseInt(selectedOption.getAttribute('data-parts'), 10);
+
+        if (parts === 1) {
+            durationGuideText.innerHTML = '✅ <strong>1회 생성</strong>으로 완성됩니다.';
+            durationGuideText.style.color = '#4caf50';
+        } else {
+            durationGuideText.innerHTML = `⚠️ <strong>${parts}회 생성</strong> 필요! 파트1 생성 후 → "지난 이야기"에 붙여넣기 → 다시 생성 (${parts}번 반복)`;
+            durationGuideText.style.color = '#ffc107';
+        }
+    });
+}
+
 // API 키 관리
 const apiKeyInput = document.getElementById('apiKeyInput');
 const saveKeyBtn = document.getElementById('saveKeyBtn');
