@@ -926,20 +926,25 @@ ${isLastPart ?
             let accumulatedScript = localStorage.getItem(ACCUMULATED_SCRIPT_KEY) || '';
 
             if (!accumulatedScript) {
-                // 첫 이어쓰기: 지난 이야기를 기반으로
+                // 첫 이어쓰기: 지난 이야기를 기반으로 (파트1 헤더 추가)
                 let cleanPrevStory = prevStory
                     .replace(/\[SCRIPT\]/g, '')
                     .replace(/\[계속\.{3}\]/g, '')
                     .replace(/```\w*\n?/g, '')
                     .trim();
-                accumulatedScript = cleanPrevStory;
+                // 파트1 헤더가 없으면 추가
+                if (!cleanPrevStory.includes('파트 1 대본')) {
+                    accumulatedScript = `\n\n━━━━━━━━━━ 📝 파트 1 대본 ━━━━━━━━━━\n\n${cleanPrevStory}`;
+                } else {
+                    accumulatedScript = cleanPrevStory;
+                }
                 currentPartCount = 1;
             }
 
             currentPartCount++;
 
-            // 누적 대본에 새 파트 추가
-            accumulatedScript = `${accumulatedScript}\n\n========== ✅ 파트 ${currentPartCount} 완성 ==========\n\n${cleanNewPart}`;
+            // 누적 대본에 새 파트 추가 (명확한 파트 헤더)
+            accumulatedScript = `${accumulatedScript}\n\n━━━━━━━━━━ 📝 파트 ${currentPartCount} 대본 ━━━━━━━━━━\n\n${cleanNewPart}`;
 
             // localStorage에 저장
             localStorage.setItem(ACCUMULATED_SCRIPT_KEY, accumulatedScript);
@@ -960,7 +965,7 @@ ${isLastPart ?
 
             // [계속...]이 있으면 파트1 표시
             if (cleanNewPart.includes('[계속') || mainContent.includes('[계속')) {
-                finalContent = `[SCRIPT]\n\n========== ✅ 파트 1 완성 ==========\n\n${cleanNewPart}`;
+                finalContent = `[SCRIPT]\n\n━━━━━━━━━━ 📝 파트 1 대본 ━━━━━━━━━━\n\n${cleanNewPart}`;
             } else {
                 finalContent = mainContent.trim();
             }
