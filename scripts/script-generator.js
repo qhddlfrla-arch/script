@@ -801,9 +801,19 @@ generateBtn.addEventListener('click', async () => {
             }
             titlesBox.innerHTML = titleLines.map((t, i) => `<div style="margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px;">🎬 ${i + 1}. ${t.replace(/제목\s*\d?\s*[:.]\s*/, '').replace(/^\d+\.\s*/, '').trim()}</div>`).join('');
 
-            const tagMatch = ytContent.match(/태그:\s*(.+)/);
-            if (tagMatch) {
+            // 태그 파싱 개선 - 다양한 형식 지원
+            let tagMatch = ytContent.match(/태그\s*[:：]\s*(.+)/);
+            if (!tagMatch) {
+                // "태그" 이후의 콤마로 구분된 줄 찾기
+                const tagLine = ytContent.split('\n').find(l => l.includes('태그') || (l.includes(',') && l.split(',').length >= 3));
+                if (tagLine) {
+                    tagMatch = [null, tagLine.replace(/태그\s*[:：]?\s*/, '')];
+                }
+            }
+            if (tagMatch && tagMatch[1]) {
                 tagsBox.innerText = tagMatch[1].trim();
+            } else {
+                tagsBox.innerText = '태그 없음';
             }
 
             youtubePackageBox.style.display = 'block';
@@ -919,6 +929,48 @@ generateBtn.addEventListener('click', async () => {
                 });
 
                 partDownloadButtons.appendChild(btn);
+            }
+
+            // ★ 파트별 프롬프트 다운로드 버튼 생성 ★
+            const partPromptButtons = document.getElementById('partPromptButtons');
+            if (partPromptButtons) {
+                partPromptButtons.innerHTML = '';
+
+                for (let i = 0; i < currentPartNum; i++) {
+                    const promptBtn = document.createElement('button');
+                    promptBtn.innerText = `🎨 파트${i + 1} 프롬프트`;
+                    promptBtn.style.cssText = 'background: linear-gradient(135deg, #ff512f, #dd2476); border: none; border-radius: 6px; padding: 8px 12px; color: white; cursor: pointer; font-size: 0.8rem; margin: 2px;';
+
+                    const promptIndex = i;
+                    promptBtn.addEventListener('click', () => {
+                        // 해당 파트의 프롬프트 추출 (이미지 프롬프트 섹션에서)
+                        const fullText = document.getElementById('result').innerText;
+                        const imgParts = fullText.split('[IMAGE_PROMPTS]');
+
+                        if (imgParts.length > 1) {
+                            let allPrompts = imgParts[1].split('[SAFETY_LOG]')[0].split('[YOUTUBE_PACKAGE]')[0].trim();
+                            let promptLines = allPrompts.split('\n').filter(l => /^\d+\./.test(l.trim()));
+
+                            // 파트당 프롬프트 개수 계산 (대략 균등 분배)
+                            const promptsPerPart = Math.ceil(promptLines.length / currentPartNum);
+                            const startIdx = promptIndex * promptsPerPart;
+                            const endIdx = Math.min(startIdx + promptsPerPart, promptLines.length);
+                            const partPrompts = promptLines.slice(startIdx, endIdx).join('\n');
+
+                            const blob = new Blob([partPrompts], { type: 'text/plain;charset=utf-8' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `prompts_part${promptIndex + 1}_${Date.now()}.txt`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        } else {
+                            alert('프롬프트를 찾을 수 없습니다. 먼저 "삽화 프롬프트 추출하기"를 클릭해주세요.');
+                        }
+                    });
+
+                    partPromptButtons.appendChild(promptBtn);
+                }
             }
         }
 
