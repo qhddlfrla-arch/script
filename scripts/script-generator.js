@@ -932,6 +932,33 @@ ${isLastPart ?
             .replace(/\[계속\.{3}\]/g, '')
             .trim();
 
+        // ★★★ 마지막 파트가 아니면 클로징 자동 제거 ★★★
+        if (!isLastPart) {
+            // 클로징 패턴들 제거
+            const closingPatterns = [
+                /여러분,?\s*오늘\s*이야기.*?어떠셨나요\?/gs,
+                /6070\s*인생\s*라디오.*?여울.*?이?었습니다\.?/gs,
+                /구독과?\s*좋아요.*?부탁드립니다\.?/gs,
+                /댓글로?\s*여러분의?\s*이야기.*?들려주세요\.?/gs,
+                /알림\s*설정.*?잊지\s*마세요\.?/gs,
+                /다음\s*이야기.*?기대해?\s*주세요\.?/gs,
+                /오늘도?\s*함께\s*해\s*주셔서.*?감사합니다\.?/gs,
+                /여러분의?\s*인생\s*이야기.*?기다리겠습니다\.?/gs,
+                /채널.*?구독.*?좋아요/gs,
+                /시청해?\s*주셔서\s*감사합니다\.?/gs,
+            ];
+
+            for (const pattern of closingPatterns) {
+                cleanNewPart = cleanNewPart.replace(pattern, '');
+            }
+
+            // 끝부분 정리 및 [계속...] 추가
+            cleanNewPart = cleanNewPart.trim();
+            if (!cleanNewPart.endsWith('[계속...]')) {
+                cleanNewPart = cleanNewPart + '\n\n[계속...]';
+            }
+        }
+
         let finalContent = '';
 
         if (prevStory && prevStory.trim().length > 100) {
