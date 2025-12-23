@@ -873,6 +873,46 @@ generateBtn.addEventListener('click', async () => {
             prevStoryInput.value = accumulatedScript;
         }
 
+        // ★ 파트별 다운로드 버튼 생성 ★
+        const partDownloadContainer = document.getElementById('partDownloadContainer');
+        const partDownloadButtons = document.getElementById('partDownloadButtons');
+        const currentPartNum = parseInt(localStorage.getItem('scriptRemixer_partCount') || '1', 10);
+
+        if (partDownloadContainer && partDownloadButtons && currentPartNum >= 1) {
+            partDownloadContainer.style.display = 'block';
+            partDownloadButtons.innerHTML = '';
+
+            // 누적된 대본을 파트별로 분리
+            const accumulatedScript = localStorage.getItem('scriptRemixer_accumulatedScript') || '';
+            const parts = accumulatedScript.split(/={5,}\s*✅\s*파트\s*\d+\s*완성\s*={5,}/);
+
+            for (let i = 0; i < currentPartNum; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = `📥 파트${i + 1}`;
+                btn.style.cssText = 'background: linear-gradient(135deg, #4da3ff, #6c5ce7); border: none; border-radius: 6px; padding: 8px 16px; color: white; cursor: pointer; font-size: 0.85rem;';
+
+                btn.addEventListener('click', () => {
+                    let partContent = '';
+                    if (parts[i]) {
+                        partContent = parts[i].trim();
+                    } else {
+                        // 파트 구분이 안 되면 전체 대본에서 추정
+                        partContent = accumulatedScript;
+                    }
+
+                    const blob = new Blob([partContent], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `script_part${i + 1}_${Date.now()}.txt`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+
+                partDownloadButtons.appendChild(btn);
+            }
+        }
+
         document.getElementById('editRequestSection').style.display = 'block';
 
         safetyBox.style.display = 'block';
