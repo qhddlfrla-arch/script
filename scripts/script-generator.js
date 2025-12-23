@@ -1265,9 +1265,23 @@ sendToImageBtn.addEventListener('click', () => {
     let promptsArray = [];
 
     if (parts.length > 1) {
-        let promptOnly = parts[1].split('[SAFETY_LOG]')[0].trim();
+        let promptOnly = parts[1]
+            .split('[SAFETY_LOG]')[0]
+            .split('[YOUTUBE_PACKAGE]')[0]
+            .split('[SCRIPT]')[0]
+            .trim();
+
+        // 불필요한 텍스트 제거 (대본 내용이 섞여 들어온 경우)
+        promptOnly = promptOnly.replace(/^.*?(?=\d+\.\s)/s, ''); // 첫 번째 숫자 프롬프트 전까지 제거
+
         imageInput.value = promptOnly;
-        promptsArray = promptOnly.split('\n').filter(line => line.trim().length > 5);
+
+        // 번호로 시작하는 줄만 프롬프트로 인식
+        promptsArray = promptOnly.split('\n').filter(line => {
+            const trimmed = line.trim();
+            return trimmed.length > 5 && /^\d+\./.test(trimmed);
+        });
+
         generatedPrompts = promptsArray;
         saveToStorage(STORAGE_KEYS.IMAGE_PROMPTS, generatedPrompts);
     } else {
