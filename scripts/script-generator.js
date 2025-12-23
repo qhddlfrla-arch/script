@@ -924,8 +924,11 @@ ${lastSentence ? `
         // 현재 파트 번호 가져오기
         let currentPartCount = parseInt(localStorage.getItem(PART_COUNT_KEY) || '0', 10);
 
-        // 새 파트 정리
+        // 새 파트 정리 (순수 대본만 추출)
         let cleanNewPart = mainContent.trim()
+            .split('[IMAGE_PROMPTS]')[0]  // ★ 프롬프트 섹션 제거 ★
+            .split('[YOUTUBE_PACKAGE]')[0] // ★ 유튜브 패키지 제거 ★
+            .split('[SAFETY_LOG]')[0]      // ★ 안전성 로그 제거 ★
             .replace(/\[SCRIPT\]/g, '')
             .replace(/\[계속\.{3}\]/g, '')
             .trim();
@@ -1036,8 +1039,15 @@ ${lastSentence ? `
         // ★ 자동 이어쓰기: 생성된 대본을 "지난 이야기"에 자동으로 채우기 ★
         const prevStoryInput = document.getElementById('prevStoryInput');
         if (prevStoryInput && totalParts > 1) {
-            // 누적된 대본을 지난 이야기에 자동으로 채움
-            const accumulatedScript = localStorage.getItem('scriptRemixer_accumulatedScript') || cleanNewPart;
+            // 누적된 대본을 지난 이야기에 자동으로 채움 (프롬프트/패키지 제거!)
+            let accumulatedScript = localStorage.getItem('scriptRemixer_accumulatedScript') || cleanNewPart;
+
+            // ★★★ 순수 대본만 추출 (IMAGE_PROMPTS, YOUTUBE_PACKAGE, SAFETY_LOG 제거) ★★★
+            accumulatedScript = accumulatedScript.split('[IMAGE_PROMPTS]')[0];
+            accumulatedScript = accumulatedScript.split('[YOUTUBE_PACKAGE]')[0];
+            accumulatedScript = accumulatedScript.split('[SAFETY_LOG]')[0];
+            accumulatedScript = accumulatedScript.replace(/\[SCRIPT\]/g, '').trim();
+
             prevStoryInput.value = accumulatedScript;
         }
 
