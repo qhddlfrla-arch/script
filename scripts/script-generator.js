@@ -713,6 +713,12 @@ generateBtn.addEventListener('click', async () => {
 
     if (!topic) return alert("주제를 입력해주세요!");
 
+    // 현재 파트 번호 계산
+    const selectedOption = document.getElementById('durationSelect').selectedOptions[0];
+    const totalParts = parseInt(selectedOption.getAttribute('data-parts'), 10);
+    const currentPart = parseInt(localStorage.getItem('scriptRemixer_partCount') || '0', 10);
+    const nextPart = prevStory && prevStory.trim().length > 100 ? currentPart + 1 : 1;
+
     let loadingMsg = "";
     let systemPromptBase = "";
 
@@ -724,7 +730,13 @@ generateBtn.addEventListener('click', async () => {
         systemPromptBase = PROMPT_TUTOR;
     }
 
-    resultDiv.innerText = `${loadingMsg}\n(안전성 검사 및 미술 감독 대기 중...)`;
+    // 진행 상황 표시 업데이트
+    if (totalParts > 1) {
+        durationGuideText.innerHTML = `🔄 <strong>${totalParts}회 중 ${nextPart}회 생성 중...</strong>`;
+        durationGuideText.style.color = '#ff9800';
+    }
+
+    resultDiv.innerText = `${loadingMsg}\n(${totalParts}회 중 ${nextPart}회 생성 중... 안전성 검사 및 미술 감독 대기 중...)`;
     safetyBox.style.display = 'none';
     bridge.style.display = 'none';
 
