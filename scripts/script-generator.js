@@ -1295,23 +1295,37 @@ if (copyBlogBtn) {
     });
 }
 
-// 순수 대본 다운로드
+// 전체 대본 다운로드
 const downloadScriptBtn = document.getElementById('downloadScriptBtn');
 if (downloadScriptBtn) {
     downloadScriptBtn.addEventListener('click', () => {
-        const fullText = document.getElementById('result').innerText;
+        // localStorage에서 누적된 대본 가져오기 (없으면 화면 내용 사용)
+        let accumulatedScript = localStorage.getItem('scriptRemixer_accumulatedScript');
+        let pureScript = '';
 
-        let pureScript = fullText.split('[IMAGE_PROMPTS]')[0].trim();
-        pureScript = pureScript.split('[SAFETY_LOG]')[0].trim();
+        if (accumulatedScript && accumulatedScript.trim().length > 100) {
+            pureScript = accumulatedScript;
+        } else {
+            // fallback: 화면에서 가져오기
+            const fullText = document.getElementById('result').innerText;
+            pureScript = fullText.split('[IMAGE_PROMPTS]')[0].trim();
+            pureScript = pureScript.split('[SAFETY_LOG]')[0].trim();
+        }
+
+        // [SCRIPT] 태그 및 파트 구분선 정리
+        pureScript = pureScript
+            .replace(/\[SCRIPT\]/g, '')
+            .replace(/={5,}\s*✅\s*파트\s*\d+\s*완성\s*={5,}/g, '\n\n--- 파트 구분 ---\n\n')
+            .trim();
 
         const blob = new Blob([pureScript], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
         const date = new Date().toLocaleDateString('ko-KR').replace(/\./g, '-').replace(/ /g, '');
         link.href = URL.createObjectURL(blob);
-        link.download = `대본_${date}.txt`;
+        link.download = `전체대본_${date}.txt`;
         link.click();
 
-        alert("✅ 순수 대본이 다운로드되었습니다!");
+        alert(`✅ 전체 대본이 다운로드되었습니다!\n(총 ${pureScript.length.toLocaleString()}자)`);
     });
 }
 
