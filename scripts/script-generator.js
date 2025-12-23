@@ -845,7 +845,22 @@ ${lastSentence ? `
 ` : ''}
 `;
 
-    const fullPrompt = `${systemPromptBase}\n\n${COMMON_RULES}\n\n${scriptUsageRule}\n\n${partInfo}\n\n[사용자 대본 - 구조 유지, 오프닝/클로징만 수정!]\n${topic}\n\n[추가 정보]\n- 지난이야기: ${prevStory}\n- 감성: ${selectedTone}\n- 분량: ${duration}`;
+    // ★ 감성톤 설명 맵핑 ★
+    const toneDescriptions = {
+        '따뜻한': '따뜻하고 포근한 분위기, 가슴이 따뜻해지는 이야기',
+        '차분한': '차분하고 조용한 톤, 명상적이고 고요한 분위기',
+        '희망적': '희망차고 밝은 미래를 그리는 긍정적인 톤',
+        '향수적': '옛 추억을 그리워하는 복고풍 감성, 아련한 분위기',
+        '지혜로운': '인생의 교훈과 깊은 통찰을 담은 현명한 톤',
+        '감동적': '눈물이 나올 정도로 감동적인, 깊은 울림이 있는 톤',
+        '위로하는': '상처받은 마음을 어루만지는 따뜻한 위로의 톤',
+        '유머러스': '재미있고 유쾌한, 웃음을 자아내는 경쾌한 톤',
+        '진솔한': '꾸밈없이 솔직하고 담백한, 진심이 느껴지는 톤',
+        '격려하는': '용기를 북돋아주고 힘을 주는 응원의 톤'
+    };
+    const toneGuide = toneDescriptions[selectedTone] || selectedTone;
+
+    const fullPrompt = `${systemPromptBase}\n\n${COMMON_RULES}\n\n${scriptUsageRule}\n\n${partInfo}\n\n[사용자 대본 - 구조 유지, 오프닝/클로징만 수정!]\n${topic}\n\n[추가 정보]\n- 지난이야기: ${prevStory}\n- ★★★ 감성톤 (매우 중요!): ${selectedTone} - ${toneGuide}. 이 감성이 대본 전체에 스며들도록 작성하세요!\n- 분량: ${duration}`;
 
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
