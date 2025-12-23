@@ -1634,8 +1634,10 @@ function renderPromptList(promptsArray) {
             }
             const antiCollage = ", single image only, one scene, centered composition, no collage, no grid, no split screen";
             navigator.clipboard.writeText(finalPrompt + antiCollage).then(() => {
-                copyBtn.innerText = '✅ 완료';
-                setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
+                copyBtn.innerText = '✅ 복사됨!';
+                // ★ ImageFX 사이트 열기 ★
+                window.open('https://aitestkitchen.withgoogle.com/tools/image-fx', '_blank');
+                setTimeout(() => copyBtn.innerText = '📋 복사', 2000);
             });
         });
 
