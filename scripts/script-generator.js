@@ -66,47 +66,54 @@ const PROMPT_ESSAY = `
 ★ 대사 처리: 따옴표("")를 사용하되, 인물의 성격이 드러나는 말투(사투리, 말버릇 등)를 자연스럽게 녹여냅니다.
 ★ 수위 조절: 자극적인 소재라도 표현은 품격 있게 다듬어, 듣기에 거북하지 않게 만듭니다.
 
-===== 3. 대본 구조 템플릿 (The 'Yeoul' Sayeon Structure) =====
-청취 유지 시간을 늘리기 위해 **[감정 후킹 - 전개 - 클라이맥스 - 여운]**의 흐름을 따릅니다.
+===== 3. 롱폼 대본 구조 템플릿 (The 'Yeoul' 6080 Structure) =====
+어르신들이 듣기 편안하면서도 끝까지 듣게 만드는 [회상과 공감] 중심의 구조입니다.
 
-[오프닝: 채널 고정의 35초]
-★ 초반 5초 (충격적 독백/후킹): 사연의 가장 극적인 순간이나 감정을 한 문장으로 던집니다.
-  - 예: "며느리가 던진 그 한마디가, 제 30년 시집살이를 송두리째 무너뜨렸습니다."
+[Part 1. 오프닝: 마음을 여는 40초]
+★ 감성 후킹 (5초): 자극적인 사건보다는 가슴 찡한 **'감정의 한 줄'**로 시작.
+  - 예: "내 평생 자식 농사가 전부인 줄 알았는데... 빈 둥지가 이렇게 추울 줄은 몰랐습니다."
 
-★ 초반 30초 (상황 빌드업):
-  - 공감대 형성: "우리 나이쯤 되면 다들 겪는 일이라지만..." 식의 접근.
-  - 문제 암시: 오늘 들려줄 이야기가 얼마나 기막히거나 감동적인지 예고.
+★ 채널 인사 및 구독 (Pre-CTA, 15초): (필수)
+  - "반갑습니다. 인생의 굽이굽이, 여러분과 함께 흐르는 **6070 인생 라디오 '여울'**입니다. 이야기 시작 전, 구독과 좋아요 한번 꾹 눌러주시면 큰 힘이 됩니다." (천천히, 정중하게)
 
-[본문: 몰입의 시간]
-★ 전개 (발단): 사건이 시작된 배경을 시간 순서 혹은 회상 형식으로 서술.
-★ 갈등 (위기): 인물 간의 대화, 구체적인 사건 발생. (브릿지 문장으로 감정의 고조를 표현).
-★ 절정 (클라이맥스): 감정이 폭발하거나 사건이 해결되는 결정적 장면. 구체적이고 생생한 묘사 필수.
+★ 사연 도입 (Intro, 20초): 사연자의 나이와 상황을 밝히며 "남의 얘기 같지 않은" 분위기 조성.
 
-[클로징: 공감과 참여 유도]
-★ 여운 (깨달음/정리): 사건을 겪은 후 주인공의 현재 심정이나 달라진 삶의 태도.
-  - 예: "이제는 저를 위해 살기로 했습니다."
+[Part 2. 본문: 인생을 걷는 시간 (롱폼 핵심)]
+★ 과거 회상 (The Past): 사건의 뿌리가 된 옛날이야기. (향수를 자극하는 디테일 포함).
 
-★ DJ 멘트 전환 (필수): 사연이 끝나고 DJ가 정리하는 톤으로 자연스럽게 전환.
-★ 채널명 언급: "지금까지 6070 인생 라디오 '여울'이었습니다."
-★ 행동 유도 (Call to Action):
-  - 공감 유도: "오늘 사연에 공감하신다면..."
-  - 구독/좋아요/댓글: "여러분의 조언을 댓글로 남겨주세요. 구독과 좋아요는 큰 힘이 됩니다."
+★ 갈등의 골 (The Conflict): 참아왔던 서운함이 터지거나, 피할 수 없는 현실의 벽(건강, 돈, 자식)에 부딪힘.
+
+★ 절정 (The Climax):
+  - 소리 지르고 싸우는 것보다, **'참았던 눈물이 터지는 순간'**이나 **'가슴을 치는 독백'**으로 감정을 폭발시킴.
+  - 이 부분에서는 문장을 아주 짧게 끊어 긴장감을 줍니다.
+
+[Part 3. 클로징: 위로와 여운]
+★ 해소 및 성찰 (Resolution): 갈등 후 얻은 평온함, 혹은 내려놓음의 지혜.
+  - "이제야 알겠습니다. 중요한 건 자식이 아니라, 내 자신이었다는 걸요."
+
+★ 작가의 따뜻한 첨언 (Outro): 사연자에게 보내는 따뜻한 응원 멘트.
+
+★ 채널명 재확인: "지금까지 **6070 인생 라디오 '여울'**이었습니다."
+
+★ 최종 행동 유도 (Final CTA):
+  - "비슷한 경험이 있으신가요? 댓글로 남겨주시면 서로에게 큰 위로가 됩니다. 구독과 좋아요 부탁드립니다. 늘 건강하세요."
 
 ===== 4. 작업 워크플로우 (Workflow) =====
-[단계 1: 사연 키워드 분석]
-- 사용자가 입력한 주제(예: '돈 빌려간 친구', '황혼 이혼')를 파악하고, 가장 공감받을 수 있는 **'감정 포인트'**를 설정합니다.
+[단계 1: 청취자 눈높이 분석]
+- 사용자 입력 주제를 6080 세대의 관점에서 재해석합니다. (예: '이혼' -> '황혼의 홀로서기', '손주' -> '눈에 넣어도 안 아픈 내 강아지')
 
-[단계 2: 플롯 구성]
-- 기승전결을 머릿속으로 그리되, **'사이다 결말'**인지 **'현실적 고민'**인지 방향을 정합니다.
-- 시니어들이 특히 반응하는 소재(자식 자랑/걱정, 건강, 노후자금, 배우자 흉/자랑)를 강조합니다.
+[단계 2: 감정선 설계]
+- 자극적인 막장 드라마보다는, 인간극장이나 아침마당 스타일의 진솔한 감동 코드를 설계합니다.
+- 오프닝의 '구독/좋아요' 요청이 상업적으로 들리지 않도록, **"서로에게 힘이 되어주세요"**라는 뉘앙스로 포장합니다.
 
-[단계 3: 대본 작성 (집필)]
-- **1인칭 시점(나)**으로 작성하여 몰입도를 극대화합니다.
-- 문장은 짧게 끊어 쓰고, 쉼표(,)와 마침표(.)를 적절히 배치하여 TTS가 숨 쉴 구간을 만듭니다.
+[단계 3: 1인칭 빙의 집필]
+- 주인공은 '나'입니다. 60~70대 화자의 말투(어휘 선택)를 완벽하게 구사합니다.
+- TTS가 너무 빠르게 읽지 않도록 쉼표(,)와 마침표(.)를 평소보다 자주 사용하여 낭독 속도를 물리적으로 제어합니다.
 
-[단계 4: 최종 검수 및 출력]
-- '여울' 채널명과 마무리 멘트가 포함되었는지 확인합니다.
-- 불필요한 설명은 없는지, 감정이 잘 전달되는지 확인 후 본문만 출력합니다.
+[단계 4: 최종 검수]
+- 어르신들이 듣기에 말이 너무 빠르거나 어렵지는 않은가?
+- '여울' 채널명과 구독/좋아요 요청이 적절히 배치되었는가?
+- 최종적으로 본문 텍스트만 출력합니다.
 
 ★★★ 중요: 반드시 한국어(한글)로 대본을 작성하세요! 영어로 작성하지 마세요! ★★★
 
@@ -255,9 +262,10 @@ const COMMON_RULES = `
 
 [이미지 프롬프트 작성]
 ★★★ 중요: 대본을 모두 작성한 후, 맨 마지막에 '[IMAGE_PROMPTS]' 섹션을 한 번만 작성하세요. ★★★
+🚨🚨🚨 최소 15개~25개 프롬프트 필수! 1-2개만 쓰면 실패! 🚨🚨🚨
 1. 대본 전체를 먼저 완성하세요.
 2. 대본이 끝나면 '[IMAGE_PROMPTS]' 제목을 쓰고, 그 아래에 모든 이미지 프롬프트를 정리해서 작성하세요.
-3. ★★★ 이미지 개수 (필수): 대본의 각 문단(단락)마다 최소 1개씩 이미지 프롬프트를 작성하세요. ★★★
+3. ★★★ 이미지 개수 (절대 규칙): 파트당 최소 15개~25개! 1-2개면 실패! ★★★
    - 8분 영상: 최소 15~20개
    - 10분 영상: 최소 20~25개
    - 15분 영상: 최소 25~35개
@@ -772,20 +780,48 @@ generateBtn.addEventListener('click', async () => {
 
     // ★★★ 대본 활용 규칙 ★★★
     const scriptUsageRule = `
-★★★ [중요] 사용자 대본 활용 규칙 ★★★
+🚨🚨🚨 [최우선 규칙] 출력 형식 🚨🚨🚨
 
-아래 [사용자 대본]을 기반으로 작업하세요:
+★★★ 절대 금지 ★★★
+❌ 영어로 시작 금지! (예: "Okay, I understand..." 금지!)
+❌ "[SCRIPT]" 앞에 설명/인사말 금지!
+❌ 사용자 대본의 문장을 그대로 복사 금지!!!
 
-✅ 유지할 것:
-- 스토리 구조, 줄거리, 사건 전개 → 그대로 사용!
-- 등장인물 이름 → 그대로 사용!
-- 대사와 상황 묘사 → 그대로 사용!
+★★★ 반드시 지켜야 할 것 ★★★
+✅ 바로 "[SCRIPT]" 제목부터 시작!
+✅ 모든 내용 100% 한글!
 
-✏️ 수정/추가할 것:
-- 오프닝: 5초 후킹(갈등/위기 장면)으로 시작하도록 다듬기
-- 클로징: 채널 지침에 맞게 작성 (마지막 파트에서만!)
-- TTS 최적화: 문단 나누기, 호흡 조절
-- [IMAGE_PROMPTS]: 이미지 프롬프트 15~25개 생성
+🎨🎨🎨 [핵심 창작 규칙] 완전히 새로운 대본을 작성하세요! 🎨🎨🎨
+
+사용자가 제공한 것은 **"줄거리 요약"**입니다. 이것을 바탕으로:
+
+★★★ 사용자 입력에서 추출할 것 (구조만!) ★★★
+- 등장인물 이름과 관계
+- 핵심 사건 (무슨 일이 일어나는지)
+- 배경 상황 (어디서, 언제)
+
+★★★ 당신이 새로 창작해야 할 것 (필수!) ★★★
+- 🎭 모든 대사를 새로 작성! (사용자 문장 그대로 쓰지 마세요!)
+- 🎬 장면 묘사를 풍부하게 새로 작성!
+- 💭 인물의 내면 심리/독백을 추가!
+- 😢 감정선과 갈등을 더 깊게!
+- 📝 TTS에 최적화된 호흡으로!
+
+🚨 예시: 사용자 입력 vs 당신이 써야 할 것 🚨
+
+❌ 사용자 입력 그대로 쓰면 안 됨:
+"회장님, 여기서 이러시면 안 돼요."
+
+✅ 당신이 새로 창작해야 함:
+"회장님!" 제 목소리가 떨렸습니다. 71세의 그 분이 갑자기... 저는 급히 주위를 둘러봤습니다. 다행히 아무도 없었습니다. "여, 여기서 그러시면... 정말 곤란합니다." 제 심장이 미친 듯이 뛰었습니다. 이게 무슨 일이지?
+
+★ 사용자 문장을 그대로 쓰면 실패! ★
+★ 완전히 새로운 문장으로 창작하세요! ★
+
+🚨🚨🚨 [필수] 이미지 프롬프트 개수 🚨🚨🚨
+★★★ [IMAGE_PROMPTS]에 **문단별 1개 이상** 프롬프트 작성! ★★★
+- 각 문단/장면마다 최소 1개씩!
+- 형식: 번호. 영어프롬프트 (한글설명)
 `;
 
     // ★★★ 파트 정보 및 클로징 규칙 ★★★
@@ -816,16 +852,25 @@ generateBtn.addEventListener('click', async () => {
 🚨🚨🚨 [매우 중요] 현재 작성 중인 파트 정보 🚨🚨🚨
 
 현재: 총 ${totalParts}개 파트 중 ${nextPart}번째 파트를 작성 중입니다.
+
+🚨🚨🚨 [필수] 파트 분량 - 반드시 지키세요! 🚨🚨🚨
+★★★ 이 파트(파트 ${nextPart})도 최소 4,000자 ~ 5,000자 이상 작성 필수! ★★★
+- 2-3문장만 쓰면 절대 실패!
+- 풍부한 장면 묘사, 대화, 감정선 포함
+- 스토리를 충분히 발전시키세요!
+
 ${isLastPart ?
             `✅ 이것은 마지막 파트입니다! 
    - 스토리를 완결하세요
    - 클로징 5가지 체크리스트를 모두 작성하세요
-   - 채널명("6070 인생 라디오 '여울'"), 구독, 좋아요 유도를 포함하세요` :
+   - 채널명("6070 인생 라디오 '여울'"), 구독, 좋아요 유도를 포함하세요
+   - ★ 이 파트도 최소 4,000자 이상! ★` :
             `🚨 이것은 마지막 파트가 아닙니다! (${nextPart}/${totalParts})
    - 클로징을 절대 작성하지 마세요!!!
    - "6070 인생 라디오 여울이었습니다" 같은 문구 금지!!!
    - "구독과 좋아요 부탁드립니다" 같은 문구 금지!!!
    - 스토리 중간에서 "[계속...]"으로 끝내세요!
+   - ★ 이 파트도 최소 4,000자 이상 작성 필수! ★
    - 예: "그녀는 아들의 손을 꼭 잡았다. 그리고... [계속...]"`}
 
 ${lastSentence ? `
@@ -890,6 +935,13 @@ ${lastSentence ? `
         // 마크다운 코드블록 제거 (```text 등)
         mainContent = mainContent.replace(/```\w*\n?/g, '').trim();
 
+        // ★★★ [SCRIPT] 전의 영어 인사말/설명 제거 ★★★
+        if (mainContent.includes('[SCRIPT]')) {
+            mainContent = '[SCRIPT]' + mainContent.split('[SCRIPT]').slice(1).join('[SCRIPT]');
+        }
+        // 영어로 시작하는 줄 제거 (Okay, I understand 등)
+        mainContent = mainContent.replace(/^(Okay|I will|I understand|Here is|Here's|Let me|Sure|Certainly)[^\n]*\n*/gi, '').trim();
+
         // 유튜브 패키지 파싱
         const youtubePackageBox = document.getElementById('youtubePackageBox');
         const titlesBox = document.getElementById('titlesBox');
@@ -939,9 +991,21 @@ ${lastSentence ? `
         // 현재 파트 번호 가져오기
         let currentPartCount = parseInt(localStorage.getItem(PART_COUNT_KEY) || '0', 10);
 
-        // 새 파트 정리 (순수 대본만 추출)
+        // ★★★ 이미지 프롬프트 섹션 별도 추출 ★★★
+        let imagePromptsSection = '';
+        if (mainContent.includes('[IMAGE_PROMPTS]')) {
+            let prompts = mainContent.split('[IMAGE_PROMPTS]')[1] || '';
+            prompts = prompts.split('[YOUTUBE_PACKAGE]')[0];
+            prompts = prompts.split('[SAFETY_LOG]')[0];
+            prompts = prompts.trim();
+            if (prompts) {
+                imagePromptsSection = '\n\n[IMAGE_PROMPTS]\n' + prompts;
+            }
+        }
+
+        // 새 파트 정리 (순수 대본만 추출 - 나중에 프롬프트 다시 추가)
         let cleanNewPart = mainContent.trim()
-            .split('[IMAGE_PROMPTS]')[0]  // ★ 프롬프트 섹션 제거 ★
+            .split('[IMAGE_PROMPTS]')[0]  // ★ 프롬프트 섹션 제거 (별도 저장됨) ★
             .split('[YOUTUBE_PACKAGE]')[0] // ★ 유튜브 패키지 제거 ★
             .split('[SAFETY_LOG]')[0]      // ★ 안전성 로그 제거 ★
             .replace(/\[SCRIPT\]/g, '')
@@ -1004,10 +1068,15 @@ ${lastSentence ? `
 
             if (!accumulatedScript) {
                 // 첫 이어쓰기: 지난 이야기를 기반으로 (파트1 헤더 추가)
+                // ★★★ 지난 이야기에서 메타데이터 섹션 모두 제거 ★★★
                 let cleanPrevStory = prevStory
+                    .split('[IMAGE_PROMPTS]')[0]    // 이미지 프롬프트 제거
+                    .split('[YOUTUBE_PACKAGE]')[0]  // 유튜브 패키지 제거
+                    .split('[SAFETY_LOG]')[0]       // 안전성 로그 제거
                     .replace(/\[SCRIPT\]/g, '')
                     .replace(/\[계속\.{3}\]/g, '')
                     .replace(/```\w*\n?/g, '')
+                    .replace(/━+.*파트\s*\d+.*━+/g, '')  // 파트 헤더 정리
                     .trim();
                 // 파트1 헤더가 없으면 추가
                 if (!cleanPrevStory.includes('파트 1 대본')) {
@@ -1020,8 +1089,8 @@ ${lastSentence ? `
 
             currentPartCount++;
 
-            // 누적 대본에 새 파트 추가 (명확한 파트 헤더)
-            accumulatedScript = `${accumulatedScript}\n\n━━━━━━━━━━ 📝 파트 ${currentPartCount} 대본 ━━━━━━━━━━\n\n${cleanNewPart}`;
+            // ★★★ 누적 대본에 새 파트 추가 (대본 + 이미지 프롬프트 포함) ★★★
+            accumulatedScript = `${accumulatedScript}\n\n━━━━━━━━━━ 📝 파트 ${currentPartCount} 대본 ━━━━━━━━━━\n\n${cleanNewPart}${imagePromptsSection}`;
 
             // localStorage에 저장
             localStorage.setItem(ACCUMULATED_SCRIPT_KEY, accumulatedScript);
@@ -1034,7 +1103,9 @@ ${lastSentence ? `
         } else {
             // 새 대본 시작
             currentPartCount = 1;
-            localStorage.setItem(ACCUMULATED_SCRIPT_KEY, cleanNewPart);
+            // ★★★ 새 대본에도 이미지 프롬프트 포함 ★★★
+            const scriptWithPrompts = cleanNewPart + imagePromptsSection;
+            localStorage.setItem(ACCUMULATED_SCRIPT_KEY, scriptWithPrompts);
             localStorage.setItem(PART_COUNT_KEY, '1');
 
             // 진행 상황 업데이트
@@ -1042,7 +1113,7 @@ ${lastSentence ? `
 
             // [계속...]이 있으면 파트1 표시
             if (cleanNewPart.includes('[계속') || mainContent.includes('[계속')) {
-                finalContent = `[SCRIPT]\n\n━━━━━━━━━━ 📝 파트 1 대본 ━━━━━━━━━━\n\n${cleanNewPart}`;
+                finalContent = `[SCRIPT]\n\n━━━━━━━━━━ 📝 파트 1 대본 ━━━━━━━━━━\n\n${scriptWithPrompts}`;
             } else {
                 finalContent = mainContent.trim();
             }
@@ -1051,19 +1122,25 @@ ${lastSentence ? `
         resultDiv.innerText = finalContent;
         bridge.style.display = 'block';
 
-        // ★ 자동 이어쓰기: 생성된 대본을 "지난 이야기"에 자동으로 채우기 ★
+        // ★ 자동 이어쓰기: 생성된 대본을 "지난 이야기"에 자동으로 채움 ★
         const prevStoryInput = document.getElementById('prevStoryInput');
-        if (prevStoryInput && totalParts > 1) {
-            // 누적된 대본을 지난 이야기에 자동으로 채움 (프롬프트/패키지 제거!)
-            let accumulatedScript = localStorage.getItem('scriptRemixer_accumulatedScript') || cleanNewPart;
+        if (prevStoryInput && totalParts > 1 && nextPart < totalParts) {
+            // 순수 대본만 추출 (프롬프트 제외)
+            let pureScript = cleanNewPart
+                .replace(/\[계속\.{3}\]/g, '')   // [계속...] 제거
+                .replace(/━+.*파트.*━+/g, '')    // 파트 헤더 제거
+                .replace(/\[IMAGE_PROMPTS\][\s\S]*/g, '')  // 프롬프트 섹션 제거
+                .replace(/\[YOUTUBE_PACKAGE\][\s\S]*/g, '') // 유튜브 패키지 제거
+                .replace(/\[SAFETY_LOG\][\s\S]*/g, '')     // 안전성 로그 제거
+                .trim();
 
-            // ★★★ 순수 대본만 추출 (IMAGE_PROMPTS, YOUTUBE_PACKAGE, SAFETY_LOG 제거) ★★★
-            accumulatedScript = accumulatedScript.split('[IMAGE_PROMPTS]')[0];
-            accumulatedScript = accumulatedScript.split('[YOUTUBE_PACKAGE]')[0];
-            accumulatedScript = accumulatedScript.split('[SAFETY_LOG]')[0];
-            accumulatedScript = accumulatedScript.replace(/\[SCRIPT\]/g, '').trim();
+            // 지난 이야기에 자동 복사
+            prevStoryInput.value = pureScript;
 
-            prevStoryInput.value = accumulatedScript;
+            // 완료 알림
+            setTimeout(() => {
+                alert(`✅ 파트 ${nextPart} 생성 완료!\n\n📋 "지난 이야기"에 자동 복사됨!\n\n다시 "안전 대본 생성" 클릭 → 파트 ${nextPart + 1} 생성!`);
+            }, 300);
         }
 
         // ★ 파트별 다운로드 버튼 생성 ★
