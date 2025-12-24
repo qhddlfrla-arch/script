@@ -1153,9 +1153,12 @@ ${lastSentence ? `
             partDownloadContainer.style.display = 'block';
             partDownloadButtons.innerHTML = '';
 
-            // 누적된 대본을 파트별로 분리
+            // 누적된 대본을 파트별로 분리 (파트 구분자: ━━━ 📝 파트 X 대본 ━━━)
             const accumulatedScript = localStorage.getItem('scriptRemixer_accumulatedScript') || finalContent;
-            const parts = accumulatedScript.split(/={5,}\s*✅\s*파트\s*\d+\s*완성\s*={5,}/);
+            // ★ 파트 구분자로 나누기 (실제 형식에 맞게 수정) ★
+            const partSections = accumulatedScript.split(/━+\s*📝\s*파트\s*\d+\s*대본\s*━+/);
+            // 첫 번째 빈 요소 제거 (split 결과)
+            const parts = partSections.filter((p, idx) => idx === 0 ? p.trim() !== '' : true);
 
             for (let i = 0; i < currentPartNum; i++) {
                 // 대본 다운로드 버튼
@@ -1205,13 +1208,13 @@ ${lastSentence ? `
                         // ★ 누적된 스크립트에서 해당 파트의 프롬프트 추출 ★
                         const accumulatedScript = localStorage.getItem('scriptRemixer_accumulatedScript') || '';
 
-                        // 파트 구분자로 나누기
-                        const partSeparator = /={5,}\s*✅\s*파트\s*\d+\s*완성\s*={5,}/;
-                        const partSections = accumulatedScript.split(partSeparator);
+                        // ★ 파트 구분자로 나누기 (실제 형식에 맞게 수정) ★
+                        const partSeparator = /━+\s*📝\s*파트\s*\d+\s*대본\s*━+/;
+                        const allParts = accumulatedScript.split(partSeparator).filter((p, idx) => idx === 0 ? p.trim() !== '' : true);
 
                         let partContent = '';
-                        if (partSections[promptIndex]) {
-                            partContent = partSections[promptIndex];
+                        if (allParts[promptIndex]) {
+                            partContent = allParts[promptIndex];
                         } else if (promptIndex === 0) {
                             // 첫 파트인데 구분자가 없으면 전체에서 추출
                             partContent = accumulatedScript;
