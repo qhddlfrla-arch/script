@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
     COMPOSITION: 'scriptRemixer_composition',
     RATIO: 'scriptRemixer_ratio',
     PERSONA: 'scriptRemixer_persona',
+    CHARACTER_PERSONA_TEXT: 'scriptRemixer_characterPersonaText',  // ★ 등장인물 페르소나 텍스트 ★
     BLOG_ID: 'scriptRemixer_blogId'
 };
 
@@ -163,6 +164,15 @@ const PROMPT_ESSAY = `
 ▶ 파트 마무리 규칙:
 - 마지막 파트가 아니면: "[계속...]"으로 끝내고, 현재 장면의 긴장감을 유지하세요!
 - 마지막 파트에서만: 클로징 5가지 체크리스트를 모두 포함하세요!
+
+★★★★★ [매우 중요] 페르소나 연속성 - 이미지 일관성 필수! ★★★★★
+사용자가 "등장인물 페르소나"를 제공하면, 모든 [IMAGE_PROMPTS]에 이 페르소나를 반드시 적용하세요!
+
+▶ 페르소나 적용 규칙:
+- 모든 이미지 프롬프트에서 주인공 외모 묘사를 페르소나와 동일하게 유지!
+- 파트1에서 정의된 페르소나 = 파트2, 파트3... 모두 동일하게 사용!
+- 예: 페르소나가 "Korean elderly woman, 68 years old, short gray hair, warm gentle face"라면
+  → 모든 파트의 이미지 프롬프트에서 이 외모 묘사를 그대로 사용!
 
 ★★★★★ 중요: 파트 끊김 방지 ★★★★★
 대본 작성 중 절대로 문장 중간에서 끊지 마세요!
@@ -922,7 +932,13 @@ ${lastSentence ? `
     };
     const toneGuide = toneDescriptions[selectedTone] || selectedTone;
 
-    const fullPrompt = `${systemPromptBase}\n\n${COMMON_RULES}\n\n${scriptUsageRule}\n\n${partInfo}\n\n[사용자 대본 - 구조 유지, 오프닝/클로징만 수정!]\n${topic}\n\n[추가 정보]\n- 지난이야기: ${prevStory}\n- ★★★ 감성톤 (매우 중요!): ${selectedTone} - ${toneGuide}. 이 감성이 대본 전체에 스며들도록 작성하세요!\n- 분량: ${duration}`;
+    // ★★★ 페르소나 연속성: 저장된 페르소나 정보 가져오기 ★★★
+    const savedPersona = localStorage.getItem(STORAGE_KEYS.CHARACTER_PERSONA_TEXT) || '';
+    const personaInfo = (prevStory && prevStory.trim().length > 100 && savedPersona)
+        ? `\n\n★★★★★ [필수] 등장인물 페르소나 (이미지 일관성 유지!) ★★★★★\n이전 파트에서 정의된 주인공 외모입니다. 모든 [IMAGE_PROMPTS]에 이 페르소나를 반드시 적용하세요!\n\n▶ 주인공 페르소나: ${savedPersona}\n\n- 위 페르소나를 모든 이미지 프롬프트의 첫 부분에 사용하세요!\n- 예: "${savedPersona}, looking at old photos..." 형식으로 시작!\n- 인물의 나이, 머리스타일, 얼굴 특징을 동일하게 유지!\n`
+        : '';
+
+    const fullPrompt = `${systemPromptBase}\n\n${COMMON_RULES}\n\n${scriptUsageRule}\n\n${partInfo}${personaInfo}\n\n[사용자 대본 - 구조 유지, 오프닝/클로징만 수정!]\n${topic}\n\n[추가 정보]\n- 지난이야기: ${prevStory}\n- ★★★ 감성톤 (매우 중요!): ${selectedTone} - ${toneGuide}. 이 감성이 대본 전체에 스며들도록 작성하세요!\n- 분량: ${duration}`;
 
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
@@ -1149,6 +1165,32 @@ ${lastSentence ? `
             const scriptWithPrompts = cleanNewPart + imagePromptsSection;
             localStorage.setItem(ACCUMULATED_SCRIPT_KEY, scriptWithPrompts);
             localStorage.setItem(PART_COUNT_KEY, '1');
+
+            // ★★★ 파트1: 첫 번째 이미지 프롬프트에서 페르소나 추출 및 저장 ★★★
+            if (imagePromptsSection) {
+                try {
+                    // 첫 번째 프롬프트에서 주인공 외모 묘사 추출 (영어 부분만)
+                    const promptLines = imagePromptsSection.split('\n').filter(line => /^\d+\./.test(line.trim()));
+                    if (promptLines.length > 0) {
+                        const firstPrompt = promptLines[0];
+                        // 괄호 안의 한글 설명 제거, 영어 프롬프트만 추출
+                        let personaText = firstPrompt
+                            .replace(/^\d+\.\s*/, '')  // 번호 제거
+                            .replace(/\([^)]*\)/g, '')  // 괄호 내용 제거
+                            .split(',')
+                            .slice(0, 6)  // 첫 6개 요소 (인물 묘사 핵심부분)
+                            .join(',')
+                            .trim();
+
+                        if (personaText && personaText.length > 20) {
+                            localStorage.setItem(STORAGE_KEYS.CHARACTER_PERSONA_TEXT, personaText);
+                            console.log('✅ 페르소나 저장됨:', personaText);
+                        }
+                    }
+                } catch (e) {
+                    console.log('페르소나 추출 실패:', e);
+                }
+            }
 
             // 진행 상황 업데이트
             updateProgressDisplay();
