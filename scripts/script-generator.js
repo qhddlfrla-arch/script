@@ -1987,7 +1987,7 @@ let firstImageCharacterDesc = '';
 async function generateNextBatch() {
     const gallery = document.getElementById('imageGallery');
     const progress = document.getElementById('progressText');
-    const BATCH_SIZE = 3;
+    const BATCH_SIZE = 10;  // ★ 한 번에 10장 생성 (남은 개수가 적으면 그만큼만 생성) ★
     const apiKey = getGeminiAPIKey();
 
     if (currentIndex >= globalParagraphs.length) {
