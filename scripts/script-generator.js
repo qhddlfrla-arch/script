@@ -964,7 +964,32 @@ ${lastSentence ? `
                 const lines = ytContent.split('\n').filter(l => l.trim() && !l.includes('태그'));
                 titleLines = lines.slice(0, 3);
             }
-            titlesBox.innerHTML = titleLines.map((t, i) => `<div style="margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px;">🎬 ${i + 1}. ${t.replace(/제목\s*\d?\s*[:.]\s*/, '').replace(/^\d+\.\s*/, '').trim()}</div>`).join('');
+            titlesBox.innerHTML = titleLines.map((t, i) => {
+                const titleText = t.replace(/제목\s*\d?\s*[:.]\s*/, '').replace(/^\d+\.\s*/, '').trim();
+                return `<div style="margin-bottom: 8px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                    <span style="flex: 1;">🎬 ${i + 1}. ${titleText}</span>
+                    <button class="copy-title-btn" data-title="${titleText.replace(/"/g, '&quot;')}" style="background: #4da3ff; border: none; border-radius: 5px; padding: 5px 12px; color: white; cursor: pointer; font-size: 12px; white-space: nowrap;">📋 복사</button>
+                </div>`;
+            }).join('');
+
+            // 복사 버튼 이벤트 리스너 추가
+            document.querySelectorAll('.copy-title-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const title = e.target.getAttribute('data-title');
+                    try {
+                        await navigator.clipboard.writeText(title);
+                        const originalText = e.target.innerText;
+                        e.target.innerText = '✅ 복사됨!';
+                        e.target.style.background = '#28a745';
+                        setTimeout(() => {
+                            e.target.innerText = originalText;
+                            e.target.style.background = '#4da3ff';
+                        }, 1500);
+                    } catch (err) {
+                        alert('복사 실패: ' + err);
+                    }
+                });
+            });
 
             // 태그 파싱 개선 - 다양한 형식 지원
             let tagMatch = ytContent.match(/태그\s*[:：]\s*(.+)/);
