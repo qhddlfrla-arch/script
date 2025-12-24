@@ -1058,6 +1058,36 @@ ${lastSentence ? `
             prompts = prompts.trim();
             if (prompts) {
                 imagePromptsSection = '\n\n[IMAGE_PROMPTS]\n' + prompts;
+
+                // ★★★ 페르소나 추출 및 저장 (저장된 게 없을 때만) ★★★
+                const existingPersona = localStorage.getItem(STORAGE_KEYS.CHARACTER_PERSONA_TEXT);
+                if (!existingPersona || existingPersona.length < 20) {
+                    try {
+                        // 첫 번째 프롬프트에서 주인공 외모 묘사 추출 (영어 부분만)
+                        const promptLines = prompts.split('\n').filter(line => /^\d+\./.test(line.trim()));
+                        if (promptLines.length > 0) {
+                            const firstPrompt = promptLines[0];
+                            // 괄호 안의 한글 설명 제거, 영어 프롬프트만 추출
+                            let personaText = firstPrompt
+                                .replace(/^\d+\.\s*/, '')  // 번호 제거
+                                .replace(/\([^)]*\)/g, '')  // 괄호 내용 제거
+                                .split(',')
+                                .slice(0, 6)  // 첫 6개 요소 (인물 묘사 핵심부분)
+                                .join(',')
+                                .trim();
+
+                            if (personaText && personaText.length > 20) {
+                                localStorage.setItem(STORAGE_KEYS.CHARACTER_PERSONA_TEXT, personaText);
+                                console.log('✅ 페르소나 저장됨:', personaText);
+                                alert(`✅ 등장인물 페르소나 저장됨!\n\n${personaText}\n\n이 페르소나가 다음 파트에도 적용됩니다.`);
+                            }
+                        }
+                    } catch (e) {
+                        console.log('페르소나 추출 실패:', e);
+                    }
+                } else {
+                    console.log('ℹ️ 이미 저장된 페르소나 사용:', existingPersona);
+                }
             }
         }
 
@@ -1161,36 +1191,13 @@ ${lastSentence ? `
         } else {
             // 새 대본 시작
             currentPartCount = 1;
+            // ★★★ 새 대본 시작시 기존 페르소나 초기화 ★★★
+            localStorage.removeItem(STORAGE_KEYS.CHARACTER_PERSONA_TEXT);
+
             // ★★★ 새 대본에도 이미지 프롬프트 포함 ★★★
             const scriptWithPrompts = cleanNewPart + imagePromptsSection;
             localStorage.setItem(ACCUMULATED_SCRIPT_KEY, scriptWithPrompts);
             localStorage.setItem(PART_COUNT_KEY, '1');
-
-            // ★★★ 파트1: 첫 번째 이미지 프롬프트에서 페르소나 추출 및 저장 ★★★
-            if (imagePromptsSection) {
-                try {
-                    // 첫 번째 프롬프트에서 주인공 외모 묘사 추출 (영어 부분만)
-                    const promptLines = imagePromptsSection.split('\n').filter(line => /^\d+\./.test(line.trim()));
-                    if (promptLines.length > 0) {
-                        const firstPrompt = promptLines[0];
-                        // 괄호 안의 한글 설명 제거, 영어 프롬프트만 추출
-                        let personaText = firstPrompt
-                            .replace(/^\d+\.\s*/, '')  // 번호 제거
-                            .replace(/\([^)]*\)/g, '')  // 괄호 내용 제거
-                            .split(',')
-                            .slice(0, 6)  // 첫 6개 요소 (인물 묘사 핵심부분)
-                            .join(',')
-                            .trim();
-
-                        if (personaText && personaText.length > 20) {
-                            localStorage.setItem(STORAGE_KEYS.CHARACTER_PERSONA_TEXT, personaText);
-                            console.log('✅ 페르소나 저장됨:', personaText);
-                        }
-                    }
-                } catch (e) {
-                    console.log('페르소나 추출 실패:', e);
-                }
-            }
 
             // 진행 상황 업데이트
             updateProgressDisplay();
