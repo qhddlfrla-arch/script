@@ -2921,6 +2921,8 @@ function renderBlogPromptList(prompts) {
             navigator.clipboard.writeText(englishPrompt).then(() => {
                 copyBtn.innerText = '✅ 완료';
                 setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
+                // ★ 복사 후 바로 ImageFX 열기 ★
+                window.open('https://aitestkitchen.withgoogle.com/tools/image-fx', '_blank');
             });
         });
 
