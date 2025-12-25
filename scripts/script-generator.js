@@ -222,13 +222,21 @@ const PROMPT_ESSAY = `
 - 마지막 파트에서만: 클로징 5가지 체크리스트를 모두 포함하세요!
 
 ★★★★★ [매우 중요] 페르소나 연속성 - 이미지 일관성 필수! ★★★★★
-사용자가 "등장인물 페르소나"를 제공하면, 모든 [IMAGE_PROMPTS]에 이 페르소나를 반드시 적용하세요!
+AI 이미지 생성기는 프롬프트 간 메모리가 없습니다!
+"Same woman" 또는 이름만 쓰면 매번 다른 사람이 생성됩니다!
+반드시 모든 프롬프트에 동일한 상세 외모 묘사를 반복하세요!
 
-▶ 페르소나 적용 규칙:
-- 모든 이미지 프롬프트에서 주인공 외모 묘사를 페르소나와 동일하게 유지!
-- 파트1에서 정의된 페르소나 = 파트2, 파트3... 모두 동일하게 사용!
-- 예: 페르소나가 "Korean elderly woman, 68 years old, short gray hair, warm gentle face"라면
-  → 모든 파트의 이미지 프롬프트에서 이 외모 묘사를 그대로 사용!
+▶ 페르소나 정의 규칙:
+1. 첫 번째 프롬프트에서 주인공의 상세 외모를 정의합니다:
+   - 나이: 68 years old (정확한 숫자)
+   - 머리: short gray permed hair
+   - 얼굴: warm gentle face, soft wrinkles, kind eyes
+   - 의상: comfortable beige cardigan (현대적 의상)
+   - 시대: modern Korean, 2020s era (필수!)
+
+2. 모든 후속 프롬프트에서 위 외모 묘사를 그대로 복사하여 사용합니다!
+   ⛔ 절대 금지: "Same woman", "Boksoon", 이름만 사용
+   ✅ 반드시: 매번 "Korean elderly woman, 68 years old, short gray permed hair..." 전체 반복!
 
 ★★★★★ 중요: 파트 끊김 방지 ★★★★★
 대본 작성 중 절대로 문장 중간에서 끊지 마세요!
@@ -246,12 +254,16 @@ const PROMPT_ESSAY = `
 - 파트2: 해당 파트의 새로운 장면에 맞는 이미지 프롬프트 **15~25개** 작성 (필수!)
 - 파트3 이후: 마찬가지로 각 파트마다 **15~25개** 작성 (필수!)
 
-[IMAGE_PROMPTS] 형식 예시:
-1. Korean elderly woman, Boksoon, with short gray hair... (60대 여성 봉순 할머니)
-2. Same Korean elderly woman Boksoon looking at old photo... (사진을 보는 봉순)
-3. ...
-15. ... (최소 여기까지!)
-... (더 많이 작성 가능)
+[IMAGE_PROMPTS] 형식 예시 (★ 모든 프롬프트에 상세 외모 반복 필수! ★):
+1. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean home, 2020s era, looking at her son with loving eyes, photorealistic, cinematic lighting. (아들을 바라보는 봉순)
+2. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean living room, 2020s era, holding old photograph with tearful eyes. (옛 사진을 보며 눈물짓는 봉순)
+3. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean kitchen, 2020s era, cooking traditional Korean food. (음식을 만드는 봉순)
+...
+15. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean hospital, 2020s era, hugging her son. (아들을 안아주는 봉순)
+
+⛔ 잘못된 예시 (이렇게 쓰면 나이/외모가 매번 바뀜!):
+2. Same Korean elderly woman Boksoon looking at old photo... (❌)
+3. Boksoon sitting peacefully... (❌)
 
 분량: 사용자가 지정한 영상 길이에 맞게 충분한 분량의 대본을 작성하세요.
 `;
@@ -345,14 +357,37 @@ const COMMON_RULES = `
    - 15분 영상: 최소 25~35개
    - 20분 영상: 최소 35~45개
    - 30분 영상: 최소 50개 이상
+
+🚨🚨🚨 [핵심] 페르소나 일관성 - 가장 중요!!! 🚨🚨🚨
+AI 이미지 생성기는 메모리가 없습니다! "same woman"은 효과가 없습니다!
+모든 프롬프트에 동일한 상세 외모 묘사를 반드시 반복해야 합니다!
+
+★ 페르소나 정의 (첫 번째 프롬프트에서 결정):
+1. 나이: 정확한 숫자 (예: 68 years old)
+2. 머리: 길이, 색상, 스타일 (예: short gray permed hair)
+3. 얼굴: 특징 (예: warm gentle face, soft wrinkles, kind eyes)
+4. 체형: (예: slightly plump, average build)
+5. 의상: 시대에 맞는 현대 의상 (예: modern Korean casual wear, comfortable cardigan)
+6. 시대: 반드시 "modern Korean, 2020s era" 명시!
+
+★ 페르소나 반복 규칙 (모든 프롬프트에 적용):
+⛔ 잘못된 예시 (이렇게 하면 나이/외모가 달라짐!):
+   2. Same Korean elderly woman Youngsook looking at photo...
+   3. Youngsook sitting in the park...
+
+✅ 올바른 예시 (모든 프롬프트에 상세 외모 반복!):
+   1. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean home, 2020s era, looking at her son with loving eyes. (아들을 바라보는 영숙)
+   2. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean home, 2020s era, holding old photo with tearful eyes. (옛 사진을 보며 눈물짓는 영숙)
+   3. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean park, 2020s era, sitting on bench peacefully. (공원 벤치에 앉은 영숙)
+
+★ 핵심: 나이+머리+얼굴+의상+시대를 모든 프롬프트 앞부분에 동일하게 복사해서 사용!
+
 4. **중요: 모든 인물은 반드시 "Korean"으로 명시하세요.**
 5. 스타일: 
-   - 에세이: Photorealistic, cinematic lighting, 8k, emotional.
+   - 에세이: Photorealistic, cinematic lighting, 8k, emotional, modern Korean 2020s setting.
    - 튜터: Close-up of senior's hands holding smartphone, clear screen interface, warm indoor lighting.
 6. **형식**: 번호를 붙이고, 영어 프롬프트 뒤에 괄호로 한글 설명을 추가하세요.
-7. ★ **일관성 유지**: 
-   - 첫 번째 프롬프트에서 주인공의 외모를 상세히 정의하세요.
-   - 2번 이후 프롬프트에서도 "same woman" 또는 첫 번째와 동일한 외모 묘사를 반복하세요.
+7. **시대적 배경 필수**: 모든 프롬프트에 "modern Korean, 2020s era" 또는 "contemporary Korea" 명시!
 
 [유튜브 제목 및 태그] ★★★ 떡상하는 후킹 제목 필수! ★★★
 1. '[YOUTUBE_PACKAGE]' 제목을 쓰세요.
@@ -417,9 +452,19 @@ const PROMPT_CONVERTER = `
 3. ★★★ **[필수] 모든 인물은 반드시 "Korean"으로 시작하세요!** ★★★
    - 올바른 예: "Korean elderly woman", "Korean middle-aged man"
 4. 스타일: {IMAGE_STYLE}
-5. ★ **일관성 유지 (매우 중요)**:
-   - 첫 번째 프롬프트에서 주인공의 외모를 상세히 정의하세요.
-   - 2번 이후 모든 프롬프트에서 "same Korean woman" 또는 동일한 외모 묘사를 반복하세요.
+5. ★★★ **페르소나 일관성 (가장 중요!)** ★★★
+   AI 이미지 생성기는 메모리가 없습니다! "same woman"은 효과가 없습니다!
+   
+   ▶ 모든 프롬프트에 동일한 상세 외모를 반복해야 합니다:
+   - 나이: 68 years old (정확한 숫자)
+   - 머리: short gray permed hair
+   - 얼굴: warm gentle face, soft wrinkles
+   - 의상: comfortable beige cardigan
+   - 시대: modern Korean, 2020s era
+   
+   ⛔ 잘못된 예시: "Same Korean elderly woman sitting..."
+   ✅ 올바른 예시: "Korean elderly woman, 68 years old, short gray permed hair, warm gentle face, comfortable beige cardigan, modern Korean home, 2020s era, sitting..."
+   
 6. 형식: 번호를 붙이고, 영어 프롬프트 뒤에 괄호로 한글 설명을 추가하세요.
 
 [출력 형식]
@@ -446,19 +491,22 @@ const PERSONA_ANALYZER = `
 1. 대본에서 주인공의 나이, 성별, 외모 단서를 찾으세요.
 2. 명시되지 않은 부분은 대본 맥락에 맞게 적절히 추론하세요.
 3. **반드시 "Korean"으로 시작**하세요 (예: "Korean elderly woman")
+4. **반드시 시대적 배경을 포함**하세요: "modern Korean, 2020s era"
 
-[포함해야 할 요소]
+[포함해야 할 요소 - 모두 필수!]
 - 국적: Korean (필수)
-- 예상 나이: 구체적 숫자 (예: 65 years old)
+- 예상 나이: 구체적 숫자 (예: 68 years old)
 - 성별
-- 머리 스타일/색상
-- 얼굴 특징
-- 체형
-- 대표 의상
+- 머리 스타일/색상 (예: short gray permed hair)
+- 얼굴 특징 (예: warm gentle face, soft wrinkles, kind eyes)
+- 체형 (예: average build)
+- 대표 의상 (예: comfortable beige cardigan) - 현대적 의상으로!
+- 시대적 배경: modern Korean, 2020s era (필수!)
 - 전반적인 분위기
 
 [출력 형식]
 한 문장으로 쉼표로 구분하여 출력하세요. 다른 설명 없이 페르소나만 출력하세요.
+예시: "Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, kind eyes, average build, wearing comfortable beige cardigan, modern Korean, 2020s era, warm and motherly atmosphere"
 
 [사용자 대본]
 `;
@@ -684,20 +732,24 @@ function initStyleButtons() {
 const tabNewScript = document.getElementById('tabNewScript');
 const tabMyScript = document.getElementById('tabMyScript');
 const tabBlogWrite = document.getElementById('tabBlogWrite');
+const tabExternalPrompt = document.getElementById('tabExternalPrompt');
 const newScriptSection = document.getElementById('newScriptSection');
 const myScriptSection = document.getElementById('myScriptSection');
 const blogWriteSection = document.getElementById('blogWriteSection');
+const externalPromptSection = document.getElementById('externalPromptSection');
 
 function switchTab(activeTab) {
     // 모든 탭 비활성화
     tabNewScript?.classList.remove('active');
     tabMyScript?.classList.remove('active');
     tabBlogWrite?.classList.remove('active');
+    tabExternalPrompt?.classList.remove('active');
 
     // 모든 섹션 숨기기
     if (newScriptSection) newScriptSection.style.display = 'none';
     if (myScriptSection) myScriptSection.style.display = 'none';
     if (blogWriteSection) blogWriteSection.style.display = 'none';
+    if (externalPromptSection) externalPromptSection.style.display = 'none';
 
     // 선택된 탭 활성화
     if (activeTab === 'new') {
@@ -710,6 +762,9 @@ function switchTab(activeTab) {
     } else if (activeTab === 'blog') {
         tabBlogWrite?.classList.add('active');
         if (blogWriteSection) blogWriteSection.style.display = 'block';
+    } else if (activeTab === 'external') {
+        tabExternalPrompt?.classList.add('active');
+        if (externalPromptSection) externalPromptSection.style.display = 'block';
     }
 }
 
@@ -721,6 +776,9 @@ if (tabMyScript) {
 }
 if (tabBlogWrite) {
     tabBlogWrite.addEventListener('click', () => switchTab('blog'));
+}
+if (tabExternalPrompt) {
+    tabExternalPrompt.addEventListener('click', () => switchTab('external'));
 }
 
 // 작가 모드 버튼 그룹
@@ -3051,4 +3109,306 @@ if (blogIdInput) {
     if (savedBlogId) {
         blogIdInput.value = savedBlogId;
     }
+}
+
+// ============================================================
+// ★ 외부 프롬프트 이미지 생성 기능 ★
+// ============================================================
+
+let externalParsedPrompts = [];
+let externalGeneratedImages = [];
+
+// 외부 프롬프트 파싱 함수
+function parseExternalPrompts(text) {
+    if (!text || !text.trim()) return [];
+
+    const lines = text.split('\n').filter(line => line.trim());
+    const prompts = [];
+
+    for (const line of lines) {
+        let prompt = line.trim();
+
+        // 번호 형식 제거 (1. 2. 3. 또는 1) 2) 3) 또는 - 등)
+        prompt = prompt.replace(/^\d+[\.\)]\s*/, '');
+        prompt = prompt.replace(/^[-•*]\s*/, '');
+
+        // 한글 설명 부분 제거 (괄호 안의 한글)
+        // 예: "Korean woman... (한글 설명)" -> "Korean woman..."
+        // 단, 영어 프롬프트 부분만 추출
+        const koreanMatch = prompt.match(/\(([^)]*[가-힣][^)]*)\)\s*$/);
+        if (koreanMatch) {
+            prompt = prompt.replace(/\([^)]*[가-힣][^)]*\)\s*$/, '').trim();
+        }
+
+        if (prompt.length > 10) {
+            prompts.push(prompt);
+        }
+    }
+
+    return prompts;
+}
+
+// 프롬프트 파싱 버튼
+const parseExternalPromptsBtn = document.getElementById('parseExternalPromptsBtn');
+const externalPromptsInput = document.getElementById('externalPromptsInput');
+const parsedPromptsPreview = document.getElementById('parsedPromptsPreview');
+const parsedPromptsList = document.getElementById('parsedPromptsList');
+const parsedPromptCount = document.getElementById('parsedPromptCount');
+
+if (parseExternalPromptsBtn) {
+    parseExternalPromptsBtn.addEventListener('click', () => {
+        const text = externalPromptsInput?.value || '';
+        externalParsedPrompts = parseExternalPrompts(text);
+
+        if (externalParsedPrompts.length === 0) {
+            alert('파싱할 프롬프트가 없습니다. 프롬프트를 입력해주세요.');
+            return;
+        }
+
+        // 미리보기 표시
+        parsedPromptCount.textContent = externalParsedPrompts.length;
+        parsedPromptsList.innerHTML = externalParsedPrompts.map((p, i) => `
+            <div style="display: flex; gap: 10px; align-items: center; padding: 8px; margin-bottom: 5px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                <span style="background: #444; padding: 3px 8px; border-radius: 5px; color: #aaa; font-size: 0.8rem;">${i + 1}</span>
+                <span style="flex: 1; color: #ccc; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.substring(0, 80)}${p.length > 80 ? '...' : ''}</span>
+                <button class="copy-external-prompt-btn" data-index="${i}" style="background: #4da3ff; border: none; border-radius: 5px; padding: 4px 10px; color: white; cursor: pointer; font-size: 0.75rem;">복사</button>
+            </div>
+        `).join('');
+
+        parsedPromptsPreview.style.display = 'block';
+
+        // 복사 버튼 이벤트
+        document.querySelectorAll('.copy-external-prompt-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const index = parseInt(btn.getAttribute('data-index'));
+                navigator.clipboard.writeText(externalParsedPrompts[index]).then(() => {
+                    btn.textContent = '✅';
+                    setTimeout(() => btn.textContent = '복사', 1000);
+                });
+            });
+        });
+
+        alert(`✅ ${externalParsedPrompts.length}개의 프롬프트가 파싱되었습니다!`);
+    });
+}
+
+// 페르소나 주입 버튼
+const applyPersonaToPromptsBtn = document.getElementById('applyPersonaToPromptsBtn');
+const externalPersonaInput = document.getElementById('externalPersonaInput');
+const clearPersonaBtn = document.getElementById('clearPersonaBtn');
+
+if (applyPersonaToPromptsBtn) {
+    applyPersonaToPromptsBtn.addEventListener('click', () => {
+        const persona = externalPersonaInput?.value?.trim();
+        const promptsText = externalPromptsInput?.value || '';
+
+        if (!persona) {
+            alert('페르소나를 입력해주세요.');
+            return;
+        }
+
+        if (!promptsText.trim()) {
+            alert('프롬프트를 먼저 입력해주세요.');
+            return;
+        }
+
+        // 각 줄에 페르소나 추가
+        const lines = promptsText.split('\n');
+        const modifiedLines = lines.map(line => {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.length < 5) return line;
+
+            // 번호 형식 추출
+            const numberMatch = trimmed.match(/^(\d+[\.\)]\s*)/);
+            const number = numberMatch ? numberMatch[1] : '';
+            const content = numberMatch ? trimmed.substring(number.length) : trimmed;
+
+            // 이미 페르소나가 포함되어 있는지 확인 (중복 방지)
+            if (content.toLowerCase().includes(persona.toLowerCase().substring(0, 30))) {
+                return line;
+            }
+
+            // 페르소나를 앞에 추가
+            return `${number}${persona}, ${content}`;
+        });
+
+        externalPromptsInput.value = modifiedLines.join('\n');
+        alert(`✅ 페르소나가 모든 프롬프트에 주입되었습니다!\n\n"${persona.substring(0, 50)}..."`);
+    });
+}
+
+if (clearPersonaBtn) {
+    clearPersonaBtn.addEventListener('click', () => {
+        externalPersonaInput.value = '';
+        externalPromptsInput.value = '';
+        parsedPromptsPreview.style.display = 'none';
+        externalParsedPrompts = [];
+        alert('초기화되었습니다.');
+    });
+}
+
+// 이미지 생성 버튼
+const generateExternalImagesBtn = document.getElementById('generateExternalImagesBtn');
+const externalImageCountSelect = document.getElementById('externalImageCountSelect');
+const externalProgressText = document.getElementById('externalProgressText');
+const externalImageGallery = document.getElementById('externalImageGallery');
+const externalDownloadSection = document.getElementById('externalDownloadSection');
+
+if (generateExternalImagesBtn) {
+    generateExternalImagesBtn.addEventListener('click', async () => {
+        const apiKey = getGeminiAPIKey();
+        if (!apiKey) {
+            alert('API 키를 먼저 저장해주세요.');
+            return;
+        }
+
+        // 프롬프트 파싱 (아직 안 했으면)
+        if (externalParsedPrompts.length === 0) {
+            const text = externalPromptsInput?.value || '';
+            externalParsedPrompts = parseExternalPrompts(text);
+        }
+
+        if (externalParsedPrompts.length === 0) {
+            alert('생성할 프롬프트가 없습니다. 프롬프트를 입력하고 파싱해주세요.');
+            return;
+        }
+
+        // 생성할 개수 결정
+        const countValue = externalImageCountSelect?.value || 'all';
+        let maxCount = countValue === 'all' ? externalParsedPrompts.length : parseInt(countValue);
+        maxCount = Math.min(maxCount, externalParsedPrompts.length);
+
+        const promptsToGenerate = externalParsedPrompts.slice(0, maxCount);
+
+        // 버튼 비활성화
+        generateExternalImagesBtn.disabled = true;
+        generateExternalImagesBtn.textContent = '⏳ 생성 중...';
+        externalGeneratedImages = [];
+        externalImageGallery.innerHTML = '';
+        externalDownloadSection.style.display = 'none';
+
+        try {
+            for (let i = 0; i < promptsToGenerate.length; i++) {
+                const prompt = promptsToGenerate[i];
+                externalProgressText.textContent = `🎨 이미지 생성 중... (${i + 1}/${promptsToGenerate.length})`;
+
+                try {
+                    const imageUrl = await generateImageWithGemini(prompt, apiKey);
+                    externalGeneratedImages.push({ prompt, url: imageUrl });
+
+                    // 갤러리에 추가
+                    const imgDiv = document.createElement('div');
+                    imgDiv.style.cssText = 'background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;';
+                    imgDiv.innerHTML = `
+                        <a href="${imageUrl}" target="_blank">
+                            <img src="${imageUrl}" style="width: 100%; height: 200px; object-fit: cover; cursor: zoom-in;" />
+                        </a>
+                        <div style="padding: 10px;">
+                            <p style="color: #aaa; font-size: 0.75rem; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${prompt.substring(0, 50)}...</p>
+                            <button class="download-single-img-btn" data-url="${imageUrl}" data-index="${i + 1}" style="width: 100%; padding: 8px; background: #667eea; border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 0.8rem;">📥 다운로드</button>
+                        </div>
+                    `;
+                    externalImageGallery.appendChild(imgDiv);
+
+                    // 개별 다운로드 버튼 이벤트
+                    imgDiv.querySelector('.download-single-img-btn').addEventListener('click', async function () {
+                        const url = this.getAttribute('data-url');
+                        const idx = this.getAttribute('data-index');
+                        try {
+                            const response = await fetch(url);
+                            const blob = await response.blob();
+                            const blobUrl = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = `external_image_${idx}.png`;
+                            a.click();
+                            URL.revokeObjectURL(blobUrl);
+                        } catch (e) {
+                            window.open(url, '_blank');
+                        }
+                    });
+
+                } catch (e) {
+                    console.error(`이미지 ${i + 1} 생성 실패:`, e);
+                }
+
+                // 딜레이 (API 제한 방지)
+                if (i < promptsToGenerate.length - 1) {
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+            }
+
+            externalProgressText.textContent = `✅ ${externalGeneratedImages.length}/${promptsToGenerate.length}개 이미지 생성 완료!`;
+
+            if (externalGeneratedImages.length > 0) {
+                externalDownloadSection.style.display = 'block';
+            }
+
+        } catch (e) {
+            alert('이미지 생성 중 오류가 발생했습니다: ' + e.message);
+        } finally {
+            generateExternalImagesBtn.disabled = false;
+            generateExternalImagesBtn.textContent = '🚀 이미지 생성';
+        }
+    });
+}
+
+// 전체 다운로드 버튼
+const downloadExternalImagesBtn = document.getElementById('downloadExternalImagesBtn');
+if (downloadExternalImagesBtn) {
+    downloadExternalImagesBtn.addEventListener('click', async () => {
+        if (externalGeneratedImages.length === 0) {
+            alert('다운로드할 이미지가 없습니다.');
+            return;
+        }
+
+        downloadExternalImagesBtn.disabled = true;
+        downloadExternalImagesBtn.textContent = '⏳ 다운로드 중...';
+
+        for (let i = 0; i < externalGeneratedImages.length; i++) {
+            try {
+                const response = await fetch(externalGeneratedImages[i].url);
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = `external_image_${i + 1}.png`;
+                a.click();
+                URL.revokeObjectURL(blobUrl);
+                await new Promise(r => setTimeout(r, 300));
+            } catch (e) {
+                console.error(`이미지 ${i + 1} 다운로드 실패:`, e);
+            }
+        }
+
+        downloadExternalImagesBtn.disabled = false;
+        downloadExternalImagesBtn.textContent = '📥 이미지 전체 다운로드';
+        alert(`✅ ${externalGeneratedImages.length}개의 이미지가 다운로드되었습니다!`);
+    });
+}
+
+// ImageFX 열기 버튼
+const openImageFxExternalBtn = document.getElementById('openImageFxExternalBtn');
+if (openImageFxExternalBtn) {
+    openImageFxExternalBtn.addEventListener('click', () => {
+        // 현재 선택된 프롬프트 또는 첫 번째 프롬프트 사용
+        let promptToUse = '';
+        if (externalParsedPrompts.length > 0) {
+            promptToUse = externalParsedPrompts[0];
+        } else {
+            const text = externalPromptsInput?.value || '';
+            const parsed = parseExternalPrompts(text);
+            if (parsed.length > 0) {
+                promptToUse = parsed[0];
+            }
+        }
+
+        if (promptToUse) {
+            navigator.clipboard.writeText(promptToUse).then(() => {
+                alert(`✅ 첫 번째 프롬프트가 클립보드에 복사되었습니다!\n\nImageFX에서 붙여넣기(Ctrl+V)하세요.`);
+            });
+        }
+
+        window.open('https://aitestkitchen.withgoogle.com/tools/image-fx', '_blank');
+    });
 }
