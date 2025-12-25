@@ -3177,13 +3177,15 @@ if (parseExternalPromptsBtn) {
 
         parsedPromptsPreview.style.display = 'block';
 
-        // 복사 버튼 이벤트
+        // 복사 버튼 이벤트 - 복사 후 바로 ImageFX 열기
         document.querySelectorAll('.copy-external-prompt-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const index = parseInt(btn.getAttribute('data-index'));
                 navigator.clipboard.writeText(externalParsedPrompts[index]).then(() => {
                     btn.textContent = '✅';
                     setTimeout(() => btn.textContent = '복사', 1000);
+                    // 복사 후 바로 ImageFX 열기
+                    window.open('https://aitestkitchen.withgoogle.com/tools/image-fx', '_blank');
                 });
             });
         });
