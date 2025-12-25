@@ -2196,6 +2196,41 @@ const downloadAllBtn = document.getElementById('downloadAllBtn');
 // 일관된 시드를 위한 변수
 let consistentSeed = null;
 
+// ★ 이미지를 흰색 배경으로 변환하는 헬퍼 함수 ★
+async function downloadImageWithWhiteBackground(imageUrl, filename) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            // 캔버스 생성
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+
+            // 흰색 배경 채우기
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 이미지 그리기
+            ctx.drawImage(img, 0, 0);
+
+            // JPEG로 변환하여 다운로드 (투명도 제거)
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename.replace('.png', '.jpg');
+                link.click();
+                URL.revokeObjectURL(url);
+                resolve();
+            }, 'image/jpeg', 0.95);
+        };
+        img.onerror = () => reject(new Error('이미지 로드 실패'));
+        img.src = imageUrl;
+    });
+}
+
 async function generateImageWithGemini(prompt, apiKey) {
     // 첫 번째 이미지 생성 시 시드 설정
     if (!consistentSeed) {
@@ -2954,11 +2989,18 @@ if (generateBlogImagesBtn) {
                 const downloadBtn = document.createElement('button');
                 downloadBtn.innerText = "💾 저장";
                 downloadBtn.style.cssText = 'display: block; width: 100%; margin-top: 5px; padding: 6px; background: linear-gradient(135deg, #4da3ff, #6c5ce7); border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 11px;';
-                downloadBtn.addEventListener('click', () => {
-                    const link = document.createElement('a');
-                    link.href = imageUrl;
-                    link.download = `blog_image_${i + 1}.png`;
-                    link.click();
+                // ★ 흰색 배경으로 다운로드 ★
+                const imgIndex = i;
+                downloadBtn.addEventListener('click', async () => {
+                    try {
+                        await downloadImageWithWhiteBackground(imageUrl, `blog_image_${imgIndex + 1}.jpg`);
+                    } catch (e) {
+                        // 실패 시 기존 방식으로 다운로드
+                        const link = document.createElement('a');
+                        link.href = imageUrl;
+                        link.download = `blog_image_${imgIndex + 1}.png`;
+                        link.click();
+                    }
                 });
 
                 div.appendChild(img);
@@ -3018,13 +3060,18 @@ if (downloadAllBlogImagesBtn) {
         downloadAllBlogImagesBtn.disabled = true;
         downloadAllBlogImagesBtn.innerText = "📥 다운로드 중...";
 
+        // ★ 흰색 배경으로 일괄 다운로드 ★
         for (let i = 0; i < generatedBlogImages.length; i++) {
             const img = generatedBlogImages[i];
-            const link = document.createElement('a');
-            link.href = img.url;
-            link.download = img.name;
-            link.click();
-
+            try {
+                await downloadImageWithWhiteBackground(img.url, img.name.replace('.png', '.jpg'));
+            } catch (e) {
+                // 실패 시 기존 방식
+                const link = document.createElement('a');
+                link.href = img.url;
+                link.download = img.name;
+                link.click();
+            }
             await new Promise(resolve => setTimeout(resolve, 500));
         }
 
