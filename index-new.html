@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youtube Script Remixer V2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8e2de2;
+            --primary-light: #a18cd1;
+            --secondary: #4a00e0;
+            --accent: #ffd200;
+            --accent-orange: #f7971e;
+            --success: #28a745;
+            --danger: #dc3545;
+            --pink: #ff69b4;
+            --bg-dark: #0f0c29;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.1);
+            --text-primary: #fff;
+            --text-secondary: #d1d1d1;
+            --text-muted: #aaa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #24243e 0%, #302b63 50%, #0f0c29 100%);
+            color: var(--text-primary);
+            font-family: 'Noto Sans KR', sans-serif;
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto 25px;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            padding: 35px;
+            border-radius: 20px;
+            border: 1px solid var(--border-light);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 2rem;
+            background: linear-gradient(to right, #a18cd1, #fbc2eb);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* API Key */
+        .api-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--primary-light);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .api-box input {
+            flex: 1;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            padding: 15px 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 700;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(142, 45, 226, 0.3);
+        }
+
+        .tab-btn .icon {
+            font-size: 1.3rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Elements */
+        label {
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(161, 140, 209, 0.2);
+        }
+
+        textarea {
+            line-height: 1.7;
+            resize: vertical;
+        }
+
+        /* Button Groups */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .option-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .option-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+            border-color: transparent;
+        }
+
+        .option-btn.accent.active {
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent));
+            color: #222;
+        }
+
+        .option-btn.pink.active {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            color: white;
+        }
+
+        /* Primary Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            margin-top: 25px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(142, 45, 226, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent));
+            color: #222;
+            border: none;
+        }
+
+        .btn-pink {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            color: white;
+            border: none;
+        }
+
+        /* Step Section */
+        .step-section {
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            margin-top: 25px;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .step-number {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .step-number.accent {
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent));
+            color: #222;
+        }
+
+        .step-number.pink {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        /* Result Box */
+        .result-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--border-light);
+        }
+
+        .result-title {
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-content {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        /* Image Gallery */
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .image-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+
+        .image-card img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+
+        .image-card .actions {
+            padding: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Progress */
+        .progress-text {
+            text-align: center;
+            margin: 20px 0;
+            color: var(--primary-light);
+            font-weight: 600;
+        }
+
+        /* Copy Button */
+        .copy-btn {
+            background: #4da3ff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 14px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .copy-btn:hover {
+            background: #3d8ee0;
+        }
+
+        /* Prompt Row */
+        .prompt-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .prompt-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .prompt-num {
+            background: #444;
+            padding: 5px 10px;
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .prompt-num.first {
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent));
+            color: #222;
+            font-weight: 700;
+        }
+
+        .prompt-text {
+            flex: 1;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Era/Situation Grid */
+        .era-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .tab-nav {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .era-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎬 Youtube Script Remixer V2</h1>
+
+        <!-- API Key -->
+        <div class="api-box">
+            <span>🔑</span>
+            <input type="password" id="apiKeyInput" placeholder="Gemini API Key 입력">
+            <button class="btn-secondary btn-success" id="saveKeyBtn">저장</button>
+        </div>
+        <div id="keyStatusText"
+            style="text-align: right; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px;"></div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="newScript">
+                <span class="icon">🆕</span>
+                새 대본 생성
+            </button>
+            <button class="tab-btn" data-tab="myPrompt">
+                <span class="icon">📝</span>
+                내 대본 프롬프트
+            </button>
+            <button class="tab-btn" data-tab="externalPrompt">
+                <span class="icon">🖼️</span>
+                외부 프롬프트
+            </button>
+            <button class="tab-btn" data-tab="blog">
+                <span class="icon">✍️</span>
+                블로그
+            </button>
+        </div>
+
+        <!-- ==================== TAB 1: 새 대본 생성 ==================== -->
+        <div class="tab-content active" id="tab-newScript">
+
+            <!-- STEP 1: 참고 대본 입력 -->
+            <div class="step-section">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <span class="step-title">참고 대본 입력</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">
+                    다른 사람의 대본을 붙여넣으세요. 구조만 참고하여 100% 새로운 창작 대본을 생성합니다.
+                </p>
+                <textarea id="referenceScriptInput" rows="8" placeholder="여기에 참고할 대본을 붙여넣으세요..."></textarea>
+
+                <!-- 주제 추천 버튼 -->
+                <button class="btn-secondary btn-accent" id="analyzeTopicsBtn" style="margin-top: 15px; width: 100%;">
+                    🔍 참고 대본 분석 → 주제 추천받기
+                </button>
+
+                <!-- 추천 주제 표시 영역 -->
+                <div id="topicRecommendationBox" class="hidden"
+                    style="margin-top: 15px; padding: 15px; background: rgba(247, 151, 30, 0.1); border: 1px solid rgba(247, 151, 30, 0.4); border-radius: 12px;">
+                    <p style="color: var(--accent); font-weight: 600; margin-bottom: 10px;">💡 추천 주제 (클릭하여 선택)</p>
+                    <div id="topicRecommendations" class="btn-group" style="flex-wrap: wrap;"></div>
+                </div>
+
+                <label>🎯 주제 또는 키워드</label>
+                <textarea id="topicInput" rows="2" placeholder="위에서 추천받거나 직접 입력하세요. 예: 노후의 친구 관계, 황혼 육아..."></textarea>
+
+                <label>📖 지난 이야기 (선택사항)</label>
+                <textarea id="prevStoryInput" rows="2" placeholder="이전 영상 내용이 있다면 적어주세요."></textarea>
+
+                <label>✍️ 작가 모드</label>
+                <div class="btn-group" id="modeGroup">
+                    <button class="option-btn active" data-value="essay">📝 감성 에세이<br><small
+                            style="color: var(--text-muted);">(인생 이야기)</small></button>
+                    <button class="option-btn" data-value="tutor">💻 디지털 튜터<br><small
+                            style="color: var(--text-muted);">(IT 강의)</small></button>
+                </div>
+
+                <label>💫 감성 (Tone)</label>
+                <div class="btn-group" id="toneGroup">
+                    <button class="option-btn active" data-value="따뜻한">🤗 따뜻한</button>
+                    <button class="option-btn" data-value="차분한">🧘 차분한</button>
+                    <button class="option-btn" data-value="희망적">🌅 희망적</button>
+                    <button class="option-btn" data-value="향수적">🍂 향수적</button>
+                    <button class="option-btn" data-value="감동적">😢 감동적</button>
+                    <button class="option-btn" data-value="위로하는">💜 위로하는</button>
+                </div>
+
+                <label>⏱️ 영상 길이</label>
+                <select id="durationSelect">
+                    <option value="8min" data-parts="1">8분 (약 2,500자)</option>
+                    <option value="10min" data-parts="1">10분 (약 3,000자)</option>
+                    <option value="15min" data-parts="1" selected>15분 (약 4,500자, 추천)</option>
+                    <option value="20min" data-parts="1">20분 (약 6,000자)</option>
+                    <option value="30min" data-parts="2">30분 (약 9,000자, 2회 생성)</option>
+                    <option value="40min" data-parts="3">40분 (약 12,000자, 3회 생성)</option>
+                    <option value="50min" data-parts="4">50분 (약 15,000자, 4회 생성)</option>
+                    <option value="60min" data-parts="4">60분 (약 18,000자, 4회 생성)</option>
+                </select>
+
+                <button class="btn-primary" id="generateScriptBtn">🚀 안전 대본 생성하기</button>
+            </div>
+
+            <!-- STEP 2: 안전 대본 결과 + 시대/상황 선택 -->
+            <div class="step-section hidden" id="step2Section">
+                <div class="step-header">
+                    <div class="step-number accent">2</div>
+                    <span class="step-title">안전 대본 + 시대/상황 선택</span>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-title">
+                        <span>📜 생성된 안전 대본</span>
+                        <button class="copy-btn" id="copyScriptBtn">📋 복사</button>
+                    </div>
+                    <div class="result-content" id="safeScriptResult" style="max-height: 300px; overflow-y: auto;">
+                    </div>
+                </div>
+
+                <!-- 시대 선택 -->
+                <label style="color: var(--accent);">📅 시대 선택</label>
+                <div class="era-grid" id="eraGroup">
+                    <button class="option-btn accent" data-value="1970s Korea, retro">🕰️ 1970년대</button>
+                    <button class="option-btn accent" data-value="1980s Korea, vintage">📼 1980년대</button>
+                    <button class="option-btn accent" data-value="1990s Korea, nostalgic">💾 1990년대</button>
+                    <button class="option-btn accent active" data-value="2000s Korea, Y2K aesthetic">💿 2000년대</button>
+                    <button class="option-btn accent" data-value="2010s Korea, modern">📱 2010년대</button>
+                    <button class="option-btn accent" data-value="2020s Korea, contemporary">🏙️ 현재</button>
+                </div>
+
+                <!-- 상황/장소 선택 -->
+                <label style="color: var(--accent);">🏠 상황/장소 선택</label>
+                <div class="era-grid" id="situationGroup">
+                    <button class="option-btn accent active" data-value="cozy Korean home interior">🏡 집안</button>
+                    <button class="option-btn accent" data-value="Korean countryside, rural village">🌾 시골</button>
+                    <button class="option-btn accent" data-value="Korean city street, urban">🌆 도시</button>
+                    <button class="option-btn accent" data-value="Korean hospital, medical">🏥 병원</button>
+                    <button class="option-btn accent" data-value="Korean traditional market">🛒 시장</button>
+                    <button class="option-btn accent" data-value="Korean park, nature">🌳 공원</button>
+                    <button class="option-btn accent" data-value="Korean school, educational">🎓 학교</button>
+                    <button class="option-btn accent" data-value="Korean restaurant, dining">🍽️ 식당</button>
+                </div>
+
+                <button class="btn-primary btn-accent" id="analyzeCharactersBtn" style="margin-top: 20px;">👤 등장인물 프롬프트
+                    생성</button>
+            </div>
+
+            <!-- STEP 3: 등장인물 프롬프트 -->
+            <div class="step-section hidden" id="step3Section">
+                <div class="step-header">
+                    <div class="step-number pink">3</div>
+                    <span class="step-title">등장인물 프롬프트 (일관성 기준)</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">
+                    ⚠️ 아래 등장인물 프롬프트가 모든 이미지에 자동 적용됩니다. 필요시 수정하세요.
+                </p>
+
+                <div class="result-box" style="border: 2px solid #ff69b4;">
+                    <div class="result-title" style="color: #ff69b4;">
+                        <span>👤 등장인물 페르소나</span>
+                        <button class="copy-btn" id="copyCharacterBtn">📋 복사</button>
+                    </div>
+                    <textarea id="characterPromptInput" rows="4" style="margin-top: 10px; font-size: 0.9rem;"
+                        placeholder="등장인물 프롬프트가 여기에 표시됩니다..."></textarea>
+                </div>
+
+                <!-- 등장인물 이미지 미리보기 -->
+                <div style="margin-top: 15px;">
+                    <button class="btn-secondary btn-pink" id="previewCharacterBtn">🖼️ 등장인물 이미지 미리보기</button>
+                    <div id="characterImagePreview" class="hidden" style="margin-top: 15px; text-align: center;">
+                        <img id="characterPreviewImg"
+                            style="max-width: 300px; border-radius: 12px; border: 2px solid #ff69b4;">
+                    </div>
+                </div>
+
+                <button class="btn-primary btn-pink" id="generateScriptPromptsBtn" style="margin-top: 20px;">🎨 대본 이미지
+                    프롬프트 생성</button>
+            </div>
+
+            <!-- STEP 4: 대본 이미지 프롬프트 -->
+            <div class="step-section hidden" id="step4Section">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <span class="step-title">대본 이미지 프롬프트 (일관성 유지)</span>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-title">
+                        <span>🎨 생성된 프롬프트 (<span id="promptCount">0</span>개)</span>
+                        <button class="copy-btn" id="copyAllPromptsBtn">📋 전체 복사</button>
+                    </div>
+                    <div id="scriptPromptList" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn-primary" id="generateImagesBtn" style="flex: 1; margin-top: 0;">🚀 이미지
+                        생성</button>
+                    <button class="btn-secondary btn-success" id="openImageFxBtn1" style="flex: 1;">💎 ImageFX</button>
+                </div>
+
+                <div id="progressText1" class="progress-text"></div>
+                <div id="imageGallery1" class="image-gallery"></div>
+
+                <div id="downloadSection1" class="hidden" style="text-align: center; margin-top: 20px;">
+                    <button class="btn-primary" id="downloadAllBtn1" style="width: auto; padding: 14px 30px;">📥 이미지 전체
+                        다운로드</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 2: 내 대본 프롬프트 ==================== -->
+        <div class="tab-content" id="tab-myPrompt">
+
+            <!-- STEP 1: 내 대본 입력 -->
+            <div class="step-section">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <span class="step-title">내 대본 입력</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">
+                    직접 작성한 대본을 붙여넣으세요. 등장인물을 분석하여 일관된 이미지 프롬프트를 생성합니다.
+                </p>
+                <textarea id="myScriptInput" rows="10" placeholder="여기에 내 대본을 붙여넣으세요..."></textarea>
+
+                <!-- 시대/상황 선택 -->
+                <label style="color: var(--accent);">📅 시대 선택</label>
+                <div class="era-grid" id="myEraGroup">
+                    <button class="option-btn accent" data-value="1970s Korea, retro">🕰️ 1970년대</button>
+                    <button class="option-btn accent" data-value="1980s Korea, vintage">📼 1980년대</button>
+                    <button class="option-btn accent" data-value="1990s Korea, nostalgic">💾 1990년대</button>
+                    <button class="option-btn accent active" data-value="2000s Korea, Y2K aesthetic">💿 2000년대</button>
+                    <button class="option-btn accent" data-value="2020s Korea, contemporary">🏙️ 현재</button>
+                </div>
+
+                <label style="color: var(--accent);">🏠 상황/장소 선택</label>
+                <div class="era-grid" id="mySituationGroup">
+                    <button class="option-btn accent active" data-value="cozy Korean home interior">🏡 집안</button>
+                    <button class="option-btn accent" data-value="Korean countryside, rural village">🌾 시골</button>
+                    <button class="option-btn accent" data-value="Korean city street, urban">🌆 도시</button>
+                    <button class="option-btn accent" data-value="Korean park, nature">🌳 공원</button>
+                </div>
+
+                <button class="btn-primary btn-accent" id="myAnalyzeCharactersBtn">👤 등장인물 프롬프트 생성</button>
+            </div>
+
+            <!-- STEP 2: 등장인물 프롬프트 -->
+            <div class="step-section hidden" id="myStep2Section">
+                <div class="step-header">
+                    <div class="step-number pink">2</div>
+                    <span class="step-title">등장인물 프롬프트</span>
+                </div>
+
+                <div class="result-box" style="border: 2px solid #ff69b4;">
+                    <div class="result-title" style="color: #ff69b4;">
+                        <span>👤 등장인물 페르소나</span>
+                        <button class="copy-btn" id="myCopyCharacterBtn">📋 복사</button>
+                    </div>
+                    <textarea id="myCharacterPromptInput" rows="4" style="margin-top: 10px;"
+                        placeholder="등장인물 프롬프트..."></textarea>
+                </div>
+
+                <button class="btn-primary btn-pink" id="myGeneratePromptsBtn" style="margin-top: 20px;">🎨 대본 이미지 프롬프트
+                    생성</button>
+            </div>
+
+            <!-- STEP 3: 대본 프롬프트 -->
+            <div class="step-section hidden" id="myStep3Section">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <span class="step-title">대본 이미지 프롬프트 (일관성 유지)</span>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-title">
+                        <span>🎨 생성된 프롬프트 (<span id="myPromptCount">0</span>개)</span>
+                        <button class="copy-btn" id="myCopyAllPromptsBtn">📋 전체 복사</button>
+                    </div>
+                    <div id="myPromptList" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn-primary" id="myGenerateImagesBtn" style="flex: 1; margin-top: 0;">🚀 이미지
+                        생성</button>
+                    <button class="btn-secondary btn-success" id="openImageFxBtn2" style="flex: 1;">💎 ImageFX</button>
+                </div>
+
+                <div id="progressText2" class="progress-text"></div>
+                <div id="imageGallery2" class="image-gallery"></div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 3: 외부 프롬프트 ==================== -->
+        <div class="tab-content" id="tab-externalPrompt">
+            <div class="step-section">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <span class="step-title">외부 프롬프트로 이미지 생성</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">
+                    외부에서 가져온 프롬프트를 붙여넣고 바로 이미지를 생성하세요.
+                </p>
+
+                <!-- 페르소나 주입 -->
+                <div
+                    style="padding: 15px; background: rgba(247, 151, 30, 0.1); border: 1px solid rgba(247, 151, 30, 0.3); border-radius: 10px; margin-bottom: 20px;">
+                    <label style="color: var(--accent); font-weight: 600; margin-top: 0;">👤 페르소나 일괄 주입 (선택)</label>
+                    <textarea id="externalPersonaInput" rows="2"
+                        placeholder="예: Korean elderly woman, 68 years old, short gray permed hair..."
+                        style="margin-top: 10px;"></textarea>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button class="btn-secondary btn-accent" id="applyPersonaBtn">✨ 주입</button>
+                        <button class="btn-secondary" id="clearPersonaBtn">🗑️ 초기화</button>
+                    </div>
+                </div>
+
+                <label style="color: #ff69b4;">📋 이미지 프롬프트 입력</label>
+                <textarea id="externalPromptsInput" rows="8"
+                    placeholder="1. Korean elderly woman...&#10;2. Korean elderly man...&#10;&#10;또는 줄바꿈으로 구분"
+                    style="font-family: monospace;"></textarea>
+
+                <div style="display: flex; gap: 15px; align-items: center; margin-top: 20px; flex-wrap: wrap;">
+                    <select id="externalImageCountSelect" style="width: auto; min-width: 100px;">
+                        <option value="all" selected>전체</option>
+                        <option value="3">3장</option>
+                        <option value="5">5장</option>
+                        <option value="10">10장</option>
+                    </select>
+                    <button class="btn-primary btn-pink" id="generateExternalImagesBtn"
+                        style="flex: 1; margin-top: 0;">🚀 이미지 생성</button>
+                </div>
+
+                <div id="externalProgressText" class="progress-text"></div>
+                <div id="externalImageGallery" class="image-gallery"></div>
+
+                <div id="externalDownloadSection" class="hidden" style="text-align: center; margin-top: 20px;">
+                    <button class="btn-primary" id="downloadExternalImagesBtn" style="width: auto;">📥 전체 다운로드</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 4: 블로그 ==================== -->
+        <div class="tab-content" id="tab-blog">
+            <div class="step-section">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <span class="step-title">블로그 글 생성</span>
+                </div>
+
+                <!-- 블로그 ID -->
+                <div
+                    style="padding: 12px; background: rgba(3, 199, 90, 0.15); border: 1px solid rgba(3, 199, 90, 0.3); border-radius: 10px; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span style="color: #03c75a; font-weight: 600;">🔗 블로그 ID:</span>
+                        <input type="text" id="blogIdInput" placeholder="예: myblogid"
+                            style="flex: 1; min-width: 150px; padding: 8px 12px;">
+                        <button class="btn-secondary btn-success" id="saveBlogIdBtn">💾 저장</button>
+                    </div>
+                </div>
+
+                <label style="color: #81c784; margin-top: 0;">🔑 블로그 키워드</label>
+                <input type="text" id="blogKeywordInput" placeholder="예: 천연벌꿀 효능, 프로폴리스 추천...">
+
+                <label>📏 글 분량</label>
+                <select id="blogLengthSelect">
+                    <option value="short">짧게 (1500자)</option>
+                    <option value="medium" selected>중간 (2500자)</option>
+                    <option value="long">길게 (4000자)</option>
+                </select>
+
+                <button class="btn-primary btn-success" id="generateBlogBtn">✍️ 블로그 글 생성</button>
+
+                <!-- 제목 추천 -->
+                <div
+                    style="margin-top: 20px; padding: 15px; background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.4); border-radius: 12px;">
+                    <p style="color: #ffc107; font-weight: 600; margin-bottom: 12px;">🎯 제목 추천</p>
+                    <button class="btn-secondary btn-accent" id="generateBlogTitleBtn" style="width: 100%;">💡 제목
+                        추천받기</button>
+                    <div id="blogTitleResult" class="hidden" style="margin-top: 15px;"></div>
+                </div>
+
+                <!-- 블로그 결과 -->
+                <div id="blogResultBox" class="result-box hidden">
+                    <div class="result-title">
+                        <span>📝 블로그 글</span>
+                        <button class="copy-btn" id="copyBlogBtn">📋 복사</button>
+                    </div>
+                    <div class="result-content" id="blogResult" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 이미지 생성 섹션 (별도 컨테이너) ==================== -->
+    <div class="container" id="imageSection">
+        <h2
+            style="color: var(--primary-light); border-bottom: 1px solid var(--border-light); padding-bottom: 15px; margin-bottom: 20px;">
+            🖼️ AI 아트 디렉터 (삽화 생성)
+        </h2>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
+            위에서 생성된 프롬프트가 자동으로 표시됩니다. 직접 수정하거나 붙여넣기도 가능합니다.
+        </p>
+
+        <!-- 프롬프트 입력/표시 영역 -->
+        <label>📋 이미지 프롬프트</label>
+        <textarea id="imageScriptInput" rows="6" placeholder="프롬프트가 자동으로 여기 표시됩니다. 직접 입력/수정도 가능합니다."></textarea>
+
+        <!-- 프롬프트 목록 -->
+        <div id="mainPromptList" class="hidden" style="margin-top: 15px; max-height: 250px; overflow-y: auto;"></div>
+
+        <!-- 스타일 선택 -->
+        <label style="color: var(--accent);">🎨 이미지 스타일</label>
+        <div class="btn-group" id="imageStyleGroup">
+            <button class="option-btn accent active" data-value="Photorealistic, 8k, cinematic lighting">📷 실사</button>
+            <button class="option-btn accent" data-value="anime style, vibrant colors">🎌 애니메이션</button>
+            <button class="option-btn accent" data-value="Korean webtoon style, clean lines">📱 웹툰</button>
+            <button class="option-btn accent" data-value="oil painting, artistic">🎨 유화</button>
+        </div>
+
+        <label style="color: var(--accent);">📐 이미지 비율</label>
+        <div class="btn-group" id="imageRatioGroup">
+            <button class="option-btn accent active" data-value="16:9" data-ratio="16:9">📺 16:9 (유튜브)</button>
+            <button class="option-btn accent" data-value="9:16" data-ratio="9:16">📱 9:16 (쇼츠)</button>
+            <button class="option-btn accent" data-value="1:1" data-ratio="1:1">⬜ 1:1 (정사각형)</button>
+        </div>
+
+        <!-- 이미지 개수 및 생성 -->
+        <div style="margin: 20px 0; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+            <label style="color: #fbc2eb; font-weight: 600; margin: 0;">🎯 이미지 개수:</label>
+            <select id="mainImageCountSelect" style="width: auto; min-width: 150px;">
+                <option value="all">전체</option>
+                <option value="3">3장</option>
+                <option value="5">5장</option>
+                <option value="10" selected>10장</option>
+                <option value="15">15장</option>
+                <option value="20">20장</option>
+            </select>
+            <span id="mainPromptCountInfo" style="color: var(--text-muted); font-size: 0.85rem;"></span>
+        </div>
+
+        <!-- 생성 버튼 -->
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-primary" id="mainStartImageBtn" style="flex: 1; margin-top: 0;">⚡ 이미지 생성</button>
+            <button class="btn-secondary btn-success" id="mainOpenImageFxBtn" style="flex: 1;">💎 ImageFX (고화질)</button>
+        </div>
+
+        <!-- 진행률 -->
+        <div id="mainProgressText" class="progress-text"></div>
+
+        <!-- 이미지 갤러리 -->
+        <div id="mainImageGallery" class="image-gallery"></div>
+
+        <!-- 다운로드 -->
+        <div id="mainDownloadSection" class="hidden" style="text-align: center; margin-top: 20px;">
+            <button class="btn-primary" id="mainDownloadAllBtn" style="width: auto; padding: 14px 30px;">📥 전체 이미지
+                다운로드</button>
+        </div>
+
+        <!-- 초기화 -->
+        <div style="text-align: right; margin-top: 20px;">
+            <button class="btn-secondary" id="resetBtn" style="background: var(--danger); border: none;">🔄 초기화</button>
+        </div>
+    </div>
+
+    <script type="module" src="scripts/script-generator-new.js"></script>
+</body>
+
+</html>
