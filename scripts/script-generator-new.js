@@ -532,9 +532,11 @@ async function analyzeCharacters() {
 
     try {
         const eraSituation = `${state.era}, ${state.situation}`;
-        const prompt = PROMPTS.CHARACTER_ANALYZER.replace('{ERA_SITUATION}', eraSituation) + state.safeScript.substring(0, 5000);
+        const prompt = PROMPTS.CHARACTER_ANALYZER.replace('{ERA_SITUATION}', eraSituation)
+            + state.safeScript.substring(0, 5000)
+            + '\n\n★★★ 매우 중요: 주인공 1명 + 조연 2~3명 반드시 포함하여 총 3~4명의 인물 프롬프트를 각각 생성하세요! ★★★';
 
-        const result = await API.callGemini(prompt, { temperature: 0.7, maxTokens: 1000 });
+        const result = await API.callGemini(prompt, { temperature: 0.7, maxTokens: 2000 });
 
         // 전체 결과 사용 (주인공 + 조연 모두 포함)
         // [주인공], [조연1] 등의 라벨이 있는 형식 그대로 사용
@@ -672,9 +674,11 @@ async function myAnalyzeCharacters() {
 
     try {
         const eraSituation = `${state.era}, ${state.situation}`;
-        const prompt = PROMPTS.CHARACTER_ANALYZER.replace('{ERA_SITUATION}', eraSituation) + script.substring(0, 5000);
+        const prompt = PROMPTS.CHARACTER_ANALYZER.replace('{ERA_SITUATION}', eraSituation)
+            + script.substring(0, 5000)
+            + '\n\n★★★ 매우 중요: 주인공 1명 + 조연 2~3명 반드시 포함하여 총 3~4명의 인물 프롬프트를 각각 생성하세요! ★★★';
 
-        const result = await API.callGemini(prompt, { temperature: 0.7, maxTokens: 1000 });
+        const result = await API.callGemini(prompt, { temperature: 0.7, maxTokens: 2000 });
 
         // 전체 결과 사용 (주인공 + 조연 모두 포함)
         state.characterPrompt = result.trim();
