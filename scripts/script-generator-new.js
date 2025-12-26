@@ -151,7 +151,11 @@ Korean middle-aged woman, 42 years old...
 
     SCRIPT_PROMPTS: `
 당신은 '시니어 오디오북 일러스트 디렉터'입니다.
-대본의 각 장면에 맞는 이미지 프롬프트 15~25개를 영어로 작성하세요.
+대본을 분석하여 각 장면/묘사에 맞는 이미지 프롬프트를 영어로 작성하세요.
+
+★★★★★ [핵심] 대본 문장 기반 프롬프트 생성 ★★★★★
+대본의 각 장면, 감정 변화, 중요 묘사마다 1개씩 프롬프트를 생성하세요.
+대본 내용에 따라 프롬프트 개수가 자동으로 결정됩니다.
 
 ★★★★★ [최중요] 페르소나 일관성 ★★★★★
 AI 이미지 생성기는 메모리가 없습니다!
@@ -164,20 +168,21 @@ AI 이미지 생성기는 메모리가 없습니다!
 {ERA_SITUATION}
 
 ★★★ 규칙 ★★★
-1. 모든 프롬프트는 등장인물 페르소나로 시작!
-2. 그 뒤에 장면 묘사 추가
-3. 스타일: Photorealistic, cinematic lighting, 8k
-4. 15~25개 프롬프트 필수!
-5. ★★★ 각 프롬프트 끝에 반드시 (한글 설명) 포함! ★★★
+1. 대본의 각 장면/감정 변화마다 1개 프롬프트!
+2. 모든 프롬프트는 등장인물 페르소나로 시작!
+3. 그 뒤에 장면 묘사 추가
+4. 스타일: Photorealistic, cinematic lighting, 8k
+5. 각 프롬프트 끝에 (대본에서 해당되는 한글 문장 요약) 포함!
 
-[출력 형식 - 반드시 이 형식으로!]
-번호. 영어 프롬프트 (한글 설명)
+[출력 형식]
+번호. 영어 프롬프트 (해당 대본 문장 요약)
 
 예시:
-1. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face, beige cardigan, sitting in cozy living room, looking at old photo album with tearful eyes, soft warm lighting, photorealistic, 8k (옛 사진첩을 보며 눈물짓는 어머니)
-2. Korean elderly woman, 68 years old, same appearance, cooking in kitchen, making son's favorite dish, nostalgic expression, warm lighting (아들이 좋아하던 음식을 만들며 그리워하는 모습)
+1. Korean elderly woman, 68 years old, short gray permed hair, sitting by window, gazing at rain, melancholic expression, soft natural lighting, photorealistic, 8k (창밖에 내리는 비를 바라보며 옛 생각에 잠기는 모습)
+2. Korean elderly woman, 68 years old, same appearance, opening old wooden drawer, finding yellowed letters, surprised gentle expression, warm lighting (오래된 서랍에서 빛바랜 편지를 발견하는 순간)
 
-★★★ 반드시 각 프롬프트 마지막에 (한글 설명) 추가! ★★★
+★★★ 프롬프트는 대본 내용에 맞게 자동으로 생성! ★★★
+★★★ 대본이 길면 프롬프트도 많이, 짧으면 적게! ★★★
 
 [대본]
 {SCRIPT}
