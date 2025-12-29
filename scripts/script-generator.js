@@ -519,6 +519,37 @@ const PROMPT_CONVERTER = `
 (순화한 단어가 있으면 "원래단어 → 순화단어" 형식으로 기록, 없으면 "이상 없음")
 `;
 
+// 주제 추천 프롬프트 (참고 대본 분석 → 10개 주제 제안)
+const TOPIC_SUGGESTER = `
+당신은 35년 경력의 베테랑 라디오 작가입니다.
+사용자가 제공하는 참고 대본을 분석하여, 비슷한 스타일의 새로운 주제 10가지를 추천해주세요.
+
+[분석 항목]
+1. 대본의 핵심 테마 (가족, 사랑, 이별, 화해, 후회 등)
+2. 감정의 흐름과 카타르시스 포인트
+3. 인물 관계의 구조 (부모-자식, 부부, 친구, 형제 등)
+4. 시대적 배경과 세대 특성
+
+[추천 규칙]
+★ 타겟 시청자: 50대~70대 시니어
+★ 핵심: 가슴이 먹먹해지는 인생 이야기
+★ 참고 대본과 유사한 감성/구조를 유지하되, 새로운 소재로!
+
+[출력 형식] ★★★ 반드시 이 형식을 지키세요! ★★★
+각 주제를 번호와 함께 한 줄로 출력하세요:
+
+1. [주제 제목]: 간단한 설명 (예상 감정: OO)
+2. [주제 제목]: 간단한 설명 (예상 감정: OO)
+...
+10. [주제 제목]: 간단한 설명 (예상 감정: OO)
+
+예시:
+1. 30년 만에 찾아온 첫사랑의 편지: 시어머니가 평생 숨겨온 첫사랑의 마지막 편지가 발견된다 (예상 감정: 그리움, 미련)
+2. 아버지의 빈 약통: 아버지가 약값을 아끼려고 약을 안 드시고 있었다는 것을 알게 된 딸 (예상 감정: 죄책감, 화해)
+
+[참고 대본]
+`;
+
 // 등장인물 페르소나 분석 전용 프롬프트 (다중 인물 지원)
 const PERSONA_ANALYZER = `
 당신은 '시니어 오디오북 일러스트 디렉터'입니다.
@@ -3569,5 +3600,109 @@ if (openImageFxExternalBtn) {
         }
 
         window.open('https://aitestkitchen.withgoogle.com/tools/image-fx', '_blank');
+    });
+}
+
+// ============================================================
+// 주제 추천 기능 (참고 대본 분석 → 10개 주제 제안)
+// ============================================================
+const suggestTopicsBtn = document.getElementById('suggestTopicsBtn');
+const topicSuggestionsSection = document.getElementById('topicSuggestionsSection');
+const topicSuggestionsList = document.getElementById('topicSuggestionsList');
+const closeSuggestionsBtn = document.getElementById('closeSuggestionsBtn');
+const topicInput = document.getElementById('topicInput');
+const prevStoryInput = document.getElementById('prevStoryInput');
+
+if (suggestTopicsBtn) {
+    suggestTopicsBtn.addEventListener('click', async () => {
+        // 참고 대본 확인 (지난 이야기 필드 사용)
+        const referenceScript = prevStoryInput ? prevStoryInput.value.trim() : '';
+
+        if (!referenceScript || referenceScript.length < 100) {
+            return alert("📖 '지난 이야기' 필드에 참고용 대본을 입력해주세요!\n\n(최소 100자 이상의 참고 대본이 필요합니다)");
+        }
+
+        const apiKey = getGeminiAPIKey();
+        if (!apiKey) {
+            return alert("API 키가 없습니다. 위에서 API 키를 입력하고 저장하세요.");
+        }
+
+        suggestTopicsBtn.disabled = true;
+        suggestTopicsBtn.innerText = "⏳ 주제 분석 중...";
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: TOPIC_SUGGESTER + referenceScript }] }],
+                    generationConfig: {
+                        maxOutputTokens: 4096
+                    }
+                })
+            });
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error?.message || "통신 오류");
+            if (!data.candidates || !data.candidates[0].content) throw new Error("AI 응답이 비어있습니다");
+
+            const suggestionsText = data.candidates[0].content.parts[0].text.trim();
+
+            // 추천 주제 파싱
+            const suggestions = [];
+            const lines = suggestionsText.split('\n').filter(line => line.trim());
+            for (const line of lines) {
+                // "1. 제목: 설명..." 형식 매칭
+                const match = line.match(/^\d+\.\s*(.+)/);
+                if (match) {
+                    suggestions.push(match[1].trim());
+                }
+            }
+
+            if (suggestions.length === 0) {
+                throw new Error("주제를 파싱할 수 없습니다");
+            }
+
+            // UI에 추천 주제 표시
+            topicSuggestionsList.innerHTML = '';
+            suggestions.forEach((suggestion, index) => {
+                const btn = document.createElement('button');
+                btn.style.cssText = 'text-align: left; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;';
+                btn.innerHTML = `<span style="color: #a29bfe; font-weight: bold;">${index + 1}.</span> ${suggestion}`;
+                btn.addEventListener('mouseover', () => {
+                    btn.style.background = 'rgba(102, 126, 234, 0.3)';
+                    btn.style.borderColor = 'rgba(102, 126, 234, 0.6)';
+                });
+                btn.addEventListener('mouseout', () => {
+                    btn.style.background = 'rgba(255,255,255,0.05)';
+                    btn.style.borderColor = 'rgba(255,255,255,0.1)';
+                });
+                btn.addEventListener('click', () => {
+                    // 선택된 주제를 주제 입력란에 넣기
+                    const topicTitle = suggestion.split(':')[0].trim();
+                    topicInput.value = topicTitle;
+                    topicSuggestionsSection.style.display = 'none';
+                    alert(`✅ "${topicTitle}" 주제가 선택되었습니다!\n\n이제 '안전 대본 생성' 버튼을 눌러주세요.`);
+                });
+                topicSuggestionsList.appendChild(btn);
+            });
+
+            topicSuggestionsSection.style.display = 'block';
+            topicSuggestionsSection.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            alert("❌ 오류 발생: " + error.message);
+            console.error(error);
+        } finally {
+            suggestTopicsBtn.disabled = false;
+            suggestTopicsBtn.innerText = "🎯 참고대본으로 주제 10개 추천받기";
+        }
+    });
+}
+
+// 추천 주제 닫기 버튼
+if (closeSuggestionsBtn) {
+    closeSuggestionsBtn.addEventListener('click', () => {
+        topicSuggestionsSection.style.display = 'none';
     });
 }

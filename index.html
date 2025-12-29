@@ -518,6 +518,30 @@
             <label>📄 주제 또는 키워드</label>
             <textarea id="topicInput" rows="3" placeholder="예: 노후의 친구 관계, 황혼 육아..."></textarea>
 
+            <!-- 주제 추천 받기 버튼 -->
+            <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 15px;">
+                <button id="suggestTopicsBtn"
+                    style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 10px; color: white; font-size: 0.95rem; font-weight: bold; cursor: pointer;">
+                    🎯 참고대본으로 주제 10개 추천받기
+                </button>
+            </div>
+
+            <!-- 추천 주제 표시 영역 (숨겨져 있다가 추천 후 표시) -->
+            <div id="topicSuggestionsSection" style="display: none; margin-bottom: 15px;">
+                <div
+                    style="padding: 15px; background: rgba(102, 126, 234, 0.15); border: 1px solid rgba(102, 126, 234, 0.4); border-radius: 12px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="color: #a29bfe; font-weight: bold; font-size: 0.9rem;">✨ 추천 주제 (클릭하여 선택)</span>
+                        <button id="closeSuggestionsBtn"
+                            style="background: none; border: none; color: #888; cursor: pointer; font-size: 1.2rem;">✕</button>
+                    </div>
+                    <div id="topicSuggestionsList" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- 추천 주제가 여기 동적으로 생성됨 -->
+                    </div>
+                </div>
+            </div>
+
             <label>📖 지난 이야기 (선택사항)</label>
             <textarea id="prevStoryInput" rows="2" placeholder="이전 영상 내용이 있다면 적어주세요."></textarea>
 
