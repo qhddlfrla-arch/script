@@ -2312,11 +2312,19 @@ function renderPromptList(promptsArray) {
     promptList.style.display = 'block';
 }
 
-// ImageFX 열기
+// ImageFX 바로가기
 const openImageFxBtn = document.getElementById('openImageFxBtn');
 if (openImageFxBtn) {
     openImageFxBtn.addEventListener('click', () => {
         window.open("https://aitestkitchen.withgoogle.com/tools/image-fx", "_blank");
+    });
+}
+
+// Whisk 바로가기
+const openWhiskBtn = document.getElementById('openWhiskBtn');
+if (openWhiskBtn) {
+    openWhiskBtn.addEventListener('click', () => {
+        window.open("https://labs.google/whisk", "_blank");
     });
 }
 
