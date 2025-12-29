@@ -171,9 +171,7 @@ const StorageManager = {
     }
 };
 
-// ES Module export for script-generator.js
-export function getGeminiAPIKey() {
+// 전역 함수로 노출 (file:// 프로토콜 호환)
+function getGeminiAPIKey() {
     return StorageManager.getApiKey();
 }
-
-export { StorageManager };

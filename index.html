@@ -373,20 +373,29 @@
                 <label style="color: #ffd200;">📄 내 대본 붙여넣기</label>
                 <textarea id="myScriptInput" rows="10" placeholder="여기에 직접 작성한 대본을 붙여넣으세요..."></textarea>
 
-                <!-- 등장인물 페르소나 섹션 -->
+                <!-- 등장인물 페르소나 섹션 (다중 인물 지원) -->
                 <div id="personaSection" style="display: none; margin-top: 20px;">
                     <div class="result-box" style="border: 2px solid #f7971e;">
                         <div class="result-title">
-                            <span>👤 등장인물 페르소나 (이미지 일관성 기준)</span>
-                            <button class="copy-btn" id="copyPersonaBtn">📋 복사</button>
+                            <span>👥 등장인물 페르소나 (이미지 일관성 기준)</span>
+                            <button class="copy-btn" id="copyPersonaBtn">📋 전체 복사</button>
                         </div>
                         <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 10px;">
                             ⚠️ 아래 페르소나가 모든 이미지 프롬프트에 자동 적용됩니다. 필요시 수정하세요.
                         </p>
-                        <textarea id="personaInput" rows="4" style="font-size: 0.9rem;"
-                            placeholder="예: Korean elderly woman, 65 years old, gray permed short hair, warm brown eyes, round face, gentle smile, cream knit cardigan"></textarea>
+                        <!-- 인물별 페르소나 표시 영역 -->
+                        <div id="personaList"
+                            style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                            <!-- 동적으로 생성됨 -->
+                        </div>
+                        <!-- 전체 페르소나 텍스트 (숨김, 저장용) -->
+                        <textarea id="personaInput" rows="6" style="font-size: 0.9rem;" placeholder="예:
+[주인공] 순애: Korean elderly woman, 65 years old, gray permed short hair...
+[조연1] 남편: Korean elderly man, 68 years old, short gray hair...
+[조연2] 딸: Korean middle-aged woman, 42 years old..."></textarea>
                     </div>
                 </div>
+
 
                 <!-- 스타일 선택 그룹 -->
                 <label style="margin-top: 20px;">🎨 1. 인물 스타일</label>
@@ -459,16 +468,38 @@
                     <button class="style-btn" data-value="21:9" data-ratio="21:9">🎬 21:9 (시네마)</button>
                 </div>
 
-                <!-- 2단계 버튼 -->
-                <div style="display: flex; gap: 10px; margin-top: 25px;">
-                    <button id="analyzePersonaBtn"
-                        style="flex: 1; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-size: 1rem; font-weight: bold; cursor: pointer;">
-                        👤 1단계: 등장인물 분석
-                    </button>
-                    <button id="generateFromMyScriptBtn"
-                        style="flex: 1; padding: 14px; background: linear-gradient(to right, #f7971e, #ffd200); border: none; border-radius: 12px; color: #222; font-size: 1rem; font-weight: bold; cursor: pointer;">
-                        ✨ 2단계: 프롬프트 생성
-                    </button>
+                <!-- 2단계 버튼 + 프롬프트 개수 선택 -->
+                <div style="margin-top: 25px;">
+                    <!-- 프롬프트 개수 선택 -->
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+                        <label style="color: #ffd200; margin: 0; font-size: 0.9rem;">🎯 프롬프트 개수:</label>
+                        <select id="myScriptPromptCount"
+                            style="width: auto; min-width: 120px; padding: 8px 12px; font-size: 0.9rem;">
+                            <option value="auto" selected>자동 (대본 분석)</option>
+                            <option value="5">5개</option>
+                            <option value="10">10개</option>
+                            <option value="15">15개</option>
+                            <option value="20">20개</option>
+                            <option value="25">25개</option>
+                            <option value="30">30개</option>
+                            <option value="50">50개</option>
+                            <option value="60">60개</option>
+                            <option value="75">75개</option>
+                            <option value="100">100개</option>
+                        </select>
+                        <span style="color: #aaa; font-size: 0.8rem;">💡 자동: AI가 대본 길이에 맞게 결정</span>
+                    </div>
+                    <!-- 버튼들 -->
+                    <div style="display: flex; gap: 10px;">
+                        <button id="analyzePersonaBtn"
+                            style="flex: 1; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-size: 1rem; font-weight: bold; cursor: pointer;">
+                            👤 1단계: 등장인물 분석
+                        </button>
+                        <button id="generateFromMyScriptBtn"
+                            style="flex: 1; padding: 14px; background: linear-gradient(to right, #f7971e, #ffd200); border: none; border-radius: 12px; color: #222; font-size: 1rem; font-weight: bold; cursor: pointer;">
+                            ✨ 2단계: 프롬프트 생성
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -843,7 +874,8 @@
         </div>
     </div>
 
-    <script type="module" src="scripts/script-generator.js"></script>
+    <script src="scripts/storage.js"></script>
+    <script defer src="scripts/script-generator.js"></script>
 </body>
 
 </html>

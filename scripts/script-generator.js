@@ -1,4 +1,4 @@
-import { getGeminiAPIKey, StorageManager } from './storage.js';
+// storage.js가 먼저 로드되어 StorageManager와 getGeminiAPIKey가 전역으로 사용 가능
 
 // ============================================================
 // localStorage를 통한 데이터 영구 저장 (재부팅해도 유지)
@@ -327,19 +327,23 @@ AI 이미지 생성기는 메모리가 없습니다! "same woman"은 효과가 �
    2. Same Korean elderly woman Youngsook looking at photo...
    3. Youngsook sitting in the park...
 
-✅ 올바른 예시 (모든 프롬프트에 상세 외모 반복!):
-   1. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean home, 2020s era, looking at her son with loving eyes. (아들을 바라보는 영숙)
-   2. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean home, 2020s era, holding old photo with tearful eyes. (옛 사진을 보며 눈물짓는 영숙)
-   3. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean park, 2020s era, sitting on bench peacefully. (공원 벤치에 앉은 영숙)
-
-★ 핵심: 나이+머리+얼굴+의상+시대를 모든 프롬프트 앞부분에 동일하게 복사해서 사용!
-
-4. **중요: 모든 인물은 반드시 "Korean"으로 명시하세요.**
-5. 스타일: 
-   - 에세이: Photorealistic, cinematic lighting, 8k, emotional, modern Korean 2020s setting.
-   - 튜터: Close-up of senior's hands holding smartphone, clear screen interface, warm indoor lighting.
-6. **형식**: 번호를 붙이고, 영어 프롬프트 뒤에 괄호로 한글 설명을 추가하세요.
-7. **시대적 배경 필수**: 모든 프롬프트에 "modern Korean, 2020s era" 또는 "contemporary Korea" 명시!
+✅ 올바른 예시 (모든 프롬프트에 상세 외모 반복!):\r
+   1. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean home, 2020s era, looking at her son with loving eyes. (평생을 바쳐 일궈온 가정이...~...아들의 눈을 바라보았다)\r
+   2. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean home, 2020s era, holding old photo with tearful eyes. (낡은 사진첩을 꺼내들었다...~...눈물이 흘러내렸다)\r
+   3. Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, wearing comfortable beige cardigan, modern Korean park, 2020s era, sitting on bench peacefully. (공원 벤치에 앉아...~...평화로운 오후였다)\r
+\r
+★ 핵심: 나이+머리+얼굴+의상+시대를 모든 프롬프트 앞부분에 동일하게 복사해서 사용!\r
+\r
+4. **중요: 모든 인물은 반드시 \"Korean\"으로 명시하세요.**\r
+5. 스타일: \r
+   - 에세이: Photorealistic, cinematic lighting, 8k, emotional, modern Korean 2020s setting.\r
+   - 튜터: Close-up of senior's hands holding smartphone, clear screen interface, warm indoor lighting.\r
+6. ★★★ 형식 (매우 중요!) ★★★\r
+   번호를 붙이고, 영어 프롬프트 뒤에 괄호로 **해당 장면의 대본 시작~끝 문장**을 표시하세요.\r
+   형식: 번호. [영어 프롬프트] (대본시작문장...~...대본끝문장)\r
+   - 시작: 해당 장면 첫 부분 10~20자 + "..."\r
+   - 끝: "~..." + 해당 장면 마지막 부분 10~20자\r
+7. **시대적 배경 필수**: 모든 프롬프트에 \"modern Korean, 2020s era\" 또는 \"contemporary Korea\" 명시!
 
 [유튜브 제목 및 태그] ★★★ 떡상하는 후킹 제목 필수! ★★★
 1. '[YOUTUBE_PACKAGE]' 제목을 쓰세요.
@@ -417,7 +421,22 @@ const PROMPT_CONVERTER = `
    ⛔ 잘못된 예시: "Same Korean elderly woman sitting..."
    ✅ 올바른 예시: "Korean elderly woman, 68 years old, short gray permed hair, warm gentle face, comfortable beige cardigan, modern Korean home, 2020s era, sitting..."
    
-6. 형식: 번호를 붙이고, 영어 프롬프트 뒤에 괄호로 한글 설명을 추가하세요.
+6. ★★★ 형식 (매우 중요!) ★★★
+   번호를 붙이고, 영어 프롬프트 뒤에 괄호로 **해당 장면의 대본 시작~끝 문장**을 표시하세요.
+   
+   형식: 번호. [영어 프롬프트] (대본시작문장...~...대본끝문장)
+   
+   ⛔ 잘못된 예시 (단순 설명만):
+   1. Korean elderly woman... (아침에 일어나는 할머니)
+   
+   ✅ 올바른 예시 (대본 문장 포함):
+   1. Korean elderly woman, 68 years old... (평생을 바쳐 일궈온 가정이...~...숨이 턱 끝까지 차오를 때)
+   2. Korean elderly man, 70 years old... (남편은 소파에 앉아...~...무관심하게 TV를 보고 있었다)
+   
+   💡 규칙:
+   - 시작 문장: 해당 장면이 시작되는 대본 첫 부분 (10~20자)
+   - 끝 문장: 해당 장면이 끝나는 대본 마지막 부분 (10~20자)
+   - 중간에 "...~..."로 연결
 
 [출력 형식]
 아래 형식을 정확히 따르세요:
@@ -432,20 +451,25 @@ const PROMPT_CONVERTER = `
 (순화한 단어가 있으면 "원래단어 → 순화단어" 형식으로 기록, 없으면 "이상 없음")
 `;
 
-// 등장인물 페르소나 분석 전용 프롬프트
+// 등장인물 페르소나 분석 전용 프롬프트 (다중 인물 지원)
 const PERSONA_ANALYZER = `
 당신은 '시니어 오디오북 일러스트 디렉터'입니다.
-사용자가 제공하는 대본을 읽고, 주인공(메인 등장인물)의 외모 페르소나를 생성하세요.
+사용자가 제공하는 대본을 읽고, 모든 주요 등장인물의 외모 페르소나를 생성하세요.
 
 ★★★ 중요: 반드시 영어로 출력하세요! 이미지 생성 AI에 사용됩니다. ★★★
 
+[분석 대상]
+- 주인공 (반드시 1명 포함)
+- 주요 조연 (대본에 등장하는 중요 인물, 최대 4명까지)
+- 총 최대 5명까지 분석
+
 [분석 규칙]
-1. 대본에서 주인공의 나이, 성별, 외모 단서를 찾으세요.
-2. 명시되지 않은 부분은 대본 맥락에 맞게 적절히 추론하세요.
+1. 대본에서 각 인물의 이름, 나이, 성별, 관계, 외모 단서를 찾으세요.
+2. 명시되지 않은 부분은 대본 맥락과 관계에 맞게 적절히 추론하세요.
 3. **반드시 "Korean"으로 시작**하세요 (예: "Korean elderly woman")
 4. **반드시 시대적 배경을 포함**하세요: "modern Korean, 2020s era"
 
-[포함해야 할 요소 - 모두 필수!]
+[포함해야 할 요소 - 각 인물마다 모두 필수!]
 - 국적: Korean (필수)
 - 예상 나이: 구체적 숫자 (예: 68 years old)
 - 성별
@@ -456,9 +480,18 @@ const PERSONA_ANALYZER = `
 - 시대적 배경: modern Korean, 2020s era (필수!)
 - 전반적인 분위기
 
-[출력 형식]
-한 문장으로 쉼표로 구분하여 출력하세요. 다른 설명 없이 페르소나만 출력하세요.
-예시: "Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, kind eyes, average build, wearing comfortable beige cardigan, modern Korean, 2020s era, warm and motherly atmosphere"
+[출력 형식] ★★★ 이 형식을 정확히 지켜주세요! ★★★
+각 인물을 아래 형식으로 줄바꿈하여 출력하세요:
+
+[주인공] 이름: 페르소나 설명
+[조연1] 이름: 페르소나 설명
+[조연2] 이름: 페르소나 설명
+...
+
+예시:
+[주인공] 순애: Korean elderly woman, 68 years old, short gray permed hair, warm gentle face with soft wrinkles, kind eyes, average build, wearing comfortable floral print blouse, modern Korean, 2020s era, warm and motherly atmosphere
+[조연1] 남편: Korean elderly man, 70 years old, short gray hair, weathered but gentle face, slim build, wearing simple cotton shirt, modern Korean, 2020s era, quiet and dependable demeanor
+[조연2] 딸: Korean middle-aged woman, 45 years old, shoulder-length black hair, professional appearance, wearing casual weekend clothes, modern Korean, 2020s era, caring and responsible look
 
 [사용자 대본]
 `;
@@ -795,7 +828,10 @@ const apiKeyInput = document.getElementById('apiKeyInput');
 const saveKeyBtn = document.getElementById('saveKeyBtn');
 const keyStatusText = document.getElementById('keyStatusText');
 
+console.log('🔧 API 키 관리 초기화:', { apiKeyInput: !!apiKeyInput, saveKeyBtn: !!saveKeyBtn, keyStatusText: !!keyStatusText });
+
 function checkKeyStatus() {
+    if (!apiKeyInput || !keyStatusText) return;
     const key = getGeminiAPIKey();
     if (key) {
         apiKeyInput.value = key;
@@ -808,13 +844,19 @@ function checkKeyStatus() {
 }
 checkKeyStatus();
 
-saveKeyBtn.addEventListener('click', () => {
-    const key = apiKeyInput.value.trim();
-    if (!key) return alert("키를 입력하세요");
-    StorageManager.saveApiKey(key);
-    alert("저장되었습니다!");
-    checkKeyStatus();
-});
+if (saveKeyBtn) {
+    console.log('✅ saveKeyBtn 발견, 이벤트 리스너 등록');
+    saveKeyBtn.addEventListener('click', () => {
+        console.log('🖱️ 저장 버튼 클릭됨!');
+        const key = apiKeyInput ? apiKeyInput.value.trim() : '';
+        if (!key) return alert("키를 입력하세요");
+        StorageManager.saveApiKey(key);
+        alert("저장되었습니다!");
+        checkKeyStatus();
+    });
+} else {
+    console.error('❌ saveKeyBtn을 찾을 수 없습니다!');
+}
 
 // ============================================================
 // 3. 새 대본 생성 로직
@@ -1560,11 +1602,76 @@ ${prevStory}
 });
 
 // ============================================================
-// 4. 등장인물 페르소나 분석 (1단계)
+// 4. 등장인물 페르소나 분석 (1단계) - 다중 인물 지원
 // ============================================================
 const analyzePersonaBtn = document.getElementById('analyzePersonaBtn');
 const personaSection = document.getElementById('personaSection');
 const personaInput = document.getElementById('personaInput');
+const personaList = document.getElementById('personaList');
+
+// 다중 인물 페르소나 파싱 함수
+function parseMultiplePersonas(personaText) {
+    const personas = [];
+    const lines = personaText.split('\n').filter(line => line.trim());
+
+    for (const line of lines) {
+        // [주인공] 이름: 페르소나 또는 [조연1] 이름: 페르소나 형식 파싱
+        const match = line.match(/^\[([^\]]+)\]\s*([^:]+):\s*(.+)$/);
+        if (match) {
+            personas.push({
+                role: match[1].trim(),  // 주인공, 조연1, 조연2 등
+                name: match[2].trim(),  // 인물 이름
+                persona: match[3].trim() // 영어 페르소나
+            });
+        }
+    }
+    return personas;
+}
+
+// 다중 인물 페르소나 UI 렌더링 함수
+function renderPersonaList(personas) {
+    if (!personaList) return;
+    personaList.innerHTML = '';
+
+    if (personas.length === 0) {
+        personaList.innerHTML = '<p style="color: #888; font-size: 0.85rem;">분석된 인물이 없습니다.</p>';
+        return;
+    }
+
+    personas.forEach((char, index) => {
+        const card = document.createElement('div');
+        card.style.cssText = 'padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; border-left: 4px solid ' +
+            (char.role === '주인공' ? '#ffd200' : '#4da3ff') + ';';
+
+        const header = document.createElement('div');
+        header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;';
+
+        const roleLabel = document.createElement('span');
+        roleLabel.style.cssText = 'font-weight: bold; color: ' + (char.role === '주인공' ? '#ffd200' : '#4da3ff') + '; font-size: 0.85rem;';
+        roleLabel.innerText = `[${char.role}] ${char.name}`;
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.innerText = '📋 복사';
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(char.persona).then(() => {
+                copyBtn.innerText = '✅ 복사됨!';
+                setTimeout(() => copyBtn.innerText = '📋 복사', 1500);
+            });
+        });
+
+        header.appendChild(roleLabel);
+        header.appendChild(copyBtn);
+
+        const personaText = document.createElement('p');
+        personaText.style.cssText = 'color: #ccc; font-size: 0.85rem; margin: 0; line-height: 1.5; word-break: break-word;';
+        personaText.innerText = char.persona;
+
+        card.appendChild(header);
+        card.appendChild(personaText);
+        personaList.appendChild(card);
+    });
+}
 
 if (analyzePersonaBtn) {
     analyzePersonaBtn.addEventListener('click', async () => {
@@ -1605,9 +1712,15 @@ if (analyzePersonaBtn) {
             personaSection.style.display = 'block';
             saveToStorage(STORAGE_KEYS.PERSONA, persona);
 
+            // 다중 인물 페르소나 파싱 및 UI 렌더링
+            const parsedPersonas = parseMultiplePersonas(persona);
+            renderPersonaList(parsedPersonas);
+
+            const characterCount = parsedPersonas.length;
+
             personaSection.scrollIntoView({ behavior: 'smooth' });
 
-            alert("✅ 등장인물 페르소나 분석 완료!\n\n이제 '2단계: 프롬프트 생성' 버튼을 눌러주세요.\n필요시 페르소나를 직접 수정할 수 있습니다.");
+            alert(`✅ 등장인물 페르소나 분석 완료!\n\n총 ${characterCount}명의 인물이 분석되었습니다.\n이제 '2단계: 프롬프트 생성' 버튼을 눌러주세요.\n필요시 직접 수정할 수 있습니다.`);
 
         } catch (error) {
             alert("❌ 오류 발생: " + error.message);
@@ -1619,13 +1732,13 @@ if (analyzePersonaBtn) {
     });
 }
 
-// 페르소나 복사 버튼
+// 페르소나 전체 복사 버튼
 const copyPersonaBtn = document.getElementById('copyPersonaBtn');
 if (copyPersonaBtn) {
     copyPersonaBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(personaInput.value).then(() => {
             copyPersonaBtn.innerText = '✅ 복사됨!';
-            setTimeout(() => copyPersonaBtn.innerText = '📋 복사', 1500);
+            setTimeout(() => copyPersonaBtn.innerText = '📋 전체 복사', 1500);
         });
     });
 }
@@ -1650,6 +1763,10 @@ if (generateFromMyScriptBtn) {
         const bridge = document.getElementById('bridgeSection');
         const currentPersona = personaInput ? personaInput.value.trim() : '';
 
+        // 프롬프트 개수 선택값 가져오기
+        const promptCountSelect = document.getElementById('myScriptPromptCount');
+        const promptCountValue = promptCountSelect ? promptCountSelect.value : 'auto';
+
         if (!myScript) return alert("대본을 입력해주세요!");
 
         const apiKey = getGeminiAPIKey();
@@ -1669,7 +1786,12 @@ if (generateFromMyScriptBtn) {
 모든 프롬프트는 이 외모 묘사로 시작해야 합니다!
 ` : '';
 
-        const fullPrompt = PROMPT_CONVERTER.replace('{IMAGE_STYLE}', getFullStyle()) + personaInstruction + `
+        // 프롬프트 개수 지시사항
+        const promptCountInstruction = promptCountValue === 'auto'
+            ? `\n★★★ 프롬프트 개수: 대본 길이에 맞게 자동으로 15~30개 생성하세요. ★★★\n`
+            : `\n★★★ 프롬프트 개수: 정확히 ${promptCountValue}개를 생성하세요! (중요) ★★★\n`;
+
+        const fullPrompt = PROMPT_CONVERTER.replace('{IMAGE_STYLE}', getFullStyle()) + personaInstruction + promptCountInstruction + `
 
 [사용자 제공 대본]
 ${myScript}
