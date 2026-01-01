@@ -859,8 +859,8 @@
         <!-- 이미지 개수 선택 -->
         <div style="margin: 15px 0; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
             <label style="color: #fbc2eb; font-weight: bold; margin: 0;">🎯 이미지 개수:</label>
-            <select id="imageCountSelect" style="width: auto; min-width: 150px;">
-                <option value="all">전체 (프롬프트 개수만큼)</option>
+            <select id="imageCountSelect" style="width: auto; min-width: 120px;">
+                <option value="all">전체</option>
                 <option value="3">3장</option>
                 <option value="5">5장</option>
                 <option value="10" selected>10장</option>
@@ -869,6 +869,16 @@
                 <option value="30">30장</option>
                 <option value="50">50장</option>
             </select>
+
+            <!-- 범위 선택 (항상 보임) -->
+            <span style="color: #888; margin: 0 5px;">또는</span>
+            <label style="color: #fbc2eb; margin: 0;">📍 범위:</label>
+            <input type="number" id="rangeStartInput" min="1" placeholder="시작"
+                style="width: 70px; padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(251, 194, 235, 0.4); background: rgba(0,0,0,0.3); color: white; font-size: 0.9rem;">
+            <span style="color: #fbc2eb; font-weight: bold;">~</span>
+            <input type="number" id="rangeEndInput" min="1" placeholder="끝"
+                style="width: 70px; padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(251, 194, 235, 0.4); background: rgba(0,0,0,0.3); color: white; font-size: 0.9rem;">
+            <span id="rangeInfo" style="color: #81c784; font-size: 0.85rem;"></span>
             <span id="promptCountInfo" style="color: #aaa; font-size: 0.85rem;"></span>
         </div>
 

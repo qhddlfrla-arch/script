@@ -15,7 +15,16 @@ const STORAGE_KEYS = {
     RATIO: 'scriptRemixer_ratio',
     PERSONA: 'scriptRemixer_persona',
     CHARACTER_PERSONA_TEXT: 'scriptRemixer_characterPersonaText',  // ★ 등장인물 페르소나 텍스트 ★
-    BLOG_ID: 'scriptRemixer_blogId'
+    BLOG_ID: 'scriptRemixer_blogId',
+    // ★ 새로 추가된 저장 키들 ★
+    RESULT_TEXT: 'scriptRemixer_resultText',           // 생성된 대본 결과
+    TOPIC_INPUT: 'scriptRemixer_topicInput',           // 주제/키워드
+    PREV_STORY: 'scriptRemixer_prevStory',             // 지난 이야기
+    ACCUMULATED_SCRIPT: 'scriptRemixer_accumulatedScript', // 누적 스크립트
+    IMAGE_SCRIPT_INPUT: 'scriptRemixer_imageScriptInput',  // 이미지 프롬프트 입력값
+    RANGE_START: 'scriptRemixer_rangeStart',           // 범위 시작
+    RANGE_END: 'scriptRemixer_rangeEnd',               // 범위 끝
+    CURRENT_TAB: 'scriptRemixer_currentTab'            // 현재 선택된 탭
 };
 
 function saveToStorage(key, value) {
@@ -37,9 +46,22 @@ function loadFromStorage(key, defaultValue = null) {
 }
 
 function clearAllStorage() {
+    // STORAGE_KEYS에 정의된 키 삭제
     Object.values(STORAGE_KEYS).forEach(key => {
         localStorage.removeItem(key);
     });
+
+    // ★ scriptRemixer_ 접두어가 붙은 모든 키 삭제 (혹시 누락된 키가 있을 경우 대비) ★
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('scriptRemixer_')) {
+            keysToRemove.push(key);
+        }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+    console.log('✅ 모든 저장 데이터 초기화 완료');
 }
 
 // ============================================================
@@ -603,23 +625,31 @@ const PROMPT_BLOG = `
 당신은 네이버 블로그 SEO 전문가이자 10년 경력의 블로거입니다.
 사용자가 제공하는 키워드로 **정보형 블로그 글**을 작성하세요.
 
-★★★★★ 최우선 규칙: 줄바꿈 (이것이 가장 중요합니다!) ★★★★★
+★★★★★ 최우선 규칙: 줄바꿈 + 가운데 정렬 (이것이 가장 중요합니다!) ★★★★★
 절대로 글을 한 덩어리로 붙여쓰지 마세요!
-- 각 소제목 앞에 빈 줄 2개 필수
-- 각 문단은 3~4문장으로 구성하고, 문단 사이에 빈 줄 1개 필수
-- 복사해서 블로그에 붙여넣을 때 가독성이 좋아야 합니다
+
+[가운데 정렬 규칙]
+- 모든 문장을 가운데 정렬 형식으로 작성하세요
+- 한 줄에 한 문장씩 작성하고, 각 줄이 가운데 정렬되어 보이도록 구성
+
+[줄바꿈 규칙]
+- 각 단락(문단)이 끝나면 빈 줄 1개 추가
+- 각 소제목 앞에 빈 줄 1개 추가
+- 각 문단은 3~4문장으로 구성
+- 줄간격을 너무 넓게 하지 말고 적당하게 유지
+
 - 예시:
-  
+
 소제목1
 
-이것은 첫 번째 문단입니다. 3~4문장으로 구성됩니다.
-
-이것은 두 번째 문단입니다. 문단 사이에 빈 줄이 있습니다.
-
+이것은 첫 번째 문장입니다.
+두 번째 문장입니다.
+세 번째 문장입니다.
 
 소제목2
 
-세 번째 문단입니다. 소제목 앞에는 빈 줄 2개가 있습니다.
+새로운 소제목의 첫 문장입니다.
+두 번째 문장입니다.
 
 ★★★ 글 스타일: 정보형 ★★★
 - 효능, 특징, 사용법, 장단점 등 **체계적인 정보 전달** 중심
@@ -1535,6 +1565,9 @@ ${prevStory}
         resultDiv.innerText = finalContent;
         bridge.style.display = 'block';
 
+        // ★ 결과 대본 localStorage에 저장 (페이지 새로고침 후에도 유지) ★
+        saveResultText(finalContent);
+
         // ★ 자동 이어쓰기: 생성된 대본을 "지난 이야기"에 자동으로 채움 ★
         const prevStoryInput = document.getElementById('prevStoryInput');
         if (prevStoryInput && totalParts > 1 && nextPart < totalParts) {
@@ -2331,6 +2364,46 @@ if (openWhiskBtn) {
 // ============================================================
 // 8. 이미지 생성 (Gemini Imagen 3)
 // ============================================================
+
+// ★ 범위 선택 UI 표시/숨김 이벤트 리스너 ★
+const imageCountSelect = document.getElementById('imageCountSelect');
+const rangeSelectSection = document.getElementById('rangeSelectSection');
+const rangeStartInput = document.getElementById('rangeStartInput');
+const rangeEndInput = document.getElementById('rangeEndInput');
+const rangeInfo = document.getElementById('rangeInfo');
+
+if (imageCountSelect && rangeSelectSection) {
+    imageCountSelect.addEventListener('change', () => {
+        if (imageCountSelect.value === 'range') {
+            rangeSelectSection.style.display = 'block';
+        } else {
+            rangeSelectSection.style.display = 'none';
+        }
+    });
+}
+
+// 범위 입력 시 생성될 개수 실시간 표시
+function updateRangeInfo() {
+    if (!rangeStartInput || !rangeEndInput || !rangeInfo) return;
+
+    const start = parseInt(rangeStartInput.value, 10);
+    const end = parseInt(rangeEndInput.value, 10);
+
+    if (!isNaN(start) && !isNaN(end) && start > 0 && end >= start) {
+        const count = end - start + 1;
+        rangeInfo.innerText = `(${count}장 생성 예정)`;
+        rangeInfo.style.color = '#81c784';
+    } else if (!isNaN(start) && !isNaN(end)) {
+        rangeInfo.innerText = '⚠️ 올바른 범위를 입력하세요';
+        rangeInfo.style.color = '#ff8a80';
+    } else {
+        rangeInfo.innerText = '';
+    }
+}
+
+if (rangeStartInput) rangeStartInput.addEventListener('input', updateRangeInfo);
+if (rangeEndInput) rangeEndInput.addEventListener('input', updateRangeInfo);
+
 let currentIndex = 0;
 let globalParagraphs = [];
 let generatedImages = [];
@@ -2387,9 +2460,9 @@ async function generateImageWithGemini(prompt, apiKey) {
     // 실사 품질 강화 프롬프트
     const enhancedPrompt = `Create a high-quality photorealistic image: ${prompt}. Style: ultra-realistic photography, 8k resolution, sharp details, professional lighting, cinematic quality.`;
 
-    // 방법 1: Gemini 2.0 Flash 이미지 생성 시도
+    // 방법 1: Gemini 2.5 Flash (나노바나나) 이미지 생성 시도
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -2481,17 +2554,41 @@ startImageBtn.addEventListener('click', async () => {
     const imageCountSelect = document.getElementById('imageCountSelect');
     const selectedCount = imageCountSelect ? imageCountSelect.value : 'all';
 
-    if (selectedCount === 'all') {
+    // ★ 범위 입력값 확인 (범위가 입력되어 있으면 우선 적용) ★
+    const rangeStartEl = document.getElementById('rangeStartInput');
+    const rangeEndEl = document.getElementById('rangeEndInput');
+    const rangeStart = rangeStartEl ? parseInt(rangeStartEl.value, 10) : NaN;
+    const rangeEnd = rangeEndEl ? parseInt(rangeEndEl.value, 10) : NaN;
+    const hasValidRange = !isNaN(rangeStart) && !isNaN(rangeEnd) && rangeStart > 0 && rangeEnd >= rangeStart;
+
+    if (hasValidRange) {
+        // ★ 범위 선택 모드 (범위가 입력되어 있으면 우선 적용) ★
+        if (rangeStart > allPrompts.length) {
+            return alert(`시작 번호(${rangeStart})가 전체 프롬프트 개수(${allPrompts.length})를 초과합니다.`);
+        }
+
+        // 범위에 해당하는 프롬프트 추출 (1-indexed -> 0-indexed 변환)
+        const endIndex = Math.min(rangeEnd, allPrompts.length);
+        globalParagraphs = allPrompts.slice(rangeStart - 1, endIndex);
+
+        // 범위 정보 표시
+        const promptCountInfo = document.getElementById('promptCountInfo');
+        if (promptCountInfo) {
+            promptCountInfo.innerText = `(${rangeStart}번~${endIndex}번, 총 ${globalParagraphs.length}개 생성)`;
+        }
+    } else if (selectedCount === 'all') {
         globalParagraphs = allPrompts;
+        const promptCountInfo = document.getElementById('promptCountInfo');
+        if (promptCountInfo) {
+            promptCountInfo.innerText = `(전체 ${allPrompts.length}개 생성)`;
+        }
     } else {
         const count = parseInt(selectedCount, 10);
         globalParagraphs = allPrompts.slice(0, count);
-    }
-
-    // 프롬프트 개수 정보 표시
-    const promptCountInfo = document.getElementById('promptCountInfo');
-    if (promptCountInfo) {
-        promptCountInfo.innerText = `(총 ${allPrompts.length}개 중 ${globalParagraphs.length}개 생성 예정)`;
+        const promptCountInfo = document.getElementById('promptCountInfo');
+        if (promptCountInfo) {
+            promptCountInfo.innerText = `(1번~${globalParagraphs.length}번, 총 ${globalParagraphs.length}개 생성)`;
+        }
     }
 
     const apiKey = getGeminiAPIKey();
@@ -2725,19 +2822,87 @@ if (resetBtn) {
 // 10. 저장된 데이터 복원 (페이지 로드 시)
 // ============================================================
 function restoreSavedData() {
+    // ★ 내 대본 입력 복원 ★
     const savedScript = loadFromStorage(STORAGE_KEYS.SCRIPT_INPUT);
     if (savedScript) {
         const myScriptInput = document.getElementById('myScriptInput');
         if (myScriptInput) myScriptInput.value = savedScript;
     }
 
+    // ★ 페르소나 복원 ★
     const savedPersona = loadFromStorage(STORAGE_KEYS.PERSONA);
     if (savedPersona && personaInput) {
         characterPersona = savedPersona;
         personaInput.value = savedPersona;
         personaSection.style.display = 'block';
     }
+
+    // ★ 결과 대본 복원 ★
+    const savedResult = loadFromStorage(STORAGE_KEYS.RESULT_TEXT);
+    if (savedResult && savedResult !== '여기에 대본이 나옵니다...') {
+        const resultDiv = document.getElementById('result');
+        if (resultDiv) {
+            resultDiv.innerText = savedResult;
+            // 브릿지 섹션도 표시
+            const bridge = document.getElementById('bridgeSection');
+            if (bridge) bridge.style.display = 'block';
+            // 수정 요청 섹션도 표시
+            const editSection = document.getElementById('editRequestSection');
+            if (editSection) editSection.style.display = 'block';
+        }
+    }
+
+    // ★ 주제/키워드 복원 ★
+    const savedTopic = loadFromStorage(STORAGE_KEYS.TOPIC_INPUT);
+    if (savedTopic) {
+        const topicInput = document.getElementById('topicInput');
+        if (topicInput) topicInput.value = savedTopic;
+    }
+
+    // ★ 지난 이야기 복원 ★
+    const savedPrevStory = loadFromStorage(STORAGE_KEYS.PREV_STORY);
+    if (savedPrevStory) {
+        const prevStoryInput = document.getElementById('prevStoryInput');
+        if (prevStoryInput) prevStoryInput.value = savedPrevStory;
+    }
+
+    // ★ 이미지 프롬프트 입력값 복원 ★
+    const savedImageScript = loadFromStorage(STORAGE_KEYS.IMAGE_SCRIPT_INPUT);
+    if (savedImageScript) {
+        const imageScriptInput = document.getElementById('imageScriptInput');
+        if (imageScriptInput) imageScriptInput.value = savedImageScript;
+    }
+
+    // ★ 이미지 프롬프트 배열 복원 ★
+    const savedImagePrompts = loadFromStorage(STORAGE_KEYS.IMAGE_PROMPTS);
+    if (savedImagePrompts && Array.isArray(savedImagePrompts) && savedImagePrompts.length > 0) {
+        generatedPrompts = savedImagePrompts;
+        renderPromptList(savedImagePrompts);
+    }
+
+    // ★ 범위 선택값 복원 ★
+    const savedRangeStart = loadFromStorage(STORAGE_KEYS.RANGE_START);
+    const savedRangeEnd = loadFromStorage(STORAGE_KEYS.RANGE_END);
+    if (savedRangeStart) {
+        const rangeStartInput = document.getElementById('rangeStartInput');
+        if (rangeStartInput) rangeStartInput.value = savedRangeStart;
+    }
+    if (savedRangeEnd) {
+        const rangeEndInput = document.getElementById('rangeEndInput');
+        if (rangeEndInput) rangeEndInput.value = savedRangeEnd;
+    }
+
+    console.log('✅ 저장된 데이터 복원 완료');
 }
+
+// 페이지 로드 시 복원 실행
+document.addEventListener('DOMContentLoaded', () => {
+    restoreSavedData();
+});
+
+// ============================================================
+// 10-1. 자동 저장 로직
+// ============================================================
 
 // 대본 입력 시 자동 저장
 const myScriptInput = document.getElementById('myScriptInput');
@@ -2749,6 +2914,63 @@ if (myScriptInput) {
             saveToStorage(STORAGE_KEYS.SCRIPT_INPUT, myScriptInput.value);
         }, 500);
     });
+}
+
+// ★ 주제 입력 시 자동 저장 ★
+const topicInputEl = document.getElementById('topicInput');
+if (topicInputEl) {
+    let saveTimeout;
+    topicInputEl.addEventListener('input', () => {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            saveToStorage(STORAGE_KEYS.TOPIC_INPUT, topicInputEl.value);
+        }, 500);
+    });
+}
+
+// ★ 지난 이야기 입력 시 자동 저장 ★
+const prevStoryInputEl = document.getElementById('prevStoryInput');
+if (prevStoryInputEl) {
+    let saveTimeout;
+    prevStoryInputEl.addEventListener('input', () => {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            saveToStorage(STORAGE_KEYS.PREV_STORY, prevStoryInputEl.value);
+        }, 500);
+    });
+}
+
+// ★ 이미지 프롬프트 입력 시 자동 저장 ★
+const imageScriptInputEl = document.getElementById('imageScriptInput');
+if (imageScriptInputEl) {
+    let saveTimeout;
+    imageScriptInputEl.addEventListener('input', () => {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            saveToStorage(STORAGE_KEYS.IMAGE_SCRIPT_INPUT, imageScriptInputEl.value);
+        }, 500);
+    });
+}
+
+// ★ 범위 입력 시 자동 저장 ★
+const rangeStartInputEl = document.getElementById('rangeStartInput');
+const rangeEndInputEl = document.getElementById('rangeEndInput');
+if (rangeStartInputEl) {
+    rangeStartInputEl.addEventListener('input', () => {
+        saveToStorage(STORAGE_KEYS.RANGE_START, rangeStartInputEl.value);
+    });
+}
+if (rangeEndInputEl) {
+    rangeEndInputEl.addEventListener('input', () => {
+        saveToStorage(STORAGE_KEYS.RANGE_END, rangeEndInputEl.value);
+    });
+}
+
+// ★ 결과 대본 저장 함수 (대본 생성 후 호출) ★
+function saveResultText(text) {
+    if (text && text !== '여기에 대본이 나옵니다...') {
+        saveToStorage(STORAGE_KEYS.RESULT_TEXT, text);
+    }
 }
 
 // ============================================================
@@ -2846,6 +3068,9 @@ if (generateBlogBtn) {
 
             // 결과 표시 (이미지 프롬프트 제외)
             resultDiv.innerText = blogContent;
+
+            // ★ 블로그 글도 localStorage에 저장 ★
+            saveResultText(blogContent);
 
             // 복사 버튼 표시를 위해 브릿지 섹션 표시
             const bridge = document.getElementById('bridgeSection');
@@ -3623,20 +3848,25 @@ const prevStoryInput = document.getElementById('prevStoryInput');
 
 if (suggestTopicsBtn) {
     suggestTopicsBtn.addEventListener('click', async () => {
-        // 참고 대본 확인 (지난 이야기 필드 사용)
-        const referenceScript = prevStoryInput ? prevStoryInput.value.trim() : '';
+        // 참고 대본 가져오기 (지난 이야기 또는 주제/키워드에서)
+        const prevStory = prevStoryInput?.value?.trim() || '';
+        const topic = topicInput?.value?.trim() || '';
 
-        if (!referenceScript || referenceScript.length < 100) {
-            return alert("📖 '지난 이야기' 필드에 참고용 대본을 입력해주세요!\n\n(최소 100자 이상의 참고 대본이 필요합니다)");
+        const referenceScript = prevStory || topic;
+
+        if (!referenceScript || referenceScript.length < 50) {
+            alert('📝 참고 대본을 입력해주세요!\n\n지난 이야기 또는 주제/키워드 입력란에 50자 이상의 참고 대본을 입력해주세요.');
+            return;
         }
 
         const apiKey = getGeminiAPIKey();
         if (!apiKey) {
-            return alert("API 키가 없습니다. 위에서 API 키를 입력하고 저장하세요.");
+            alert('⚠️ API 키가 없습니다. 먼저 API 키를 저장해주세요.');
+            return;
         }
 
         suggestTopicsBtn.disabled = true;
-        suggestTopicsBtn.innerText = "⏳ 주제 분석 중...";
+        suggestTopicsBtn.innerText = '⏳ 주제 분석 중...';
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
@@ -3649,6 +3879,7 @@ if (suggestTopicsBtn) {
                     }
                 })
             });
+
             const data = await response.json();
 
             if (!response.ok) throw new Error(data.error?.message || "통신 오류");
